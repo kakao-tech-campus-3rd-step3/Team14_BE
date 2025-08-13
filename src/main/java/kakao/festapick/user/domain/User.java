@@ -1,20 +1,24 @@
 package kakao.festapick.user.domain;
 
 import jakarta.persistence.*;
+import kakao.festapick.jwt.domain.RefreshToken;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "users")
+@Getter
 public class User {
 
     @Id
@@ -39,6 +43,9 @@ public class User {
     @Column(nullable = false)
     private SocialType socialType;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefreshToken> refreshToken;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdDate;
@@ -46,12 +53,11 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
-    public User(String identifier, String email, String username, SocialType socialType, LocalDateTime createdDate, LocalDateTime updatedDate) {
+    public User(String identifier, String email, String username, UserRoleType userRoleType, SocialType socialType) {
         this.identifier = identifier;
         this.email = email;
         this.username = username;
+        this.roleType = userRoleType;
         this.socialType = socialType;
-        this.createdDate = createdDate;
-        this.updatedDate = updatedDate;
     }
 }
