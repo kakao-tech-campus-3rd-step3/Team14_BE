@@ -5,6 +5,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.service.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class CustomLogoutFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final JwtService jwtService;
+    private final CookieComponent cookieComponent;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -66,18 +68,8 @@ public class CustomLogoutFilter extends OncePerRequestFilter {
 
         jwtService.deleteRefreshTokenByIdentifier(identifier);
 
-        response.addHeader("Set-Cookie", createCookie("refreshToken", null));
+        response.addHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
         response.setStatus(HttpServletResponse.SC_OK);
 
-    }
-
-    private String createCookie(String key, String value) {
-        return ResponseCookie.from(key, value)
-                .path("/")
-                .secure(false)
-                .maxAge(0)
-                .httpOnly(true)
-                .build()
-                .toString();
     }
 }

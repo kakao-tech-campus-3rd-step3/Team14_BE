@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "users")
 @Getter
-public class User {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,7 +53,7 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
-    public User(String identifier, String email, String username, UserRoleType userRoleType, SocialType socialType) {
+    public UserEntity(String identifier, String email, String username, UserRoleType userRoleType, SocialType socialType) {
         this.identifier = identifier;
         this.email = email;
         this.username = username;

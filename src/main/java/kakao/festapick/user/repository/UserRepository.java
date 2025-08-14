@@ -1,11 +1,13 @@
 package kakao.festapick.user.repository;
 
-import kakao.festapick.user.domain.User;
+import kakao.festapick.user.domain.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    Optional<User> findByIdentifier(String identifier);
+    Optional<UserEntity> findByIdentifier(String identifier);
+
+    void deleteByIdentifier(String identifier);
 }

@@ -3,6 +3,7 @@ package kakao.festapick.oauth2.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.service.JwtService;
@@ -18,6 +19,7 @@ public class SocialSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JWTUtil jwtUtil;
     private final JwtService jwtService;
+    private final CookieComponent cookieComponent;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -30,20 +32,10 @@ public class SocialSuccessHandler implements AuthenticationSuccessHandler {
 
         jwtService.saveRefreshToken(identifier, refreshToken);
 
-        response.addHeader("Set-Cookie", createCookie("refreshToken", refreshToken));
+        response.addHeader("Set-Cookie", cookieComponent.createRefreshToken(refreshToken));
         response.sendRedirect("http://localhost:3000/cookie?redirect="+state);
     }
 
 
-
-    private String createCookie(String key, String value) {
-        return ResponseCookie.from(key, value)
-                .path("/")
-                .secure(false)
-                .maxAge(10)
-                .httpOnly(true)
-                .build()
-                .toString();
-    }
 
 }

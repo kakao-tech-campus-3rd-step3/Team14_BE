@@ -1,7 +1,7 @@
 package kakao.festapick.jwt.domain;
 
 import jakarta.persistence.*;
-import kakao.festapick.user.domain.User;
+import kakao.festapick.user.domain.UserEntity;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,9 +23,9 @@ public class RefreshToken {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true, nullable = false)
-    private User user;
+    private UserEntity user;
 
-    public RefreshToken(User user, String token) {
+    public RefreshToken(UserEntity user, String token) {
         this.user = user;
         this.token = token;
     }

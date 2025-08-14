@@ -1,8 +1,10 @@
 package kakao.festapick.user.service;
 
+import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.SocialType;
-import kakao.festapick.user.domain.User;
+import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.CustomOAuth2User;
 import kakao.festapick.user.dto.GoogleOAuth2Rep;
@@ -22,9 +24,10 @@ import java.util.Optional;
 @Transactional
 @Service
 @RequiredArgsConstructor
-public class OAuth2UserService extends DefaultOAuth2UserService {
+public class OAuth2UserService extends DefaultOAuth2UserService  {
 
     private final UserRepository userRepository;
+    private final CookieComponent cookieComponent;
 
 
     @Override
@@ -33,22 +36,27 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
         OAuth2Response oAuth2Response = parseOAuth2User(userRequest, oAuth2User);
 
-        User user = socialLogin(oAuth2Response);
+        UserEntity user = socialLogin(oAuth2Response);
 
         return new CustomOAuth2User(oAuth2User.getAttributes(), user);
     }
 
-    public User socialLogin(OAuth2Response oAuth2Response) {
+    public UserEntity socialLogin(OAuth2Response oAuth2Response) {
         String identifier = oAuth2Response.getProvider() + "-" +oAuth2Response.getProviderId();
-        Optional<User> findUser = userRepository.findByIdentifier(identifier);
+        Optional<UserEntity> findUser = userRepository.findByIdentifier(identifier);
 
         if (findUser.isPresent()) return findUser.get();
-        return userRepository.save(new User(identifier, oAuth2Response.getEmail(), oAuth2Response.getUsername(), UserRoleType.USER, oAuth2Response.getProvider()));
+        return userRepository.save(new UserEntity(identifier, oAuth2Response.getEmail(), oAuth2Response.getUsername(), UserRoleType.USER, oAuth2Response.getProvider()));
     }
 
-    public User findByIdentifier(String identifier) {
+    public UserEntity findByIdentifier(String identifier) {
         return userRepository.findByIdentifier(identifier)
                 .orElseThrow(()->new NotFoundEntityException("존재하지 않는 회원입니다."));
+    }
+
+    public void withDraw(String identifier, HttpServletResponse response) {
+        userRepository.deleteByIdentifier(identifier);
+        response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
     }
 
     private OAuth2Response parseOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {

@@ -4,11 +4,12 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
-import kakao.festapick.user.domain.User;
+import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -25,10 +26,11 @@ public class JwtService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final OAuth2UserService userService;
     private final JWTUtil jwtUtil;
+    private final CookieComponent cookieComponent;
 
     public RefreshToken saveRefreshToken(String identifier, String refreshToken) {
 
-        User findUser = userService.findByIdentifier(identifier);
+        UserEntity findUser = userService.findByIdentifier(identifier);
 
         refreshTokenRepository.deleteByUser(findUser);
 
@@ -60,22 +62,12 @@ public class JwtService {
         saveRefreshToken(identifier, newRefreshToken);
 
         response.addHeader("Authorization", "Bearer " + newAccessToken);
-        response.addHeader("Set-Cookie", createCookie("refreshToken", newRefreshToken));
+        response.addHeader("Set-Cookie", cookieComponent.createRefreshToken(newRefreshToken));
 
     }
 
     public void deleteRefreshTokenByIdentifier(String identifier) {
-        User findUser = userService.findByIdentifier(identifier);
+        UserEntity findUser = userService.findByIdentifier(identifier);
         refreshTokenRepository.deleteByUser(findUser);
-    }
-
-    private String createCookie(String key, String value) {
-        return ResponseCookie.from(key, value)
-                .path("/")
-                .secure(false)
-                .maxAge(604800)
-                .httpOnly(true)
-                .build()
-                .toString();
     }
 }

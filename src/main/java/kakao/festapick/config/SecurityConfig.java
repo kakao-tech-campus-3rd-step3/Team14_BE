@@ -1,6 +1,7 @@
 package kakao.festapick.config;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.filter.CustomLogoutFilter;
 import kakao.festapick.global.filter.JWTFilter;
 import kakao.festapick.jwt.JWTUtil;
@@ -30,6 +31,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final JwtService jwtService;
     private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
+    private final CookieComponent cookieComponent;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -40,10 +42,11 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(auth->auth
+                .requestMatchers("/api/users/**").authenticated()
                 .anyRequest().permitAll());
 
         http.oauth2Login(oauth2->oauth2
-                .successHandler(new SocialSuccessHandler(jwtUtil, jwtService))
+                .successHandler(new SocialSuccessHandler(jwtUtil, jwtService, cookieComponent))
                 .authorizationEndpoint(endPoint->endPoint.authorizationRequestResolver(customAuthorizationRequestResolver)));
 
         http.exceptionHandling(e->e
@@ -59,7 +62,7 @@ public class SecurityConfig {
 
         http.addFilterBefore(new JWTFilter(jwtUtil), LogoutFilter.class);
 
-        http.addFilterAt(new CustomLogoutFilter(jwtUtil, jwtService), LogoutFilter.class);
+        http.addFilterAt(new CustomLogoutFilter(jwtUtil, jwtService, cookieComponent), LogoutFilter.class);
 
         return http.build();
     }
