@@ -60,4 +60,13 @@ public class UserEntity {
         this.roleType = userRoleType;
         this.socialType = socialType;
     }
+
+    public UserEntity(Long id, String identifier, String email, String username, UserRoleType roleType, SocialType socialType) {
+        this.id = id;
+        this.identifier = identifier;
+        this.email = email;
+        this.username = username;
+        this.roleType = roleType;
+        this.socialType = socialType;
+    }
 }

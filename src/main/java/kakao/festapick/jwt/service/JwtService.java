@@ -50,7 +50,7 @@ public class JwtService {
         String oldRefreshToken = refreshCookie.getValue();
 
         if (!jwtUtil.validateToken(oldRefreshToken, false))
-            throw new AuthenticationException("리프래시 토큰이 아닙니다.");
+            throw new AuthenticationException("리프래시 토큰이 유효하지 않습니다.");
         Claims claims = jwtUtil.getClaims(oldRefreshToken);
         String identifier = claims.get("identifier").toString();
         String role = claims.get("role").toString();
