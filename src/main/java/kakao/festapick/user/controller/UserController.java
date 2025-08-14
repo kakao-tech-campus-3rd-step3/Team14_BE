@@ -1,4 +1,4 @@
-package kakao.festapick.user;
+package kakao.festapick.user.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.user.service.OAuth2UserService;
