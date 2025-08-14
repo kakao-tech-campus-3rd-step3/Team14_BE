@@ -26,9 +26,11 @@ public class JwtService {
     private final OAuth2UserService userService;
     private final JWTUtil jwtUtil;
 
-    public RefreshToken saveRefreshToken(String Identifier, String refreshToken) {
+    public RefreshToken saveRefreshToken(String identifier, String refreshToken) {
 
-        User findUser = userService.findByIdentifier(Identifier);
+        User findUser = userService.findByIdentifier(identifier);
+
+        refreshTokenRepository.deleteByUser(findUser);
 
         return refreshTokenRepository.save(new RefreshToken(findUser, refreshToken));
     }
@@ -51,17 +53,20 @@ public class JwtService {
         String identifier = claims.get("identifier").toString();
         String role = claims.get("role").toString();
 
-        User findUser = userService.findByIdentifier(identifier);
 
         String newAccessToken = jwtUtil.createJWT(identifier, role, true);
         String newRefreshToken = jwtUtil.createJWT(identifier, role, false);
 
-        refreshTokenRepository.deleteByUser(findUser);
-        refreshTokenRepository.save(new RefreshToken(findUser,newRefreshToken));
+        saveRefreshToken(identifier, newRefreshToken);
 
         response.addHeader("Authorization", "Bearer " + newAccessToken);
         response.addHeader("Set-Cookie", createCookie("refreshToken", newRefreshToken));
 
+    }
+
+    public void deleteRefreshTokenByIdentifier(String identifier) {
+        User findUser = userService.findByIdentifier(identifier);
+        refreshTokenRepository.deleteByUser(findUser);
     }
 
     private String createCookie(String key, String value) {

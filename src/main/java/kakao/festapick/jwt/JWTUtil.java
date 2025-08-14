@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.crypto.Data;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -31,15 +32,18 @@ public class JWTUtil {
     }
 
     public boolean validateToken(String token, Boolean isAccess) {
-        Claims claims = getClaims(token);
+        try {
+            Claims claims = getClaims(token);
+            String tokenType = claims.get("tokenType").toString();
 
-        String tokenType = claims.get("tokenType").toString();
+            if (tokenType == null) return false;
+            if (isAccess && tokenType.equals("refresh")) return false;
+            if (!isAccess && tokenType.equals("access")) return false;
 
-        if (tokenType == null) return false;
-        if (isAccess && tokenType.equals("refresh")) return false;
-        if (!isAccess && tokenType.equals("access")) return false;
-
-        return true;
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
 

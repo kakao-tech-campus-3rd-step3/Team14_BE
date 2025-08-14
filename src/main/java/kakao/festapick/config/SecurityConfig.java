@@ -1,6 +1,7 @@
 package kakao.festapick.config;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.filter.CustomLogoutFilter;
 import kakao.festapick.global.filter.JWTFilter;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.service.JwtService;
@@ -57,6 +58,8 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.addFilterBefore(new JWTFilter(jwtUtil), LogoutFilter.class);
+
+        http.addFilterAt(new CustomLogoutFilter(jwtUtil, jwtService), LogoutFilter.class);
 
         return http.build();
     }
