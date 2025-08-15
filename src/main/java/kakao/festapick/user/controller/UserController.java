@@ -23,7 +23,7 @@ public class UserController {
 
         oAuth2UserService.withDraw(identifier,response);
 
-        return  ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }

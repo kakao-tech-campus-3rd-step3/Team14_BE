@@ -8,6 +8,7 @@ import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.oauth2.resolver.CustomAuthorizationRequestResolver;
 import kakao.festapick.oauth2.handler.SocialSuccessHandler;
+import kakao.festapick.user.domain.UserRoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
