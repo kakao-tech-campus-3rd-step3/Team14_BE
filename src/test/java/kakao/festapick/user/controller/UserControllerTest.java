@@ -35,7 +35,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("회원 탈퇴 성공")
-    @WithCustomMockUser(username = identifier)
+    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void withDrawSuccess() throws Exception {
 
         // given

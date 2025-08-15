@@ -70,4 +70,25 @@ public class JWTUtil {
                 .signWith(secretKey)
                 .compact();
     }
+
+    public String createJWT(String identifier, String role, Boolean isAccess, Long expiredMs) {
+
+        String type;
+
+        if (isAccess) {
+            type = "access";
+        }
+        else {
+            type = "refresh";
+        }
+
+        return Jwts.builder()
+                .claim("identifier", identifier)
+                .claim("role",role)
+                .claim("tokenType",type)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis()+expiredMs))
+                .signWith(secretKey)
+                .compact();
+    }
 }

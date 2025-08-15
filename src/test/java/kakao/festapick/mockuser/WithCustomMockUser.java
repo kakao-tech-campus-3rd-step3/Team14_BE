@@ -14,6 +14,5 @@ import java.lang.annotation.*;
 public @interface WithCustomMockUser {
 
     String identifier() default "GOOGLE_1234";
-    String username() default "유저이름";
     String role() default "ROLE_USER";
 }

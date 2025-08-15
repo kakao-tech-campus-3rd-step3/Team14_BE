@@ -15,7 +15,7 @@ public class WithMockCustomSecurityContextFactory implements WithSecurityContext
     @Override
     public SecurityContext createSecurityContext(WithCustomMockUser annotation) {
 
-        String identifier = annotation.username();
+        String identifier = annotation.identifier();
         String role = annotation.role();
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
 
