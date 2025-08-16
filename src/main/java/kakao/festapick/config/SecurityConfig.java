@@ -6,10 +6,10 @@ import kakao.festapick.global.filter.CustomLogoutFilter;
 import kakao.festapick.global.filter.JWTFilter;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.service.JwtService;
-import kakao.festapick.oauth2.resolver.CustomAuthorizationRequestResolver;
 import kakao.festapick.oauth2.handler.SocialSuccessHandler;
-import kakao.festapick.user.domain.UserRoleType;
+import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,8 +31,10 @@ public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
     private final JwtService jwtService;
-    private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
     private final CookieComponent cookieComponent;
+    private final OAuth2UserService oAuth2UserService;
+    @Value("${spring.front.domain}")
+    private String frontDomain;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,8 +49,9 @@ public class SecurityConfig {
                 .anyRequest().permitAll());
 
         http.oauth2Login(oauth2->oauth2
-                .successHandler(new SocialSuccessHandler(jwtUtil, jwtService, cookieComponent))
-                .authorizationEndpoint(endPoint->endPoint.authorizationRequestResolver(customAuthorizationRequestResolver)));
+                .userInfoEndpoint((userInfoEndpointConfig ->
+                        userInfoEndpointConfig.userService(oAuth2UserService)))
+                .successHandler(new SocialSuccessHandler(jwtUtil, jwtService, cookieComponent, frontDomain)));
 
         http.exceptionHandling(e->e
                 .authenticationEntryPoint((request, response, authException)-> {
@@ -71,7 +74,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of(frontDomain));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
