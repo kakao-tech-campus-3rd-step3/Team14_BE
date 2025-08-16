@@ -21,6 +21,9 @@ jobs:
       - name: 운영용 .properties로 교체
         run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
 
+      - name: 테스트 환경변수 주입
+        run: echo "${{ secrets.APPLICATION_TEST_PROPERTIES }}" > ./src/test/resources/application.properties
+
       - name: 테스트 및 빌드하기
         run: ./gradlew clean build
 
