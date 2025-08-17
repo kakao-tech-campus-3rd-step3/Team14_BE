@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import kakao.festapick.global.component.CookieComponent;
+import kakao.festapick.global.component.TokenEncoder;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
@@ -23,6 +24,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -47,6 +49,9 @@ class JwtServiceTest {
     @Mock
     private CookieComponent cookieComponent;
 
+    @Mock
+    private TokenEncoder tokenEncoder;
+
     @Test
     @DisplayName("리프래시 토큰 저장 성공")
     void saveRefreshTokenSuccess() {
@@ -58,8 +63,12 @@ class JwtServiceTest {
         given(oAuth2UserService.findByIdentifier(any()))
                 .willReturn(userEntity);
 
+        given(tokenEncoder.encode(any()))
+                .willReturn(refreshToken);
+
         given(refreshTokenRepository.save(any()))
                 .willReturn(new RefreshToken(userEntity,refreshToken));
+
 
         // then
         RefreshToken saveRefreshToken = jwtService.saveRefreshToken(userEntity.getIdentifier(), refreshToken);
@@ -74,6 +83,7 @@ class JwtServiceTest {
 
         verify(oAuth2UserService).findByIdentifier(any());
         verify(refreshTokenRepository).deleteByUser(any());
+        verify(tokenEncoder).encode(any());
         verify(refreshTokenRepository).save(any());
     }
 
@@ -104,6 +114,13 @@ class JwtServiceTest {
                 .willReturn(accessToken, refreshToken);
 
         UserEntity userEntity = createUserEntity();
+
+        given(refreshTokenRepository.findByUserIdentifier(any()))
+                .willReturn(Optional.of(new RefreshToken(userEntity, UUID.randomUUID().toString())));
+
+        given(tokenEncoder.match(any(), any()))
+                .willReturn(true);
+
 
         given(oAuth2UserService.findByIdentifier(any()))
                 .willReturn(userEntity);

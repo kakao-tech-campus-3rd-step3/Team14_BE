@@ -2,6 +2,7 @@ package kakao.festapick.jwt.controller;
 
 import jakarta.servlet.http.Cookie;
 import kakao.festapick.jwt.JWTUtil;
+import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
@@ -31,6 +32,9 @@ class JwtControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private JwtService jwtService;
+
+    @Autowired
     private JWTUtil jwtUtil;
 
     private static final String identifier = "GOOGLE_1234";
@@ -43,6 +47,8 @@ class JwtControllerTest {
         UserEntity userEntity = saveUserEntity();
 
         String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), false);
+
+        jwtService.saveRefreshToken(userEntity.getIdentifier(), refreshToken);
 
         mockMvc.perform(post("/jwt/exchange")
                 .cookie(new Cookie("refreshToken", refreshToken)))

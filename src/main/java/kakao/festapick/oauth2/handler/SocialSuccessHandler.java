@@ -28,7 +28,6 @@ public class SocialSuccessHandler implements AuthenticationSuccessHandler {
         String identifier = authentication.getName();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 
-
         String refreshToken = jwtUtil.createJWT(identifier, "ROLE_"+role, false);
 
         jwtService.saveRefreshToken(identifier, refreshToken);
