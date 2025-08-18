@@ -2,5 +2,5 @@ package kakao.festapick.user.domain;
 
 public enum UserRoleType {
 
-    USER, ADMIN
+    USER, ADMIN, FESTIVAL_MANAGER
 }

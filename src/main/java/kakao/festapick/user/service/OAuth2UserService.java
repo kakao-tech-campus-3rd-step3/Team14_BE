@@ -6,12 +6,11 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
-import kakao.festapick.user.dto.CustomOAuth2User;
-import kakao.festapick.user.dto.GoogleOAuth2Rep;
-import kakao.festapick.user.dto.KakaoOAuth2Rep;
-import kakao.festapick.user.dto.OAuth2Response;
+import kakao.festapick.user.dto.*;
 import kakao.festapick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -59,10 +58,25 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
     }
 
+    public Page<UserResponseDto> findAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(UserResponseDto::new);
+    }
+
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    public void changeUserRole(Long id, UserRoleType role) {
+        UserEntity findUser = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 회원입니다."));
+        findUser.changeUserRole(role);
+    }
+
     private OAuth2Response parseOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
         String social = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
 
-        if (social.equalsIgnoreCase(SocialType.KAKAO.name())) {
+        if (social.equalsIgnoreCase(SocialType.KAKAO.name()) || social.equalsIgnoreCase("kakao-ssr")) {
             return new KakaoOAuth2Rep(oAuth2User.getAttributes());
 
         }

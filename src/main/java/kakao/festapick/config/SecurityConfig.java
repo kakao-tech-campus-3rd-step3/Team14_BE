@@ -3,10 +3,13 @@ package kakao.festapick.config;
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.filter.CustomLogoutFilter;
+import kakao.festapick.global.filter.CustomLogoutFilterForAdminPage;
 import kakao.festapick.global.filter.JWTFilter;
+import kakao.festapick.global.filter.JWTFilterForAdminPage;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.oauth2.handler.SocialSuccessHandler;
+import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +49,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth->auth
                 .requestMatchers("/api/users/**").authenticated()
+                .requestMatchers("/admin/**").hasRole(UserRoleType.ADMIN.name())
                 .anyRequest().permitAll());
 
         http.oauth2Login(oauth2->oauth2
@@ -55,7 +59,8 @@ public class SecurityConfig {
 
         http.exceptionHandling(e->e
                 .authenticationEntryPoint((request, response, authException)-> {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    if (request.getRequestURI().startsWith("/admin")) response.sendRedirect("/login");
+                    else response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                 })
                 .accessDeniedHandler((request, response, authException)-> {
                     response.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -64,9 +69,12 @@ public class SecurityConfig {
         http.sessionManagement(session->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.addFilterBefore(new JWTFilter(jwtUtil), LogoutFilter.class);
+        http.addFilterBefore(new JWTFilter(jwtUtil,oAuth2UserService), LogoutFilter.class);
+
+        http.addFilterBefore(new JWTFilterForAdminPage(jwtUtil,oAuth2UserService,cookieComponent), JWTFilter.class);
 
         http.addFilterAt(new CustomLogoutFilter(jwtUtil, jwtService, cookieComponent), LogoutFilter.class);
+        http.addFilterAfter(new CustomLogoutFilterForAdminPage(jwtUtil, cookieComponent),CustomLogoutFilter.class);
 
         return http.build();
     }

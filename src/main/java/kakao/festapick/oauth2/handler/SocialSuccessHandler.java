@@ -28,6 +28,15 @@ public class SocialSuccessHandler implements AuthenticationSuccessHandler {
         String identifier = authentication.getName();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 
+        String requestURI = request.getRequestURI();
+
+        if (requestURI.endsWith("ssr")) {
+            String accessToken = jwtUtil.createJWT(identifier, "ROLE_" + role, true);
+            response.addHeader("Set-Cookie", cookieComponent.createAccessToken(accessToken));
+            response.sendRedirect("/admin");
+            return;
+        }
+
         String refreshToken = jwtUtil.createJWT(identifier, "ROLE_"+role, false);
 
         jwtService.saveRefreshToken(identifier, refreshToken);
