@@ -55,7 +55,7 @@ public class ApiClient {
                         .queryParam("eventStartDate", getDate())
                         .queryParam("serviceKey", tourApiKey)
                         .queryParam("_type", "json")
-                        .queryParam("numOfRows", 50)
+                        .queryParam("numOfRows", numOfRows)
                         .build())
                 .retrieve()
                 .toEntity(TourApiResponse.class);
