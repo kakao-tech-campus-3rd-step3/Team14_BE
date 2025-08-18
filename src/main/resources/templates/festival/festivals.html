@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Festival List</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #f9f9f9, #f0f7ff);
+      margin: 0;
+      padding: 40px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 70%;
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h2 {
+      color: #0056b3;
+      margin-bottom: 20px;
+    }
+
+    #loadFestivals {
+      padding: 12px 25px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background: #007bff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-bottom: 30px;
+    }
+
+    #loadFestivals:hover {
+      background: #0056b3;
+    }
+
+    #festivalTable {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 20px;
+    }
+
+    #festivalTable thead {
+      display: none; /* 카드형 UI라 헤더는 숨김 */
+    }
+
+    #festivalTable tbody tr {
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    #festivalTable tbody tr:hover {
+      transform: translateY(-5px);
+    }
+
+    #festivalTable td {
+      padding: 20px;
+      vertical-align: middle;
+    }
+
+    /* 이미지 칸 */
+    #festivalTable td:first-child {
+      width: 200px;
+      text-align: center;
+    }
+
+    #festivalTable td img {
+      border-radius: 10px;
+      width: 180px;
+      height: 120px;
+      object-fit: cover;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    #festivalTable td img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* 텍스트 칸 */
+    #festivalTable td:last-child {
+      text-align: left;
+    }
+
+    .festival-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .festival-overview {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>✨ Festival Explorer ✨</h2>
+
+  <!-- 버튼 -->
+  <button id="loadFestivals">🎉 축제 불러오기</button>
+
+  <!-- 카드형 테이블 -->
+  <table id="festivalTable">
+    <tbody>
+    <!-- Ajax로 데이터가 들어올 자리 -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  $(document).ready(function () {
+    $("#loadFestivals").click(function () {
+      $.ajax({
+        url: "/api/festivals/approved/all",
+        method: "GET",
+        success: function (data) {
+          let tableBody = $("#festivalTable tbody");
+          tableBody.empty(); // 기존 내용 제거
+
+          data.forEach(function (festival) {
+            let row = `
+                            <tr>
+                                <td>
+                                    <a href="${festival.homePage}" target="_blank">
+                                        <img src="${festival.imageUrl}" alt="image">
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="festival-title">${festival.title}</div>
+                                    <div class="festival-overview">${festival.overView}</div>
+                                </td>
+                            </tr>
+                        `;
+            tableBody.append(row);
+          });
+        },
+        error: function () {
+          alert("데이터를 불러오지 못했습니다.");
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>
