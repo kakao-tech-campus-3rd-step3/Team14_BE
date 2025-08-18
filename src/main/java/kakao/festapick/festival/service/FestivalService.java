@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.CustomFestivalRequestDto;
@@ -14,6 +13,7 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalResponseDto;
 import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.tourapi.TourDetailResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
