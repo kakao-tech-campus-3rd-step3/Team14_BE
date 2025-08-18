@@ -77,8 +77,6 @@ public class JwtService {
         response.addHeader("Authorization", "Bearer " + newAccessToken);
         response.addHeader("Set-Cookie", cookieComponent.createRefreshToken(newRefreshToken));
 
-        System.out.println("success");
-
     }
 
     public void deleteRefreshTokenByIdentifier(String identifier) {

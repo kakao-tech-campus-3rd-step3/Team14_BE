@@ -3,8 +3,10 @@ package kakao.festapick.global.filter;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.user.domain.UserEntity;
@@ -18,36 +20,43 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class JWTFilter extends OncePerRequestFilter {
+public class JWTFilterForAdminPage extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final OAuth2UserService oAuth2UserService;
+    private final CookieComponent cookieComponent;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        if (request.getRequestURI().startsWith("/admin")) return true;
-        return false;
+        if (request.getRequestURI().startsWith("/admin")) return false;
+        return true;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String authorization = request.getHeader("Authorization");
+        Cookie[] cookies = request.getCookies();
 
-        if (authorization == null) {
+        if (cookies == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (!authorization.startsWith("Bearer ")) {
-            throw new ServletException("Invalid JWT Token");
+        Cookie accessCookie = Arrays.stream(cookies)
+                .filter(cookie -> cookie.getName().equalsIgnoreCase("accessToken"))
+                .findFirst().orElse(null);
+
+        if (accessCookie == null) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        String accessToken = authorization.split(" ")[1];
+        String accessToken = accessCookie.getValue();
 
         if (!jwtUtil.validateToken(accessToken, true)) {
 
@@ -67,8 +76,8 @@ public class JWTFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
             filterChain.doFilter(request, response);
         } catch (NotFoundEntityException ex) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setHeader("Set-Cookie", cookieComponent.deleteAccessToken());
+            response.sendRedirect("/login");
         }
-
     }
 }

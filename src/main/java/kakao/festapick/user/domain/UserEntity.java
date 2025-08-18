@@ -69,4 +69,8 @@ public class UserEntity {
         this.roleType = roleType;
         this.socialType = socialType;
     }
+
+    public void changeUserRole(UserRoleType roleType) {
+        this.roleType = roleType;
+    }
 }

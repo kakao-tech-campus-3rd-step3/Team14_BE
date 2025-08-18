@@ -37,4 +37,28 @@ public class CookieComponent {
                 .build()
                 .toString();
     }
+
+    public String createAccessToken(String value) {
+        return ResponseCookie.from("accessToken", value)
+                .path("/")
+                .secure(secure)
+                .maxAge(3600)
+                .domain(domain)
+                .httpOnly(true)
+                .sameSite(same)
+                .build()
+                .toString();
+    }
+
+    public String deleteAccessToken() {
+        return ResponseCookie.from("accessToken", null)
+                .path("/")
+                .secure(secure)
+                .maxAge(0)
+                .domain(domain)
+                .httpOnly(true)
+                .sameSite(same)
+                .build()
+                .toString();
+    }
 }
