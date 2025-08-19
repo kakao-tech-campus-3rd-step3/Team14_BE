@@ -15,7 +15,7 @@ public class JwtController {
 
     private final JwtService jwtService;
 
-    @PostMapping("/jwt/exchange")
+    @PostMapping("/api/jwt/exchange")
     public ResponseEntity<Void> jwtExchange(HttpServletRequest request, HttpServletResponse response) {
 
         jwtService.exchangeToken(request, response);

@@ -50,7 +50,7 @@ class JwtControllerTest {
 
         jwtService.saveRefreshToken(userEntity.getIdentifier(), refreshToken);
 
-        mockMvc.perform(post("/jwt/exchange")
+        mockMvc.perform(post("/api/jwt/exchange")
                 .cookie(new Cookie("refreshToken", refreshToken)))
                 .andExpect(header().string("Set-Cookie", containsString("refreshToken")))
                 .andExpect(header().string("Authorization", containsString("Bearer")));
@@ -62,7 +62,7 @@ class JwtControllerTest {
     @WithCustomMockUser(identifier = identifier, role = "USER_ROLE")
     void exchangeTokenFailure() throws Exception {
 
-        mockMvc.perform(post("/jwt/exchange"))
+        mockMvc.perform(post("/api/jwt/exchange"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("쿠키가 존재하지 않습니다."));
     }
@@ -74,7 +74,7 @@ class JwtControllerTest {
 
         Cookie cookie = new Cookie("cookie", null);
 
-        mockMvc.perform(post("/jwt/exchange")
+        mockMvc.perform(post("/api/jwt/exchange")
                         .cookie(cookie))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("리프래시 토큰이 존재하지 않습니다."));
@@ -90,7 +90,7 @@ class JwtControllerTest {
         String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), false, 0L);
 
         Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-        mockMvc.perform(post("/jwt/exchange")
+        mockMvc.perform(post("/api/jwt/exchange")
                         .cookie(refreshCookie))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("리프래시 토큰이 유효하지 않습니다."));
