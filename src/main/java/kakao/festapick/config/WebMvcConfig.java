@@ -5,16 +5,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.List;
+
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Value("${spring.front.domain}")
     private String frontDomain;
 
+    @Value("${spring.backend.domain}")
+    private String backendDomain;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns(frontDomain)
+                .allowedOriginPatterns(frontDomain,backendDomain)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(true)
                 .allowedHeaders("*")

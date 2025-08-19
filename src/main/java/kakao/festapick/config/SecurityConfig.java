@@ -38,6 +38,8 @@ public class SecurityConfig {
     private final OAuth2UserService oAuth2UserService;
     @Value("${spring.front.domain}")
     private String frontDomain;
+    @Value("${spring.backend.domain}")
+    private String backendDomain;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -82,7 +84,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(frontDomain));
+        configuration.setAllowedOriginPatterns(List.of(frontDomain,backendDomain));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
