@@ -1,12 +1,14 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.admin.dto.UserSearchCond;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.*;
+import kakao.festapick.user.repository.QUserRepository;
 import kakao.festapick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
 
     private final UserRepository userRepository;
     private final CookieComponent cookieComponent;
+    private final QUserRepository qUserRepository;
 
 
     @Override
@@ -58,8 +61,8 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
     }
 
-    public Page<UserResponseDto> findAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable)
+    public Page<UserResponseDto> findByIdentifierOrUserEmail(UserSearchCond userSearchCond, Pageable pageable) {
+        return qUserRepository.findByIdentifierOrUserEmail(userSearchCond, pageable)
                 .map(UserResponseDto::new);
     }
 
