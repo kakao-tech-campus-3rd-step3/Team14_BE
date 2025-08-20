@@ -70,6 +70,10 @@ public class UserEntity {
         this.socialType = socialType;
     }
 
+    public UserEntity(Long id){
+        this.id = id;
+    }
+
     public void changeUserRole(UserRoleType roleType) {
         this.roleType = roleType;
     }

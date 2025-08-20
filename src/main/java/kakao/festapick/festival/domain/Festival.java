@@ -4,11 +4,15 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import kakao.festapick.festival.dto.CustomFestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
 
 @Entity
@@ -44,23 +48,14 @@ public class Festival {
     @Enumerated(EnumType.STRING)
     private FestivalState state;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private UserEntity manager;
+
     protected Festival() { }
 
-    public Festival(FestivalRequestDto festivalRequestDto) {
-        this.contentId = festivalRequestDto.contentId();
-        this.title = festivalRequestDto.title();
-        this.areaCode = festivalRequestDto.areaCode();
-        this.addr1 = festivalRequestDto.addr1();
-        this.addr2 = festivalRequestDto.addr2();
-        this.imageUrl = festivalRequestDto.imageUrl();
-        this.startDate = festivalRequestDto.startDate();
-        this.endDate = festivalRequestDto.endDate();
-        this.overView = festivalRequestDto.overView();
-        this.homePage = festivalRequestDto.homePage();
-    }
-
     //TODO: contentId 규칙 만들기
-    public Festival(CustomFestivalRequestDto customFestivalRequestDto) {
+    public Festival(CustomFestivalRequestDto customFestivalRequestDto, UserEntity user) {
         this.contentId = "tempcontentId";
         this.title = customFestivalRequestDto.title();
         this.areaCode = customFestivalRequestDto.areaCode();
@@ -72,6 +67,7 @@ public class Festival {
         this.overView = customFestivalRequestDto.overView();
         this.homePage = customFestivalRequestDto.homePage();
         this.state = FestivalState.PROCESSING;
+        this.manager = user;
     }
 
     public Festival(FestivalRequestDto festivalRequestDto, String overView, String homePage) {

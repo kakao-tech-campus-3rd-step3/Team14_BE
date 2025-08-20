@@ -8,6 +8,7 @@ import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.service.FestivalService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +29,11 @@ public class FestivalController {
     }
 
     @PostMapping
-    public ResponseEntity<Long> addFestival(@RequestBody CustomFestivalRequestDto requestDto){
-        Long festivalId = festivalService.addCustomizedFestival(requestDto);
+    public ResponseEntity<Long> addFestival(
+            @AuthenticationPrincipal String identifier,
+            @RequestBody CustomFestivalRequestDto requestDto
+    ) {
+        Long festivalId = festivalService.addCustomizedFestival(requestDto, identifier);
         return new ResponseEntity<>(festivalId, HttpStatus.CREATED);
     }
 

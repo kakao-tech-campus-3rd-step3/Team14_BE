@@ -14,6 +14,8 @@ import kakao.festapick.festival.dto.FestivalResponseDto;
 import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.service.OAuth2UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +25,19 @@ public class FestivalService {
 
     private final FestivalRepository festivalRepository;
 
-    public FestivalService(FestivalRepository festivalRepository) {
+    private final OAuth2UserService oAuth2UserService;
+
+    public FestivalService(FestivalRepository festivalRepository, OAuth2UserService oAuth2UserService) {
         this.festivalRepository = festivalRepository;
+        this.oAuth2UserService = oAuth2UserService;
     }
 
     //CREATE
     //TODO: create - customized Festival (How to upload an image)
     @Transactional
-    public Long addCustomizedFestival(CustomFestivalRequestDto requestDto) {
-        Festival festival = new Festival(requestDto);
+    public Long addCustomizedFestival(CustomFestivalRequestDto requestDto, String identifier) {
+        UserEntity user = oAuth2UserService.findByIdentifier(identifier);
+        Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
         return savedFestival.getId();
     }
