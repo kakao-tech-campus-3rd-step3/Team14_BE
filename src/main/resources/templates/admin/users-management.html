@@ -19,11 +19,10 @@
         .row-actions{display:flex;gap:8px;flex-wrap:wrap}
         .muted{color:#6b7280}
         .right{display:flex;justify-content:flex-end}
-        .topbar {
-            position: absolute;
-            top: 16px;
-            right: 24px;
-        }
+        .topbar { position: absolute; top: 16px; right: 24px; }
+        .search { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        input[type="search"]{padding:10px 12px;border:1px solid var(--gray);border-radius:8px;width:220px}
+        select{padding:8px 10px;border:1px solid var(--gray);border-radius:8px}
     </style>
 </head>
 <body>
@@ -32,9 +31,27 @@
 <div class="topbar">
     <div th:replace="~{fragments/logout :: logout(@{/admin/logout}, '로그아웃')}"></div>
 </div>
+
 <div class="toolbar">
-    <!-- 우측 상단 로그인 버튼 -->
-    <div class="muted" th:text="|총 ${page.totalElements}명|">총 0명</div>
+    <div class="muted" th:text="|총 ${pageData.totalElements}명|">총 0명</div>
+
+    <form class="search" th:action="@{/admin/users}" method="get">
+        <input type="search" name="identifier" placeholder="Identifier 검색"
+               th:value="${identifier}"/>
+        <input type="search" name="email" placeholder="Email 검색"
+               th:value="${email}"/>
+
+        <select name="role">
+            <option value="" th:selected="${role == null or role == ''}">전체</option>
+            <option value="ADMIN" th:selected="${role == 'ADMIN'}">ADMIN</option>
+            <option value="USER" th:selected="${role == 'USER'}">USER</option>
+            <option value="FESTIVAL_MANAGER" th:selected="${role == 'FESTIVAL_MANAGER'}">지역축제 관리자</option>
+        </select>
+
+        <button class="btn" type="submit">검색</button>
+        <a class="btn outline" th:href="@{/admin/users}">초기화</a>
+    </form>
+
 </div>
 
 <table>
@@ -49,17 +66,16 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:each="user : ${page.content}">
+    <tr th:each="user : ${pageData.content}">
         <td th:text="${user.id}">1</td>
         <td th:text="${user.identifier}">abcd-1234</td>
         <td th:text="${user.email}">user@example.com</td>
         <td th:text="${user.username}">홍길동</td>
 
-        <!-- 권한 변경 -->
+        <!-- 권한 변경  -->
         <td>
             <form th:action="@{|/admin/users/${user.id}/role|}" method="post" style="display:flex; gap:8px; align-items:center">
-                <input type="hidden" name="page" th:value="${page.number}"/>
-                <input type="hidden" name="sort" th:value="${sort}"/>
+
                 <select name="role" th:value="${user.role}">
                     <option th:selected="${user.role == 'ADMIN'}" value="ADMIN">ADMIN</option>
                     <option th:selected="${user.role == 'USER'}" value="USER">USER</option>
@@ -73,37 +89,35 @@
         <td>
             <form th:action="@{|/admin/users/${user.id}|}" method="post" class="row-actions"
                   onsubmit="return confirm('정말로 탈퇴시키겠습니까?');">
-                <input type="hidden" name="_method" value="DELETE"/>
-                <input type="hidden" name="page" th:value="${page.number}"/>
-                <input type="hidden" name="sort" th:value="${sort}"/>
                 <button class="btn outline" type="submit">회원 탈퇴</button>
             </form>
         </td>
     </tr>
-    <tr th:if="${#lists.isEmpty(page.content)}">
+    <tr th:if="${#lists.isEmpty(pageData.content)}">
         <td colspan="6" class="muted">결과가 없습니다.</td>
     </tr>
     </tbody>
 </table>
 
-<!-- 페이지 네이션 -->
-<div style="margin-top:14px" class="right" th:if="${page.totalPages > 1}">
+<div style="margin-top:14px" class="right" th:if="${pageData.totalPages > 1}">
     <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <a class="btn outline"
-           th:href="@{/admin/users(page=${page.number-1},sort=${sort})}"
-           th:if="${page.number > 0}">이전</a>
 
         <a class="btn outline"
-           th:each="p : ${#numbers.sequence(0, page.totalPages - 1)}"
-           th:href="@{/admin/users(page=${p}, sort=${sort})}"
+           th:if="${pageData.number > 0}"
+           th:href="@{/admin/users(page=${pageData.number - 1}, identifier=${identifier}, email=${email}, role=${role})}">이전</a>
+
+        <a th:each="p : ${#numbers.sequence(0, pageData.totalPages - 1)}"
+           th:href="@{/admin/users(page=${p}, identifier=${identifier}, email=${email}, role=${role})}"
            th:text="${p + 1}"
-           th:classappend="${p == page.number} ? ' btn' : ' btn outline'"></a>
+           th:classappend="${p == pageData.number} ? ' btn' : ' btn outline'"></a>
+
 
         <a class="btn outline"
-           th:href="@{/admin/users(page=${page.number+1},sort=${sort})}"
-           th:if="${page.number + 1 < page.totalPages}">다음</a>
+           th:if="${pageData.number + 1 < pageData.totalPages}"
+           th:href="@{/admin/users(page=${pageData.number + 1}, identifier=${identifier}, email=${email}, role=${role})}">다음</a>
     </div>
 </div>
+
 
 </body>
 </html>
