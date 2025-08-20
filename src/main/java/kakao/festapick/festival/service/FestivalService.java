@@ -14,8 +14,9 @@ import kakao.festapick.festival.dto.FestivalResponseDto;
 import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,19 +25,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class FestivalService {
 
     private final FestivalRepository festivalRepository;
+    private final UserRepository userRepository;
 
-    private final OAuth2UserService oAuth2UserService;
-
-    public FestivalService(FestivalRepository festivalRepository, OAuth2UserService oAuth2UserService) {
+    public FestivalService(FestivalRepository festivalRepository, UserRepository userRepository) {
         this.festivalRepository = festivalRepository;
-        this.oAuth2UserService = oAuth2UserService;
+        this.userRepository = userRepository;
     }
 
     //CREATE
     //TODO: create - customized Festival (How to upload an image)
     @Transactional
     public Long addCustomizedFestival(CustomFestivalRequestDto requestDto, String identifier) {
-        UserEntity user = oAuth2UserService.findByIdentifier(identifier);
+        UserEntity user =  userRepository.findByIdentifier(identifier)
+                .orElseThrow(()->new NotFoundEntityException("존재하지 않는 회원입니다."));
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
         return savedFestival.getId();
