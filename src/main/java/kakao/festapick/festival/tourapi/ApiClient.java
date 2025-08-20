@@ -16,7 +16,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 
 @RestController
-@RequestMapping("/api/festival")
+@RequestMapping("/api/festivals")
 public class ApiClient {
 
     @Value("${tour.api.secret.key}")
