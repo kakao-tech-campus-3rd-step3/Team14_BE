@@ -30,14 +30,14 @@ public class FestivalAdminController {
     }
 
     //state와 상관 없이 모든 축제를 조회
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<FestivalResponseDto>> getFestivals(){
         List<FestivalResponseDto> festivalResponseDtos = festivalService.findAll();
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //축제 승인
-    @PatchMapping("/state/{festivalId}")
+    @PatchMapping("/{festivalId}/state")
     public ResponseEntity<FestivalResponseDto> updateFestivalState(
             @PathVariable Long festivalId,
             @RequestBody FestivalStateDto state
