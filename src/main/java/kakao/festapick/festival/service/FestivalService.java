@@ -114,13 +114,14 @@ public class FestivalService {
     //UPDATE
     //축제 정보를 업데이트(관리자)
     @Transactional
-    public FestivalResponseDto updateFestival(Long id, FestivalRequestDto requestDto) {
-        Festival festival = festivalRepository.findFestivalByIdAndState(id, FestivalState.APPROVED)
-                .orElseThrow(
-                        () -> new IllegalStateException("해당 축제를 찾을 수 없습니다")
-                );
-        festival.updateFestival(requestDto);
-        return convertToResponseDto(festival);
+    public FestivalResponseDto updateFestival(String identifier, Long id, FestivalRequestDto requestDto) {
+        Festival festival = festivalRepository.findFestivalById(id)
+                .orElseThrow(() -> new IllegalStateException("해당 축제를 찾을 수 없습니다"));
+        if(festival.getManager() != null && identifier.equals(festival.getManager().getIdentifier())){
+            festival.updateFestival(requestDto);
+            return convertToResponseDto(festival);
+        }
+        throw new IllegalStateException("내가 등록한 축제가 아닙니다.");
     }
 
     //축제 상태 변경(admin이 사용자가 등록한 축제를 허용, 관리자)
@@ -135,8 +136,14 @@ public class FestivalService {
 
     //DELETE
     @Transactional
-    public void removeOne(Long id) {
-        festivalRepository.removeFestivalById(id);
+    public void removeOne(String identifier, Long id) {
+        Festival festival = festivalRepository.findFestivalById(id)
+                .orElseThrow(() -> new IllegalStateException("해당 축제를 찾을 수 없습니다"));
+        if(festival.getManager() != null && identifier.equals(festival.getManager().getIdentifier())){
+            festivalRepository.removeFestivalById(festival.getId());
+            return;
+        }
+        throw new IllegalStateException("내가 등록한 축제가 아닙니다.");
     }
 
     //현재 날짜 구하기

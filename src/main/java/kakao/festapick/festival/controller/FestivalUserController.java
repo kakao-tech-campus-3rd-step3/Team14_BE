@@ -7,6 +7,7 @@ import kakao.festapick.festival.dto.FestivalResponseDto;
 import kakao.festapick.festival.service.FestivalService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("/api/festivals/approved")
+@RequestMapping("/api/festivals")
 public class FestivalUserController {
 
     private final FestivalService festivalService;
@@ -29,8 +30,8 @@ public class FestivalUserController {
         this.festivalService = festivalService;
     }
 
-    //FESTIVAL_MANAGER만
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Long> addFestival(
             @AuthenticationPrincipal String identifier,
             @RequestBody CustomFestivalRequestDto requestDto
@@ -40,21 +41,21 @@ public class FestivalUserController {
     }
 
     //해당 지역에서 열리는 모든 축제
-    @GetMapping("/areacode/{areaCode}")
+    @GetMapping("/approved/area/{areaCode}")
     public ResponseEntity<List<FestivalResponseDto>> getFestivalByArea(@PathVariable String areaCode){
         List<FestivalResponseDto> festivalResponseDtos = festivalService.findApprovedOneByArea(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //해당 지역에서 현재 열리고 있는 축제
-    @GetMapping("/areacode/{areaCode}/current")
+    @GetMapping("/approved/area/{areaCode}/current")
     public ResponseEntity<List<FestivalResponseDto>> getCurrentFestivalByArea(@PathVariable String areaCode){
         List<FestivalResponseDto> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //모든 지역의 축제 조회(승인된 축제만)
-    @GetMapping("/all")
+    @GetMapping("/approved/all")
     public ResponseEntity<List<FestivalResponseDto>> getApprovedFestivals(){
         List<FestivalResponseDto> festivalResponseDtos = festivalService.findApproved();
         return ResponseEntity.ok(festivalResponseDtos);
@@ -69,18 +70,24 @@ public class FestivalUserController {
 
     //자신이 올린 축제에 대해서만 삭제 가능
     @PatchMapping("/{festivalId}")
+    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<FestivalResponseDto> updateFestivalInfo(
+            @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId,
             @RequestBody FestivalRequestDto requestDto
     ){
-        FestivalResponseDto responseDto =  festivalService.updateFestival(festivalId, requestDto);
+        FestivalResponseDto responseDto =  festivalService.updateFestival(identifier, festivalId, requestDto);
         return ResponseEntity.ok(responseDto);
     }
 
     //자신이 올린 축제에 대해서만 삭제 가능
     @DeleteMapping("/{festivalId}")
-    public ResponseEntity<Void> removeFestival(@PathVariable Long festivalId){
-        festivalService.removeOne(festivalId);
+    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    public ResponseEntity<Void> removeFestival(
+            @AuthenticationPrincipal String identifier,
+            @PathVariable Long festivalId
+    ){
+        festivalService.removeOne(identifier, festivalId);
         return ResponseEntity.noContent().build();
     }
 
