@@ -23,11 +23,11 @@ public class WishController {
 
     private final WishService wishService;
 
-    @PostMapping
+    @PostMapping("/{festivalId}")
     public ResponseEntity<WishResponseDto> createWish(
-            @RequestBody WishRequestDto requestDto,
-            @AuthenticationPrincipal String identifier) {
-        return new ResponseEntity<>(wishService.createWish(requestDto, identifier),
+            @AuthenticationPrincipal String identifier,
+            @PathVariable Long festivalId) {
+        return new ResponseEntity<>(wishService.createWish(festivalId, identifier),
                 HttpStatus.CREATED);
     }
 

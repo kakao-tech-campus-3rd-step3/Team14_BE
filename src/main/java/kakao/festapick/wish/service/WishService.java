@@ -25,8 +25,7 @@ public class WishService {
     private final FestivalRepository festivalRepository;
 
     @Transactional
-    public WishResponseDto createWish(WishRequestDto requestDto, String identifier) {
-        Long festivalId = requestDto.festivalId();
+    public WishResponseDto createWish(Long festivalId, String identifier) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 축제입니다."));
         UserEntity user = oAuth2UserService.findByIdentifier(identifier);
