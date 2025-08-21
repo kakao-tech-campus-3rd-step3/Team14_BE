@@ -1,7 +1,6 @@
 package kakao.festapick.wish.service;
 
-import java.util.ArrayList;
-import java.util.List;
+
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalResponseDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -13,6 +12,8 @@ import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,21 +43,18 @@ public class WishService {
         return new WishResponseDto(festivalResponseDto);
     }
 
-    //todo 페이지네이션
-    public List<WishResponseDto> getWishes(String identifier) {
-        List<Wish> wishes = wishRepository.findByUserIdentifier(identifier);
-        List<WishResponseDto> responseDtoList = new ArrayList<>();
-        for (Wish wish : wishes) {
-            FestivalResponseDto festivalResponseDto = new FestivalResponseDto(wish.getFestival());
-            WishResponseDto responseDto = new WishResponseDto(festivalResponseDto);
-            responseDtoList.add(responseDto);
-        }
-        return responseDtoList;
+    public Page<WishResponseDto> getWishes(String identifier, Pageable pageable) {
+        Page<Wish> wishes = wishRepository.findByUserIdentifier(identifier, pageable);
+        return wishes.map(wish -> {
+            FestivalResponseDto responseDto = new FestivalResponseDto(wish.getFestival());
+            return new WishResponseDto(responseDto);
+        });
+
     }
 
     @Transactional
-    public void removeWish(Long festivalId, String identifier) {
-        Wish wish = wishRepository.findByUserIdentifierAndFestivalId(identifier, festivalId)
+    public void removeWish(Long wishId, String identifier) {
+        Wish wish = wishRepository.findByUserIdentifierAndId(identifier, wishId)
                 .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 좋아요입니다."));
 
         wishRepository.delete(wish);
