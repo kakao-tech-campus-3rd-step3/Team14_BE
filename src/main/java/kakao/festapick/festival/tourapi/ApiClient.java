@@ -43,7 +43,7 @@ public class ApiClient {
         TourApiResponse tourApiResponse = getFestivals(getMaxColumns()).getBody();
         List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
         festivalList.stream()
-                .filter(requestDto -> festivalService.findOneByContentId(requestDto.contentId()))
+                .filter(requestDto -> festivalService.checkExistenceByContentId(requestDto.contentId()))
                 .forEach(requestDto -> festivalService.addFestival(requestDto, getDetails(requestDto.contentId())));
     }
 
