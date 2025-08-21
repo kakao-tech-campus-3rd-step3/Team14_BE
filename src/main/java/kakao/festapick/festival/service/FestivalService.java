@@ -66,14 +66,14 @@ public class FestivalService {
     //Id를 통한 축제 조회
     public FestivalResponseDto findOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 축제입니다."));
+                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 축제입니다."));
         return convertToResponseDto(festival);
     }
 
     //Id를 통해 승인된 축제 조회
     public FestivalResponseDto findApprovedOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalByIdAndState(festivalId, FestivalState.APPROVED)
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 축제입니다."));
+                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 축제입니다."));
         return convertToResponseDto(festival);
     }
 
@@ -115,6 +115,9 @@ public class FestivalService {
     @Transactional
     public FestivalResponseDto updateFestival(String identifier, Long id, FestivalRequestDto requestDto) {
         Festival festival = getMyFestival(identifier, id);
+
+        System.out.println("festival = " + festival);
+
         festival.updateFestival(requestDto);
         return convertToResponseDto(festival);
     }
@@ -168,7 +171,7 @@ public class FestivalService {
 
     private Festival getMyFestival(String identifier, Long id){
         Festival festival = festivalRepository.findFestivalByIdWithManager(id)
-                .orElseThrow(() -> new IllegalStateException("해당 축제를 찾을 수 없습니다"));
+                .orElseThrow(() -> new NotFoundEntityException("해당 축제를 찾을 수 없습니다"));
         UserEntity manager = festival.getManager();
         if (manager != null && identifier.equals(manager.getIdentifier())){
             return festival;
