@@ -79,7 +79,7 @@ public class FestivalService {
     }
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
-    public List<FestivalResponseDto> findByAreaAndDate(String areaCode) {
+    public List<FestivalResponseDto> findApprovedAreaAndDate(String areaCode) {
         List<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndDate(areaCode,
                 getDate(), FestivalState.APPROVED);
         return convertToResponseDtoList(festivalList);
