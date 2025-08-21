@@ -13,7 +13,5 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
     @EntityGraph(attributePaths = {"festival"})
     List<Wish> findByUserIdentifier(String identifier);
 
-    Optional<Wish> findByUserIdentifierAndId(String identifier, Long id);
-
     Optional<Wish> findByUserIdentifierAndFestivalId(String identifier, Long festivalId);
 }
