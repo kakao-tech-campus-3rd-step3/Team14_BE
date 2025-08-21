@@ -115,9 +115,6 @@ public class FestivalService {
     @Transactional
     public FestivalResponseDto updateFestival(String identifier, Long id, FestivalRequestDto requestDto) {
         Festival festival = getMyFestival(identifier, id);
-
-        System.out.println("festival = " + festival);
-
         festival.updateFestival(requestDto);
         return convertToResponseDto(festival);
     }
