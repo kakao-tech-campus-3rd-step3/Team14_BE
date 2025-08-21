@@ -5,6 +5,7 @@ import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalResponseDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
@@ -32,7 +33,7 @@ public class WishService {
 
         wishRepository.findByUserIdentifierAndFestivalId(identifier, festivalId)
                 .ifPresent(w -> {
-                    throw new IllegalStateException("이미 좋아요한 축제입니다.");
+                    throw new DuplicateEntityException("이미 좋아요한 축제입니다.");
                 });
 
         Wish newWish = new Wish(user, festival);

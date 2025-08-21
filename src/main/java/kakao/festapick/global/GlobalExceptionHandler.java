@@ -1,6 +1,7 @@
 package kakao.festapick.global;
 
 import kakao.festapick.global.exception.AuthenticationException;
+import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,5 +21,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundEntityException.class)
     public ResponseEntity<Map<String,String>> handleNotFoundEntityException(NotFoundEntityException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getExceptionCode().getErrorMessage()));
+    }
+
+    @ExceptionHandler(DuplicateEntityException.class)
+    public ResponseEntity<Map<String,String>> handleDuplicateEntityException(DuplicateEntityException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
     }
 }
