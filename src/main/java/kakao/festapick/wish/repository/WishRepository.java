@@ -12,4 +12,6 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
     List<Wish> findByUser_Id(Long userId);
 
     Optional<Wish> findByUser_IdAndId(Long userId, Long id);
+
+    Optional<Wish> findByUser_IdAndFestival_Id(Long userId, Long festivalId);
 }
