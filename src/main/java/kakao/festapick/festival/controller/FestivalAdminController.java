@@ -42,7 +42,6 @@ public class FestivalAdminController {
             @PathVariable Long festivalId,
             @RequestBody FestivalStateDto state
     ){
-        System.out.println("here = " + state);
         FestivalResponseDto responseDto =  festivalService.updateState(festivalId, state);
         return ResponseEntity.ok(responseDto);
     }
