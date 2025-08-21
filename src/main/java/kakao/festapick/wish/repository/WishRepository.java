@@ -9,9 +9,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WishRepository extends JpaRepository<Wish, Long> {
 
-    List<Wish> findByUser_Id(Long userId);
+    List<Wish> findByUserIdentifier(String identifier);
 
-    Optional<Wish> findByUser_IdAndId(Long userId, Long id);
+    Optional<Wish> findByUserIdentifierAndId(String identifier, Long id);
 
-    Optional<Wish> findByUser_IdAndFestival_Id(Long userId, Long festivalId);
+    Optional<Wish> findByUserIdentifierAndFestivalId(String identifier, Long festivalId);
 }

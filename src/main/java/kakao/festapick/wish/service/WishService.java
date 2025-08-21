@@ -5,10 +5,10 @@ import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalResponseDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.wish.domain.Wish;
-import kakao.festapick.wish.dto.WishRequestDto;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +27,10 @@ public class WishService {
     @Transactional
     public WishResponseDto createWish(Long festivalId, String identifier) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 축제입니다."));
+                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 축제입니다."));
         UserEntity user = oAuth2UserService.findByIdentifier(identifier);
 
-        wishRepository.findByUser_IdAndFestival_Id(user.getId(), festivalId)
+        wishRepository.findByUserIdentifierAndFestivalId(identifier, festivalId)
                 .ifPresent(w -> {
                     throw new IllegalStateException("이미 좋아요한 축제입니다.");
                 });
@@ -43,8 +43,7 @@ public class WishService {
 
     //todo 페이지네이션
     public List<WishResponseDto> getWishes(String identifier) {
-        UserEntity user = oAuth2UserService.findByIdentifier(identifier);
-        List<Wish> wishes = wishRepository.findByUser_Id(user.getId());
+        List<Wish> wishes = wishRepository.findByUserIdentifier(identifier);
         List<WishResponseDto> responseDtoList = new ArrayList<>();
         for (Wish wish : wishes) {
             FestivalResponseDto festivalResponseDto = new FestivalResponseDto(wish.getFestival());
@@ -56,10 +55,8 @@ public class WishService {
 
     @Transactional
     public void removeWish(Long wishId, String identifier) {
-        UserEntity user = oAuth2UserService.findByIdentifier(identifier);
-
-        Wish wish = wishRepository.findByUser_IdAndId(user.getId(), wishId)
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 좋아요입니다."));
+        Wish wish = wishRepository.findByUserIdentifierAndId(identifier, wishId)
+                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 좋아요입니다."));
 
         wishRepository.delete(wish);
     }
