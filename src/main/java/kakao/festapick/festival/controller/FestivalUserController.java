@@ -1,5 +1,6 @@
 package kakao.festapick.festival.controller;
 
+import java.net.URI;
 import java.util.List;
 import kakao.festapick.festival.dto.CustomFestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -37,7 +38,7 @@ public class FestivalUserController {
             @RequestBody CustomFestivalRequestDto requestDto
     ) {
         Long festivalId = festivalService.addCustomizedFestival(requestDto, identifier);
-        return new ResponseEntity<>(festivalId, HttpStatus.CREATED);
+        return ResponseEntity.created(URI.create("/api/festivals/" + festivalId)).build();
     }
 
     //해당 지역에서 열리는 모든 축제
@@ -68,7 +69,7 @@ public class FestivalUserController {
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
-    //자신이 올린 축제에 대해서만 삭제 가능
+    //자신이 올린 축제에 대해서만 수정 가능
     @PatchMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<FestivalResponseDto> updateFestivalInfo(
