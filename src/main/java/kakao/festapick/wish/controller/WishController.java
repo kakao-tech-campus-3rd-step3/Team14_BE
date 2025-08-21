@@ -34,7 +34,6 @@ public class WishController {
     @GetMapping
     public ResponseEntity<List<WishResponseDto>> getWishes(
             @AuthenticationPrincipal String identifier) {
-        System.out.println(identifier);
         return new ResponseEntity<>(wishService.getWishes(identifier),
                 HttpStatus.OK);
     }
