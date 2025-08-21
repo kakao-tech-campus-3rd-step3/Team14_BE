@@ -54,8 +54,8 @@ public class WishService {
     }
 
     @Transactional
-    public void removeWish(Long wishId, String identifier) {
-        Wish wish = wishRepository.findByUserIdentifierAndId(identifier, wishId)
+    public void removeWish(Long festivalId, String identifier) {
+        Wish wish = wishRepository.findByUserIdentifierAndFestivalId(identifier, festivalId)
                 .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 좋아요입니다."));
 
         wishRepository.delete(wish);

@@ -36,11 +36,11 @@ public class WishController {
                 HttpStatus.OK);
     }
 
-    @DeleteMapping("/{wishId}")
+    @DeleteMapping("/{festivalId}")
     public ResponseEntity<Void> removeWish(
-            @PathVariable Long wishId,
+            @PathVariable Long festivalId,
             @AuthenticationPrincipal String identifier) {
-        wishService.removeWish(wishId, identifier);
+        wishService.removeWish(festivalId, identifier);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
