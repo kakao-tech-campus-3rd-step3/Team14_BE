@@ -11,8 +11,6 @@ import jakarta.persistence.ManyToOne;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -24,12 +22,10 @@ public class Wish {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "festival_id", nullable = false)
     private Festival festival;
 
