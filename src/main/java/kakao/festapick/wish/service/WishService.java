@@ -24,8 +24,6 @@ public class WishService {
     private final OAuth2UserService oAuth2UserService;
     private final FestivalRepository festivalRepository;
 
-    //todo 중복 좋아요 입력 방지
-    //todo 페이지네이션
     @Transactional
     public WishResponseDto createWish(WishRequestDto requestDto, String identifier) {
         Long festivalId = requestDto.festivalId();
@@ -33,12 +31,18 @@ public class WishService {
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 축제입니다."));
         UserEntity user = oAuth2UserService.findByIdentifier(identifier);
 
+        wishRepository.findByUser_IdAndFestival_Id(user.getId(), festivalId)
+                .ifPresent(w -> {
+                    throw new IllegalStateException("이미 좋아요한 축제입니다.");
+                });
+
         Wish newWish = new Wish(user, festival);
         wishRepository.save(newWish);
         FestivalResponseDto festivalResponseDto = new FestivalResponseDto(festival);
         return new WishResponseDto(festivalResponseDto);
     }
 
+    //todo 페이지네이션
     public List<WishResponseDto> getWishes(String identifier) {
         UserEntity user = oAuth2UserService.findByIdentifier(identifier);
         List<Wish> wishes = wishRepository.findByUser_Id(user.getId());
