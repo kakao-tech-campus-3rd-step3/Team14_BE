@@ -1,5 +1,6 @@
-package kakao.festapick.admin.controller;
+package kakao.festapick.user.controller;
 
+import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.service.OAuth2UserService;
@@ -14,30 +15,37 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-public class AdminViewController {
+public class UserAdminController {
 
     private final OAuth2UserService oAuth2UserService;
 
     @GetMapping("/login")
     public String loginPage() {
-        return "login";
+        return "admin/login";
     }
 
     @GetMapping("/admin")
     public String adminPage() {
-        return "admin";
+        return "admin/admin-home";
     }
 
     @GetMapping("/admin/users")
-    public String userManagementPage(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
+    public String userManagementPage(@RequestParam(required = false) String identifier,
+                                     @RequestParam(required = false) String email,
+                                     @RequestParam(required = false) UserRoleType role,
+                                     @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
                                      Pageable pageable,
                                      Model model) {
 
-        Page<UserResponseDto> response = oAuth2UserService.findAllUsers(pageable);
 
-        model.addAttribute("page", response);
+        Page<UserResponseDto> response = oAuth2UserService.findByIdentifierOrUserEmail(new UserSearchCond(identifier,email, role), pageable);
 
-        return "users-management";
+        model.addAttribute("pageData", response);
+        model.addAttribute("identifier", identifier);
+        model.addAttribute("email", email);
+        model.addAttribute("role", role);
+
+        return "admin/users-management";
     }
 
     @PostMapping("/admin/users/{id}")

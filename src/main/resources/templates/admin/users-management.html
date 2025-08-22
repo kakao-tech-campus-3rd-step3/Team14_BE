@@ -1,0 +1,152 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>회원 관리</title>
+    <style>
+        :root { --blue:#2563eb; --blue-dark:#1e40af; --gray:#e5e7eb; --text:#111827; }
+        *{box-sizing:border-box}
+        body{margin:0;background:#fff;font-family:system-ui,-apple-system,sans-serif;color:#333;padding:24px}
+        h1{margin-bottom:18px;font-size:1.6rem;color:var(--text)}
+        .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}
+        .btn{appearance:none;border:0;cursor:pointer;background:var(--blue);color:#fff;padding:10px 14px;border-radius:8px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space: nowrap;}
+        .btn:hover{background:var(--blue-dark)}
+        .btn.outline{background:#fff;color:var(--blue);border:1px solid var(--blue)}
+        table{width:100%;border-collapse:collapse;border:1px solid var(--gray);border-radius:12px;overflow:hidden}
+        th,td{padding:12px 12px;border-bottom:1px solid var(--gray);text-align:left}
+        thead th{background:#f9fafb;font-weight:700}
+        .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+        .muted{color:#6b7280}
+        .right{display:flex;justify-content:flex-end}
+        .topbar { position: absolute; top: 16px; right: 24px; }
+        .search { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        input[type="search"]{padding:10px 12px;border:1px solid var(--gray);border-radius:8px;width:220px}
+        select{padding:8px 10px;border:1px solid var(--gray);border-radius:8px}
+        .pagination-wrapper{display:flex;justify-content:center;margin-top:16px}
+        .pagination{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+        .page-btn{
+            display:inline-flex;align-items:center;justify-content:center;
+            width:44px;height:44px;border-radius:12px;
+            background:#f3f4f6;border:1px solid #e5e7eb;color:#374151;
+            text-decoration:none;font-weight:600;
+            transition:transform .02s ease, background .15s ease, border-color .15s ease;
+        }
+        .page-btn:hover{transform:translateY(-1px);background:#eef2ff;border-color:#c7d2fe}
+        .page-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+        .page-btn.disabled{pointer-events:none;opacity:.45;background:#f9fafb;color:#9ca3af}
+
+    </style>
+</head>
+<body>
+
+<h1>회원 관리</h1>
+<div class="topbar" style="display:flex; gap:8px; align-items:center">
+    <div th:replace="~{admin/fragments :: adminHome('관리자 홈')}"></div>
+    <div th:replace="~{admin/fragments :: logout(@{/admin/logout}, '로그아웃')}"></div>
+</div>
+
+<div class="toolbar">
+    <div class="muted" th:text="|총 ${pageData.totalElements}명|">총 0명</div>
+
+    <form class="search" th:action="@{/admin/users}" method="get">
+        <input type="search" name="identifier" placeholder="Identifier 검색"
+               th:value="${identifier}"/>
+        <input type="search" name="email" placeholder="Email 검색"
+               th:value="${email}"/>
+
+        <select name="role">
+            <option value="" th:selected="${role == null or role == ''}">전체</option>
+            <option value="ADMIN" th:selected="${role == 'ADMIN'}">ADMIN</option>
+            <option value="USER" th:selected="${role == 'USER'}">USER</option>
+            <option value="FESTIVAL_MANAGER" th:selected="${role == 'FESTIVAL_MANAGER'}">지역축제 관리자</option>
+        </select>
+
+        <button class="btn" type="submit">검색</button>
+        <a class="btn outline" th:href="@{/admin/users}">초기화</a>
+    </form>
+
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th style="width:90px">ID</th>
+        <th style="width:200px">Identifier</th>
+        <th>이메일</th>
+        <th>닉네임</th>
+        <th style="width:180px">권한</th>
+        <th style="width:300px">관리</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${pageData.content}">
+        <td th:text="${user.id}">1</td>
+        <td th:text="${user.identifier}">abcd-1234</td>
+        <td th:text="${user.email}">user@example.com</td>
+        <td th:text="${user.username}">홍길동</td>
+
+        <!-- 권한 변경  -->
+        <td>
+            <form th:action="@{|/admin/users/${user.id}/role|}" method="post" style="display:flex; gap:8px; align-items:center">
+
+                <select name="role" th:value="${user.role}">
+                    <option th:selected="${user.role == 'ADMIN'}" value="ADMIN">ADMIN</option>
+                    <option th:selected="${user.role == 'USER'}" value="USER">USER</option>
+                    <option th:selected="${user.role == 'FESTIVAL_MANAGER'}" value="FESTIVAL_MANAGER">지역축제 관리자</option>
+                </select>
+                <button class="btn" type="submit">변경</button>
+            </form>
+        </td>
+
+        <!-- 탈퇴 -->
+        <td>
+            <form th:action="@{|/admin/users/${user.id}|}" method="post" class="row-actions"
+                  onsubmit="return confirm('정말로 탈퇴시키겠습니까?');">
+                <button class="btn outline" type="submit">회원 탈퇴</button>
+            </form>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(pageData.content)}">
+        <td colspan="6" class="muted">결과가 없습니다.</td>
+    </tr>
+    </tbody>
+</table>
+<!-- 페이지네이션-->
+<div class="pagination-wrapper" th:if="${pageData.totalPages > 1}">
+    <div class="pagination"
+         th:with="
+         total=${pageData.totalPages},
+         current=${pageData.number},
+         window=${5},
+         start=${current - 2 <= 0 ? 0
+                 : (current + 2 >= total
+                    ? (total - window < 0 ? 0 : total - window)
+                    : current - 2)},
+         end=${(start + window - 1) >= (total - 1) ? (total - 1) : (start + window - 1)}
+       ">
+
+        <!-- Prev -->
+        <a class="page-btn"
+           th:if="${current > 0}"
+           th:href="@{/admin/users(page=${current - 1}, identifier=${identifier}, email=${email}, role=${role})}"
+           aria-label="이전">&lsaquo;</a>
+        <span class="page-btn disabled" th:if="${current == 0}" aria-hidden="true">&lsaquo;</span>
+
+        <!-- Windowed pages -->
+        <a th:each="p : ${#numbers.sequence(start, end)}"
+           th:href="@{/admin/users(page=${p}, identifier=${identifier}, email=${email}, role=${role})}"
+           th:text="${p + 1}"
+           th:classappend="${p == current} ? ' page-btn active' : ' page-btn'">
+        </a>
+
+        <!-- Next -->
+        <a class="page-btn"
+           th:if="${current + 1 < total}"
+           th:href="@{/admin/users(page=${current + 1}, identifier=${identifier}, email=${email}, role=${role})}"
+           aria-label="다음">&rsaquo;</a>
+        <span class="page-btn disabled" th:if="${current + 1 >= total}" aria-hidden="true">&rsaquo;</span>
+
+    </div>
+</div>
+</body>
+</html>

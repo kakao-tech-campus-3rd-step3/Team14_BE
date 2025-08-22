@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -25,4 +27,8 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     List<Festival> findFestivalByAreaCodeAndState(String areaCode, FestivalState state);
 
     Optional<Festival> findFestivalById(Long id);
+
+    @Query("select f from Festival f left join fetch f.manager where f.id= :id")
+    Optional<Festival> findFestivalByIdWithManager(Long id);
+
 }

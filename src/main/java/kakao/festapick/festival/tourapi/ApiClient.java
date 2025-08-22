@@ -16,7 +16,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 
 @RestController
-@RequestMapping("/api/festival")
+@RequestMapping("/api/festivals")
 public class ApiClient {
 
     @Value("${tour.api.secret.key}")
@@ -43,7 +43,7 @@ public class ApiClient {
         TourApiResponse tourApiResponse = getFestivals(getMaxColumns()).getBody();
         List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
         festivalList.stream()
-                .filter(requestDto -> festivalService.findOneByContentId(requestDto.contentId()))
+                .filter(requestDto -> festivalService.checkExistenceByContentId(requestDto.contentId()))
                 .forEach(requestDto -> festivalService.addFestival(requestDto, getDetails(requestDto.contentId())));
     }
 

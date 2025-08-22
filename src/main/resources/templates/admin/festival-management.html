@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>축제 관리</title>
+    <style>
+        :root { --blue:#2563eb; --blue-dark:#1e40af; --gray:#e5e7eb; --text:#111827; }
+        *{box-sizing:border-box}
+        body{margin:0;background:#fff;font-family:system-ui,-apple-system,sans-serif;color:#333;padding:24px}
+        h1{margin-bottom:18px;font-size:1.6rem;color:var(--text)}
+        .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}
+        .btn{appearance:none;border:0;cursor:pointer;background:var(--blue);color:#fff;padding:10px 14px;border-radius:8px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space: nowrap;}
+        .btn:hover{background:var(--blue-dark)}
+        .btn.outline{background:#fff;color:var(--blue);border:1px solid var(--blue)}
+        table{width:100%;border-collapse:collapse;border:1px solid var(--gray);border-radius:12px;overflow:hidden}
+        th,td{padding:12px 12px;border-bottom:1px solid var(--gray);text-align:left;vertical-align:middle}
+        thead th{background:#f9fafb;font-weight:700}
+        .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+        .muted{color:#6b7280}
+        .right{display:flex;justify-content:flex-end}
+        .topbar { position: absolute; top: 16px; right: 24px; }
+        .search { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        input[type="search"], input[type="text"]{padding:10px 12px;border:1px solid var(--gray);border-radius:8px;width:240px}
+        select{padding:8px 10px;border:1px solid var(--gray);border-radius:8px}
+        .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.8rem;border:1px solid var(--gray);background:#fff}
+
+        .pagination-wrapper {
+            display:flex;
+            justify-content:center;
+            margin-top:16px;
+        }
+
+        .pagination {
+            display:flex;
+            gap:12px;
+            align-items:center;
+        }
+
+        .page-btn {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:44px; height:44px;
+            border-radius:12px;
+            background:#f3f4f6;
+            border:1px solid #e5e7eb;
+            color:#374151; text-decoration:none; font-weight:600;
+            transition:transform .02s ease, background .15s ease, border-color .15s ease;
+        }
+        .page-btn:hover { transform:translateY(-1px); background:#eef2ff; border-color:#c7d2fe }
+        .page-btn.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+        .page-btn.disabled { pointer-events:none; opacity:.45; background:#f9fafb; color:#9ca3af; }
+
+    </style>
+</head>
+<body>
+
+<h1>축제 관리</h1>
+<div class="topbar" style="display:flex; gap:8px; align-items:center">
+    <div th:replace="~{admin/fragments :: adminHome('관리자 홈')}"></div>
+    <div th:replace="~{admin/fragments :: logout(@{/admin/logout}, '로그아웃')}"></div>
+</div>
+
+<div class="toolbar">
+    <div class="muted" th:text="|총 ${pageData.totalElements}건|">총 0건</div>
+
+    <!-- 검색/필터 -->
+    <form class="search" th:action="@{/admin/festivals}" method="get">
+        <input type="search" name="title" placeholder="제목 검색" th:value="${title}"/>
+
+        <select name="state">
+            <option value="" th:selected="${state == null}">전체 상태</option>
+            <option value="PROCESSING" th:selected="${state?.name() == 'PROCESSING' || state == T(kakao.festapick.festival.domain.FestivalState).PROCESSING}">PROCESSING</option>
+            <option value="APPROVED" th:selected="${state?.name() == 'APPROVED' || state == T(kakao.festapick.festival.domain.FestivalState).APPROVED}">APPROVED</option>
+            <option value="DENIED" th:selected="${state?.name() == 'DENIED' || state == T(kakao.festapick.festival.domain.FestivalState).DENIED}">DENIED</option>
+        </select>
+
+        <button class="btn" type="submit">검색</button>
+        <a class="btn outline" th:href="@{/admin/festivals}">초기화</a>
+    </form>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th style="width:84px">ID</th>
+        <th>제목</th>
+        <th style="width:140px">상태</th>
+        <th style="width:320px">관리</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="f : ${pageData.content}">
+        <td th:text="${f.id}">1</td>
+        <td th:text="${f.title}">부산 불꽃축제</td>
+        <td>
+            <span class="badge" th:text="${f.state}">PROCESSING</span>
+        </td>
+        <td>
+            <div class="row-actions">
+                <!-- 상태 변경 -->
+                <form th:action="@{|/admin/festivals/${f.id}/state|}" method="post" style="display:flex; gap:8px; align-items:center">
+                    <select name="state" th:value="${f.state}">
+                        <option value="PROCESSING" th:selected="${f.state?.name() == 'PROCESSING'}">PROCESSING</option>
+                        <option value="APPROVED" th:selected="${f.state?.name() == 'APPROVED'}">APPROVED</option>
+                        <option value="DENIED" th:selected="${f.state?.name() == 'DENIED'}">DENIED</option>
+                    </select>
+                    <button class="btn" type="submit">변경</button>
+                    <div th:if="${errors != null}" class="muted" style="color:red">
+                        <span th:each="err : ${errors}" th:text="${err.defaultMessage}"></span>
+                    </div>
+                </form>
+
+                <!-- 상세보기 -->
+                <a class="btn outline" th:href="@{|/admin/festivals/${f.id}|}">상세</a>
+
+                <!-- 삭제 -->
+                <form th:action="@{|/admin/festivals/${f.id}|}" method="post" class="row-actions" onsubmit="return confirm('정말로 삭제하시겠습니까?');">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button class="btn outline" type="submit">삭제</button>
+                </form>
+            </div>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(pageData.content)}">
+        <td colspan="4" class="muted">결과가 없습니다.</td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- 페이지네이션 -->
+<div class="pagination-wrapper" th:if="${pageData.totalPages > 1}">
+    <div class="pagination"
+         th:with="
+         total=${pageData.totalPages},
+         current=${pageData.number},
+         window=${5},
+         start=${current - 2 <= 0 ? 0
+                 : (current + 2 >= total
+                    ? (total - window < 0 ? 0 : total - window)
+                    : current - 2)},
+         end=${(start + window - 1) >= (total - 1) ? (total - 1) : (start + window - 1)}
+       ">
+
+        <!-- Prev -->
+        <a class="page-btn"
+           th:if="${current > 0}"
+           th:href="@{/admin/festivals(page=${current - 1}, title=${title}, state=${state})}"
+           aria-label="이전">&lsaquo;</a>
+        <span class="page-btn disabled" th:if="${current == 0}" aria-hidden="true">&lsaquo;</span>
+
+        <!-- Windowed Pages -->
+        <a th:each="p : ${#numbers.sequence(start, end)}"
+           th:href="@{/admin/festivals(page=${p}, title=${title}, state=${state})}"
+           th:text="${p + 1}"
+           th:classappend="${p == current} ? ' page-btn active' : ' page-btn'">
+        </a>
+
+        <!-- Next -->
+        <a class="page-btn"
+           th:if="${current + 1 < total}"
+           th:href="@{/admin/festivals(page=${current + 1}, title=${title}, state=${state})}"
+           aria-label="다음">&rsaquo;</a>
+        <span class="page-btn disabled" th:if="${current + 1 >= total}" aria-hidden="true">&rsaquo;</span>
+
+    </div>
+</div>
+</body>
+</html>
