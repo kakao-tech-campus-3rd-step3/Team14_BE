@@ -11,5 +11,9 @@
     </form>
 </div>
 
+<div th:fragment="adminHome(label)">
+    <a th:href="@{/admin}" class="btn" th:text="${label}">관리자 홈</a>
+</div>
+
 </body>
 </html>

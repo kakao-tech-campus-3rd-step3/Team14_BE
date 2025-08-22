@@ -1,7 +1,7 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
-import kakao.festapick.admin.dto.UserSearchCond;
+import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.SocialType;

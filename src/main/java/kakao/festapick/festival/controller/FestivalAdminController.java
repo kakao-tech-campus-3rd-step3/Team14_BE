@@ -1,16 +1,19 @@
 package kakao.festapick.festival.controller;
 
-import java.util.List;
-import kakao.festapick.festival.dto.FestivalResponseDto;
+
+import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.dto.FestivalDetailResponse;
+import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
+import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.service.FestivalService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/admin/festivals")
@@ -22,28 +25,46 @@ public class FestivalAdminController {
         this.festivalService = festivalService;
     }
 
-    //state와 상관 없이 모든 축제를 조회
     @GetMapping("/{festivalId}")
-    public ResponseEntity<FestivalResponseDto> getFestivalInfo(@PathVariable Long festivalId){
-        FestivalResponseDto festivalInfo = festivalService.findOneById(festivalId);
-        return ResponseEntity.ok(festivalInfo);
+    public String getFestivalInfo(@PathVariable Long festivalId, Model model){
+        FestivalDetailResponse festivalInfo = festivalService.findOneById(festivalId);
+
+        model.addAttribute("festival", festivalInfo);
+
+        return  "admin/festival-detail";
     }
 
     //state와 상관 없이 모든 축제를 조회
     @GetMapping
-    public ResponseEntity<List<FestivalResponseDto>> getFestivals(){
-        List<FestivalResponseDto> festivalResponseDtos = festivalService.findAll();
-        return ResponseEntity.ok(festivalResponseDtos);
-    }
-
-    //축제 승인
-    @PatchMapping("/{festivalId}/state")
-    public ResponseEntity<FestivalResponseDto> updateFestivalState(
-            @PathVariable Long festivalId,
-            @RequestBody FestivalStateDto state
+    public String getFestivals(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) FestivalState state,
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
+            Pageable pageable,
+            Model model
     ){
-        FestivalResponseDto responseDto =  festivalService.updateState(festivalId, state);
-        return ResponseEntity.ok(responseDto);
+        Page<FestivalListResponseForAdmin> response = festivalService.findAllWithPage(new FestivalSearchCondForAdmin(title, state), pageable);
+
+        model.addAttribute("pageData", response);
+        model.addAttribute("title", title);
+        model.addAttribute("state", state);
+
+        return "admin/festival-management";
     }
 
+    //축제 상태 변경
+    @PostMapping("/{festivalId}/state")
+    public String updateFestivalState(
+            @PathVariable Long festivalId,
+            @RequestParam(required = false) FestivalStateDto state
+    ){
+        festivalService.updateState(festivalId, state);
+        return "redirect:/admin/festivals";
+    }
+
+    @PostMapping("/{festivalId}")
+    public String deleteFestival(@PathVariable Long festivalId){
+        festivalService.deleteFestivalForAdmin(festivalId);
+        return "redirect:/admin/festivals";
+    }
 }

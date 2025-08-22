@@ -1,4 +1,4 @@
-package kakao.festapick.admin.dto;
+package kakao.festapick.user.dto;
 
 import kakao.festapick.user.domain.UserRoleType;
 

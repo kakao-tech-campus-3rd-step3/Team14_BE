@@ -55,11 +55,12 @@
 <body>
 <div class="topbar">
     <!-- ... 다른 요소들 ... -->
-    <div th:replace="~{fragments/logout :: logout(@{/admin/logout}, '로그아웃')}"></div>
+    <div th:replace="~{admin/fragments :: logout(@{/admin/logout}, '로그아웃')}"></div>
 </div>
 <main class="card">
     <h1>관리자 페이지</h1>
     <a class="btn" th:href="@{/admin/users}">회원 관리</a>
+    <a class="btn" th:href="@{/admin/festivals}">축제 관리</a>
 </main>
 </body>
 </html>

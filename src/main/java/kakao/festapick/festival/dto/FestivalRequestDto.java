@@ -12,7 +12,6 @@ public record FestivalRequestDto(
         String startDate,
         String endDate,
         String homePage,
-        @Column(length = 5000)
         String overView
 ){
     public FestivalRequestDto(
