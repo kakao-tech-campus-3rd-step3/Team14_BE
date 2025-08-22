@@ -1,6 +1,7 @@
 package kakao.festapick.festival.controller;
 
 
+import jakarta.validation.Valid;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.FestivalDetailResponse;
 import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
@@ -13,7 +14,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/festivals")
@@ -34,7 +37,7 @@ public class FestivalAdminController {
         return  "admin/festival-detail";
     }
 
-    //state와 상관 없이 모든 축제를 조회
+    //축제 조회
     @GetMapping
     public String getFestivals(
             @RequestParam(required = false) String title,
@@ -56,8 +59,16 @@ public class FestivalAdminController {
     @PostMapping("/{festivalId}/state")
     public String updateFestivalState(
             @PathVariable Long festivalId,
-            @RequestParam(required = false) FestivalStateDto state
+            @Valid @ModelAttribute FestivalStateDto state,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes
     ){
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors());
+            return "redirect:/admin/festivals";
+        }
+
+
         festivalService.updateState(festivalId, state);
         return "redirect:/admin/festivals";
     }

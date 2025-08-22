@@ -105,6 +105,9 @@
                         <option value="DENIED" th:selected="${f.state?.name() == 'DENIED'}">DENIED</option>
                     </select>
                     <button class="btn" type="submit">변경</button>
+                    <div th:if="${errors != null}" class="muted" style="color:red">
+                        <span th:each="err : ${errors}" th:text="${err.defaultMessage}"></span>
+                    </div>
                 </form>
 
                 <!-- 상세보기 -->
