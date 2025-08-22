@@ -2,7 +2,7 @@ package kakao.festapick.wish.service;
 
 
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.FestivalResponseDto;
+import kakao.festapick.festival.dto.FestivalDetailResponse;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -39,14 +39,14 @@ public class WishService {
 
         Wish newWish = new Wish(user, festival);
         wishRepository.save(newWish);
-        FestivalResponseDto festivalResponseDto = new FestivalResponseDto(festival);
+        FestivalDetailResponse festivalResponseDto = new FestivalDetailResponse(festival);
         return new WishResponseDto(festivalResponseDto);
     }
 
     public Page<WishResponseDto> getWishes(String identifier, Pageable pageable) {
         Page<Wish> wishes = wishRepository.findByUserIdentifier(identifier, pageable);
         return wishes.map(wish -> {
-            FestivalResponseDto responseDto = new FestivalResponseDto(wish.getFestival());
+            FestivalDetailResponse responseDto = new FestivalDetailResponse(wish.getFestival());
             return new WishResponseDto(responseDto);
         });
 
