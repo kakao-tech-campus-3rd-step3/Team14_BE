@@ -1,6 +1,6 @@
-package kakao.festapick.admin.controller;
+package kakao.festapick.user.controller;
 
-import kakao.festapick.admin.dto.UserSearchCond;
+import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.service.OAuth2UserService;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-public class AdminViewController {
+public class UserAdminController {
 
     private final OAuth2UserService oAuth2UserService;
 

@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.List;
 import kakao.festapick.festival.dto.CustomFestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
-import kakao.festapick.festival.dto.FestivalResponseDto;
+import kakao.festapick.festival.dto.FestivalDetailResponse;
 import kakao.festapick.festival.service.FestivalService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,41 +42,41 @@ public class FestivalUserController {
 
     //해당 지역에서 열리는 모든 축제
     @GetMapping("/approved/area/{areaCode}")
-    public ResponseEntity<List<FestivalResponseDto>> getFestivalByArea(@PathVariable String areaCode){
-        List<FestivalResponseDto> festivalResponseDtos = festivalService.findApprovedOneByArea(areaCode);
+    public ResponseEntity<List<FestivalDetailResponse>> getFestivalByArea(@PathVariable String areaCode){
+        List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedOneByArea(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //해당 지역에서 현재 열리고 있는 축제
     @GetMapping("/approved/area/{areaCode}/current")
-    public ResponseEntity<List<FestivalResponseDto>> getCurrentFestivalByArea(@PathVariable String areaCode){
-        List<FestivalResponseDto> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode);
+    public ResponseEntity<List<FestivalDetailResponse>> getCurrentFestivalByArea(@PathVariable String areaCode){
+        List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //모든 지역의 축제 조회(승인된 축제만)
     @GetMapping("/approved/all")
-    public ResponseEntity<List<FestivalResponseDto>> getApprovedFestivals(){
-        List<FestivalResponseDto> festivalResponseDtos = festivalService.findApproved();
+    public ResponseEntity<List<FestivalDetailResponse>> getApprovedFestivals(){
+        List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApproved();
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //Keyword를 통한 축제 검색
     @GetMapping
-    public ResponseEntity<List<FestivalResponseDto>> getFestivalByKeyword(@RequestParam String keyword){
-        List<FestivalResponseDto> festivalResponseDtos = festivalService.findApprovedOneByKeyword(keyword);
+    public ResponseEntity<List<FestivalDetailResponse>> getFestivalByKeyword(@RequestParam String keyword){
+        List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedOneByKeyword(keyword);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //자신이 올린 축제에 대해서만 수정 가능
     @PatchMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
-    public ResponseEntity<FestivalResponseDto> updateFestivalInfo(
+    public ResponseEntity<FestivalDetailResponse> updateFestivalInfo(
             @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId,
             @RequestBody FestivalRequestDto requestDto
     ){
-        FestivalResponseDto responseDto =  festivalService.updateFestival(identifier, festivalId, requestDto);
+        FestivalDetailResponse responseDto =  festivalService.updateFestival(identifier, festivalId, requestDto);
         return ResponseEntity.ok(responseDto);
     }
 

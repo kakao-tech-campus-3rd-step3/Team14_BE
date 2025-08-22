@@ -14,7 +14,6 @@ public record CustomFestivalRequestDto(
         String startDate,
         String endDate,
         String homePage,
-        @Column(length = 5000)
         String overView
 ) {
 

@@ -1,6 +1,6 @@
 package kakao.festapick.user.repository;
 
-import kakao.festapick.admin.dto.UserSearchCond;
+import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;

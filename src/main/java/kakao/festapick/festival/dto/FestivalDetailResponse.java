@@ -1,9 +1,8 @@
 package kakao.festapick.festival.dto;
 
-import jakarta.persistence.Column;
 import kakao.festapick.festival.domain.Festival;
 
-public record FestivalResponseDto(
+public record FestivalDetailResponse(
         Long id,
         String contentId,
         String title,
@@ -13,12 +12,11 @@ public record FestivalResponseDto(
         String imageUrl,
         String startDate,
         String endDate,
-        @Column(length = 5000)
         String overView,
         String homePage
 ) {
 
-    public FestivalResponseDto(Festival festival){
+    public FestivalDetailResponse(Festival festival){
         this(
                 festival.getId(),
                 festival.getContentId(),
