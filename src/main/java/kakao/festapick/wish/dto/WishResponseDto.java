@@ -1,7 +1,7 @@
 package kakao.festapick.wish.dto;
 
-import kakao.festapick.festival.dto.FestivalResponseDto;
+import kakao.festapick.festival.dto.FestivalDetailResponse;
 
-public record WishResponseDto(FestivalResponseDto festivalResponseDto) {
+public record WishResponseDto(FestivalDetailResponse festivalResponseDto) {
 
 }
