@@ -5,6 +5,7 @@ import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalDetailResponse;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.global.exception.DuplicateEntityException;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
@@ -29,12 +30,12 @@ public class WishService {
     @Transactional
     public WishResponseDto createWish(Long festivalId, String identifier) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 축제입니다."));
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         UserEntity user = oAuth2UserService.findByIdentifier(identifier);
 
         wishRepository.findByUserIdentifierAndFestivalId(identifier, festivalId)
                 .ifPresent(w -> {
-                    throw new DuplicateEntityException("이미 좋아요한 축제입니다.");
+                    throw new DuplicateEntityException(ExceptionCode.WISH_DUPLICATE);
                 });
 
         Wish newWish = new Wish(user, festival);
@@ -57,7 +58,7 @@ public class WishService {
     @Transactional
     public void removeWish(Long wishId, String identifier) {
         Wish wish = wishRepository.findByUserIdentifierAndId(identifier, wishId)
-                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 좋아요입니다."));
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.WISH_NOT_FOUND));
 
         wishRepository.delete(wish);
     }
