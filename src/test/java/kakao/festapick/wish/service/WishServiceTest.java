@@ -14,6 +14,7 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -61,7 +62,8 @@ public class WishServiceTest {
         given(wishRepository.save(any()))
                 .willReturn(wish);
 
-        WishResponseDto responseDto = wishService.createWish(festival.getId(), user.getIdentifier());
+        WishResponseDto responseDto = wishService.createWish(festival.getId(),
+                user.getIdentifier());
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(responseDto.wishId()).isNotNull(),
@@ -108,11 +110,51 @@ public class WishServiceTest {
         verifyNoMoreInteractions(wishRepository);
     }
 
+    @Test
+    @DisplayName("위시 삭제 성공")
+    void deleteWishSuccess() throws NoSuchFieldException, IllegalAccessException {
+        UserEntity user = testUser();
+        Festival festival = testFestival();
+        Wish wish = new Wish(1L, user, festival);
+
+        given(wishRepository.findByUserIdentifierAndId(any(), any()))
+                .willReturn(Optional.of(wish));
+
+        wishService.removeWish(wish.getId(), user.getIdentifier());
+
+        verify(wishRepository).findByUserIdentifierAndId(any(), any());
+        verify(wishRepository).delete(any());
+        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(oAuth2UserService);
+        verifyNoMoreInteractions(wishRepository);
+    }
+
+    @Test
+    @DisplayName("위시 삭제 실패 (없는 위시 삭제 시도)")
+    void deleteWishFail() throws NoSuchFieldException, IllegalAccessException {
+        UserEntity user = testUser();
+        Festival festival = testFestival();
+        Wish wish = new Wish(1L, user, festival);
+
+        given(wishRepository.findByUserIdentifierAndId(any(), any()))
+                .willReturn(Optional.empty());
+
+        NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
+                () -> wishService.removeWish(wish.getId(), user.getIdentifier()));
+        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_NOT_FOUND);
+
+        verify(wishRepository).findByUserIdentifierAndId(any(), any());
+        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(oAuth2UserService);
+        verifyNoMoreInteractions(wishRepository);
+    }
+
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 "11", "test area1", "test area2", "http://asd.example.com/test.jpg", "20250823",
                 "20251231");
-        Festival festival = new Festival(festivalRequestDto, "http://asd.example.com", "testtesttest");
+        Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
+                "testtesttest");
 
         Field idField = Festival.class.getDeclaredField("id");
         idField.setAccessible(true);
@@ -121,8 +163,9 @@ public class WishServiceTest {
         return festival;
     }
 
-    private UserEntity testUser(){
+    private UserEntity testUser() {
 
-        return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER, SocialType.KAKAO);
+        return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER,
+                SocialType.KAKAO);
     }
 }
