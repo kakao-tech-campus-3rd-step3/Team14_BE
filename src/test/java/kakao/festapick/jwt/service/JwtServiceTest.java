@@ -1,12 +1,24 @@
 package kakao.festapick.jwt.service;
 
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.anyBoolean;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.mock;
+import static org.mockito.BDDMockito.times;
+import static org.mockito.BDDMockito.verify;
+import static org.mockito.BDDMockito.verifyNoMoreInteractions;
+
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.Optional;
+import java.util.UUID;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.component.TokenEncoder;
 import kakao.festapick.global.exception.AuthenticationException;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
@@ -23,13 +35,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.SoftAssertions.*;
-import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtServiceTest {
@@ -163,7 +168,7 @@ class JwtServiceTest {
         // when & then
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
-                .hasMessage("쿠키가 존재하지 않습니다.");
+                .hasMessage(ExceptionCode.COOKIE_NOT_EXIST.getErrorMessage());
         verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
 
     }
@@ -181,7 +186,7 @@ class JwtServiceTest {
         // when & then
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
-                .hasMessage("리프래시 토큰이 존재하지 않습니다.");
+                .hasMessage(ExceptionCode.REFRESH_TOKEN_NOT_EXIST.getErrorMessage());
         verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
@@ -201,7 +206,7 @@ class JwtServiceTest {
         // when & then
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
-                .hasMessage("리프래시 토큰이 유효하지 않습니다.");
+                .hasMessage(ExceptionCode.INVALID_REFRESH_TOKEN.getErrorMessage());
         verify(jwtUtil).validateToken(any(), anyBoolean());
         verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
