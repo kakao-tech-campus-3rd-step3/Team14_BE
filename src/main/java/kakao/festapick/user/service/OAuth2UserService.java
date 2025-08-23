@@ -1,6 +1,7 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -53,7 +54,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
 
     public UserEntity findByIdentifier(String identifier) {
         return userRepository.findByIdentifier(identifier)
-                .orElseThrow(()->new NotFoundEntityException("존재하지 않는 회원입니다."));
+                .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
     }
 
     public void withDraw(String identifier, HttpServletResponse response) {
@@ -72,7 +73,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
 
     public void changeUserRole(Long id, UserRoleType role) {
         UserEntity findUser = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
         findUser.changeUserRole(role);
     }
 
