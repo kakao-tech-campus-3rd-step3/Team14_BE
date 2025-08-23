@@ -40,14 +40,16 @@ public class WishService {
         Wish newWish = new Wish(user, festival);
         wishRepository.save(newWish);
         FestivalDetailResponse festivalResponseDto = new FestivalDetailResponse(festival);
-        return new WishResponseDto(festivalResponseDto);
+        return new WishResponseDto(newWish.getId(), festivalResponseDto.id(), festivalResponseDto.title(),
+                festivalResponseDto.areaCode());
     }
 
     public Page<WishResponseDto> getWishes(String identifier, Pageable pageable) {
         Page<Wish> wishes = wishRepository.findByUserIdentifier(identifier, pageable);
         return wishes.map(wish -> {
             FestivalDetailResponse responseDto = new FestivalDetailResponse(wish.getFestival());
-            return new WishResponseDto(responseDto);
+            return new WishResponseDto(wish.getId() ,responseDto.id(), responseDto.title(),
+                    responseDto.areaCode());
         });
 
     }
