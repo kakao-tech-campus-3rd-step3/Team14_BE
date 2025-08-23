@@ -13,6 +13,7 @@ import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.global.exception.DuplicateEntityException;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -97,7 +98,7 @@ public class WishServiceTest {
 
         DuplicateEntityException e = Assertions.assertThrows(DuplicateEntityException.class,
                 () -> wishService.createWish(festival.getId(), user.getIdentifier()));
-        assertThat(e.getMessage()).isEqualTo("이미 좋아요한 축제입니다.");
+        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_DUPLICATE);
 
         verify(festivalRepository).findFestivalById(any());
         verify(oAuth2UserService).findByIdentifier(any());
