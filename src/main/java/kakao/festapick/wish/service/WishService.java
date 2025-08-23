@@ -38,9 +38,9 @@ public class WishService {
                 });
 
         Wish newWish = new Wish(user, festival);
-        wishRepository.save(newWish);
+        Wish saved = wishRepository.save(newWish);
         FestivalDetailResponse festivalResponseDto = new FestivalDetailResponse(festival);
-        return new WishResponseDto(newWish.getId(), festivalResponseDto.id(), festivalResponseDto.title(),
+        return new WishResponseDto(saved.getId(), festivalResponseDto.id(), festivalResponseDto.title(),
                 festivalResponseDto.areaCode());
     }
 
