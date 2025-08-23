@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.component.TokenEncoder;
 import kakao.festapick.global.exception.AuthenticationException;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
@@ -45,18 +46,18 @@ public class JwtService {
     public void exchangeToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
 
-        if (cookies == null) throw new AuthenticationException("쿠키가 존재하지 않습니다.");
+        if (cookies == null) throw new AuthenticationException(ExceptionCode.COOKIE_NOT_EXIST);
 
         Cookie refreshCookie = Arrays.stream(cookies)
                 .filter(cookie -> cookie.getName().equalsIgnoreCase("refreshToken"))
                 .findFirst()
-                .orElseThrow(() -> new AuthenticationException("리프래시 토큰이 존재하지 않습니다."));
+                .orElseThrow(() -> new AuthenticationException(ExceptionCode.REFRESH_TOKEN_NOT_EXIST));
 
         String oldRefreshToken = refreshCookie.getValue();
 
 
         if (!jwtUtil.validateToken(oldRefreshToken, false))
-            throw new AuthenticationException("리프래시 토큰이 유효하지 않습니다.");
+            throw new AuthenticationException(ExceptionCode.INVALID_REFRESH_TOKEN);
         Claims claims = jwtUtil.getClaims(oldRefreshToken);
         String identifier = claims.get("identifier").toString();
         String role = claims.get("role").toString();
@@ -65,7 +66,7 @@ public class JwtService {
 
         if(!tokenEncoder.match(findRefreshToken.getToken(), oldRefreshToken)) {
             log.info("token invalidated");
-            throw new AuthenticationException("리프래시 토큰이 유효하지 않습니다.");
+            throw new AuthenticationException(ExceptionCode.INVALID_REFRESH_TOKEN);
         }
 
 
@@ -86,6 +87,6 @@ public class JwtService {
 
     public RefreshToken findByUserIdentifier(String identifier) {
         return refreshTokenRepository.findByUserIdentifier(identifier)
-                .orElseThrow(() -> new AuthenticationException("리프래시 토큰이 존재하지 않습니다."));
+                .orElseThrow(() -> new AuthenticationException(ExceptionCode.REFRESH_TOKEN_NOT_EXIST));
     }
 }

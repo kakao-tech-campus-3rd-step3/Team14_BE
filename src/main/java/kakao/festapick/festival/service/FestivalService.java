@@ -12,6 +12,7 @@ import kakao.festapick.festival.dto.*;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
@@ -30,13 +31,12 @@ public class FestivalService {
     private final UserRepository userRepository;
     private final QFestivalRepository  qFestivalRepository;
 
-
     //CREATE
     //TODO: create - customized Festival (How to upload an image)
     @Transactional
     public Long addCustomizedFestival(CustomFestivalRequestDto requestDto, String identifier) {
         UserEntity user =  userRepository.findByIdentifier(identifier)
-                .orElseThrow(()->new NotFoundEntityException("존재하지 않는 회원입니다."));
+                .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
         return savedFestival.getId();
@@ -57,22 +57,21 @@ public class FestivalService {
     //READ
     //contentId를 통한 축제 조회(to get Overview)
     public boolean checkExistenceByContentId(String contentId) {
-        Optional<Festival> festival = festivalRepository.findFestivalByContentIdAndState(contentId,
-                FestivalState.APPROVED);
+        Optional<Festival> festival = festivalRepository.findFestivalByContentIdAndState(contentId, FestivalState.APPROVED);
         return festival.isEmpty();
     }
 
     //Id를 통한 축제 조회
     public FestivalDetailResponse findOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 축제입니다."));
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         return convertToResponseDto(festival);
     }
 
     //Id를 통해 승인된 축제 조회
     public FestivalDetailResponse findApprovedOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalByIdAndState(festivalId, FestivalState.APPROVED)
-                .orElseThrow(() -> new NotFoundEntityException("존재하지 않는 축제입니다."));
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         return convertToResponseDto(festival);
     }
 
@@ -122,7 +121,7 @@ public class FestivalService {
     @Transactional
     public FestivalDetailResponse updateState(Long id, FestivalStateDto state) {
         Festival festival = festivalRepository.findFestivalById(id).orElseThrow(
-                () -> new IllegalStateException("해당 축제를 찾을 수 없습니다")
+                () -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND)
         );
         festival.updateState(FestivalState.valueOf(state.state()));
         return convertToResponseDto(festival);
@@ -172,7 +171,7 @@ public class FestivalService {
 
     private Festival getMyFestival(String identifier, Long id){
         Festival festival = festivalRepository.findFestivalByIdWithManager(id)
-                .orElseThrow(() -> new NotFoundEntityException("해당 축제를 찾을 수 없습니다"));
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         UserEntity manager = festival.getManager();
         if (manager != null && identifier.equals(manager.getIdentifier())){
             return festival;

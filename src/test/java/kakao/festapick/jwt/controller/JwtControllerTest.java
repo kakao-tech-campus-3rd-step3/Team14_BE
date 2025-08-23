@@ -1,6 +1,7 @@
 package kakao.festapick.jwt.controller;
 
 import jakarta.servlet.http.Cookie;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.jwt.JWTUtil;
 import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.mockuser.WithCustomMockUser;
@@ -64,7 +65,7 @@ class JwtControllerTest {
 
         mockMvc.perform(post("/api/jwt/exchange"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("쿠키가 존재하지 않습니다."));
+                .andExpect(jsonPath("$.message").value(ExceptionCode.COOKIE_NOT_EXIST.getErrorMessage()));
     }
 
     @Test
@@ -77,7 +78,7 @@ class JwtControllerTest {
         mockMvc.perform(post("/api/jwt/exchange")
                         .cookie(cookie))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("리프래시 토큰이 존재하지 않습니다."));
+                .andExpect(jsonPath("$.message").value(ExceptionCode.REFRESH_TOKEN_NOT_EXIST.getErrorMessage()));
     }
 
     @Test
@@ -93,7 +94,7 @@ class JwtControllerTest {
         mockMvc.perform(post("/api/jwt/exchange")
                         .cookie(refreshCookie))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("리프래시 토큰이 유효하지 않습니다."));
+                .andExpect(jsonPath("$.message").value(ExceptionCode.INVALID_REFRESH_TOKEN.getErrorMessage()));
     }
 
     private UserEntity saveUserEntity() {
