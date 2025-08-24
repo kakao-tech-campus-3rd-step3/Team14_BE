@@ -22,11 +22,13 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -152,14 +154,18 @@ public class FestivalService {
     }
 
     private String getHomePage(String homePage){
-        if(!homePage.isBlank()){
+        try{
             String [] parsedResult = homePage.split("<|>");
             String pageURL = parsedResult[2];
             if(pageURL.startsWith("https://")){
                 return pageURL;
             }
+        } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
+            log.error("홈페이지 정보 파싱 실패");
+            return "fail to parse the website";
         }
-        return "festivalHomePage";
+        log.error("TourAPI에서 홈페이지 정보를 가져올 수 없음");
+        return "no information";
     }
 
     private FestivalDetailResponse convertToResponseDto(Festival festival) {

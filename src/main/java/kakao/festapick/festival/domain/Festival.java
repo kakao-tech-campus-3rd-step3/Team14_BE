@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import kakao.festapick.festival.dto.CustomFestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -40,20 +41,19 @@ public class Festival {
 
     private String imageUrl;
 
-    @NotBlank
+    @NotNull
     private LocalDate startDate;
 
-    @NotBlank
+    @NotNull
     private LocalDate endDate;
 
-    @NotBlank
     @Column(length = 5000)
     private String overView;
 
     @Column(length = 500)
     private String homePage;
 
-    @NotBlank
+    @NotNull
     @Enumerated(EnumType.STRING)
     private FestivalState state;
 
@@ -93,7 +93,7 @@ public class Festival {
         this.state = FestivalState.APPROVED;
     }
 
-    //자신이 등록한 축제에 대해서만
+    //축제 정보 수정
     public void updateFestival(FestivalRequestDto requestDto){
         this.title = requestDto.title();
         this.areaCode = requestDto.areaCode();
@@ -105,7 +105,7 @@ public class Festival {
         this.homePage = requestDto.homePage();
     }
 
-    //admin만
+    //admin만 축제 권한 변경
     public void updateState(FestivalState festivalState){
         this.state = festivalState;
     }

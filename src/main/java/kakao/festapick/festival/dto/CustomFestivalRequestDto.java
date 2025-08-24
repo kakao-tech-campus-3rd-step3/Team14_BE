@@ -1,11 +1,10 @@
 package kakao.festapick.festival.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
-import org.antlr.v4.runtime.misc.NotNull;
 
 public record CustomFestivalRequestDto(
-        String contentId,
-        @NotNull
+        @NotBlank
         String title,
         String areaCode,
         String addr1,

@@ -3,6 +3,8 @@ package kakao.festapick.wish.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -31,9 +33,8 @@ public class WishRepositoryTest {
     private static final String identifier = "GOOGLE-1234";
 
     private final FestivalRequestDto requestDto = new FestivalRequestDto("1234567", "test festival",
-            "11",
-            "test addr1", "test addr2", "http://asd.test.com/example.jpg", "20250823",
-            "20251231");
+            "11", "test addr1", "test addr2", "http://asd.test.com/example.jpg",
+            toLocalDate("20250823"), toLocalDate("20251231"));
 
     @Autowired
     private WishRepository wishRepository;
@@ -141,4 +142,9 @@ public class WishRepositoryTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getFestival()).isEqualTo(festival)
         );
     }
+
+    private LocalDate toLocalDate(String date){
+        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
+    }
+
 }

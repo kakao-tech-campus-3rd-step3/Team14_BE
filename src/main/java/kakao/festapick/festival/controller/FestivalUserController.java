@@ -41,21 +41,21 @@ public class FestivalUserController {
     }
 
     //해당 지역에서 열리는 모든 축제
-    @GetMapping("/approved/area/{areaCode}")
+    @GetMapping("/area/{areaCode}")
     public ResponseEntity<List<FestivalDetailResponse>> getFestivalByArea(@PathVariable String areaCode){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedOneByArea(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //해당 지역에서 현재 열리고 있는 축제
-    @GetMapping("/approved/area/{areaCode}/current")
+    @GetMapping("/area/{areaCode}/current")
     public ResponseEntity<List<FestivalDetailResponse>> getCurrentFestivalByArea(@PathVariable String areaCode){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //모든 지역의 축제 조회(승인된 축제만)
-    @GetMapping("/approved/all")
+    @GetMapping("/all")
     public ResponseEntity<List<FestivalDetailResponse>> getApprovedFestivals(){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApproved();
         return ResponseEntity.ok(festivalResponseDtos);

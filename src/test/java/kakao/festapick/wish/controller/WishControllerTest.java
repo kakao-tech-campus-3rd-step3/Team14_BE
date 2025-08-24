@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -114,11 +116,16 @@ public class WishControllerTest {
 
     private Festival saveFestival() {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
-                "11", "test area1", "test area2", "http://asd.example.com/test.jpg", "20250823",
-                "20251231");
+                "11", "test area1", "test area2", "http://asd.example.com/test.jpg",
+                toLocalDate("20250823"), toLocalDate("20251231"));
         Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
                 "testtesttest");
 
         return festivalRepository.save(festival);
     }
+
+    private LocalDate toLocalDate(String date){
+        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
+    }
+
 }
