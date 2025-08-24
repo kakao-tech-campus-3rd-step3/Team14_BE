@@ -10,6 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
 import kakao.festapick.festival.dto.CustomFestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.user.domain.UserEntity;
@@ -25,26 +27,33 @@ public class Festival {
 
     private String contentId;
 
+    @NotBlank
     private String title;
 
+    @NotBlank
     private String areaCode;
 
+    @NotBlank
     private String addr1;
 
     private String addr2;
 
     private String imageUrl;
 
-    private String startDate;
+    @NotBlank
+    private LocalDate startDate;
 
-    private String endDate;
+    @NotBlank
+    private LocalDate endDate;
 
+    @NotBlank
     @Column(length = 5000)
     private String overView;
 
-    @Column(length = 5000)
+    @Column(length = 500)
     private String homePage;
 
+    @NotBlank
     @Enumerated(EnumType.STRING)
     private FestivalState state;
 

@@ -1,6 +1,6 @@
 package kakao.festapick.festival.dto;
 
-import jakarta.persistence.Column;
+import java.time.LocalDate;
 import org.antlr.v4.runtime.misc.NotNull;
 
 public record CustomFestivalRequestDto(
@@ -11,8 +11,8 @@ public record CustomFestivalRequestDto(
         String addr1,
         String addr2,
         String imageUrl,
-        String startDate,
-        String endDate,
+        LocalDate startDate,
+        LocalDate endDate,
         String homePage,
         String overView
 ) {

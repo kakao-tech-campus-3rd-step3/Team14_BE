@@ -1,5 +1,6 @@
 package kakao.festapick.festival.dto;
 
+import java.time.LocalDate;
 import kakao.festapick.festival.domain.Festival;
 
 public record FestivalDetailResponse(
@@ -10,8 +11,8 @@ public record FestivalDetailResponse(
         String addr1,
         String addr2,
         String imageUrl,
-        String startDate,
-        String endDate,
+        LocalDate startDate,
+        LocalDate endDate,
         String overView,
         String homePage
 ) {
