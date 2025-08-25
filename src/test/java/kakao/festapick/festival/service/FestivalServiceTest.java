@@ -145,14 +145,14 @@ class FestivalServiceTest {
 
         //given
         Festival festival = createFestival();
-        given(festivalRepository.findFestivalByContentIdAndState(any(), any())).willReturn(Optional.of(festival));
+        given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.of(festival));
 
         //when
         boolean result = festivalService.checkExistenceByContentId(festival.getContentId());
 
         //then
         assertThat(result).isEqualTo(false);
-        verify(festivalRepository).findFestivalByContentIdAndState(any(), any());
+        verify(festivalRepository).findFestivalByContentId(any());
         verifyNoMoreInteractions(festivalRepository);
     }
 
@@ -162,14 +162,14 @@ class FestivalServiceTest {
 
         //given
         String testContentId = "testContentId";
-        given(festivalRepository.findFestivalByContentIdAndState(any(), any())).willReturn(Optional.empty());
+        given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.empty());
 
         //when
         boolean result = festivalService.checkExistenceByContentId(testContentId);
 
         //then
         assertThat(result).isEqualTo(true);
-        verify(festivalRepository).findFestivalByContentIdAndState(any(), any());
+        verify(festivalRepository).findFestivalByContentId(any());
         verifyNoMoreInteractions(festivalRepository);
     }
 
@@ -412,7 +412,7 @@ class FestivalServiceTest {
 
     private CustomFestivalRequestDto createCustomRequestDto() {
         return new CustomFestivalRequestDto(
-                "축제title", "32", "주소1", "상세주소",
+                "축제title", 32, "주소1", "상세주소",
                 "imageUrl", toLocalDate("20250824"), toLocalDate("20250825"),
                 "homepageUrl", "축제에 대한 개요");
 
@@ -420,14 +420,14 @@ class FestivalServiceTest {
 
     private FestivalRequestDto createRequestDto() {
         return new FestivalRequestDto(
-                "contentId","축제title", "32", "주소1", "상세주소",
+                "contentId","축제title", 32, "주소1", "상세주소",
                 "imageUrl", toLocalDate("20250824"), toLocalDate("20250825"));
 
     }
 
     private FestivalRequestDto createUpdateRequestDto() {
         return new FestivalRequestDto(
-                "contentId","updated_title", "32", "updated_주소1", "상세주소",
+                "contentId","updated_title", 32, "updated_주소1", "상세주소",
                 "updated_imageUrl", toLocalDate("20250824"), toLocalDate("20250825"));
 
     }

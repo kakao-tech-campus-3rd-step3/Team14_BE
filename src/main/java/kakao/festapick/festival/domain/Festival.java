@@ -31,8 +31,7 @@ public class Festival {
     @NotBlank
     private String title;
 
-    @NotBlank
-    private String areaCode;
+    private int areaCode;
 
     @NotBlank
     private String addr1;

@@ -116,7 +116,7 @@ public class WishControllerTest {
 
     private Festival saveFestival() {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
-                "11", "test area1", "test area2", "http://asd.example.com/test.jpg",
+                11, "test area1", "test area2", "http://asd.example.com/test.jpg",
                 toLocalDate("20250823"), toLocalDate("20251231"));
         Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
                 "testtesttest");

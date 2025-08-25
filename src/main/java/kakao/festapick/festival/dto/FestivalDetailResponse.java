@@ -7,7 +7,7 @@ public record FestivalDetailResponse(
         Long id,
         String contentId,
         String title,
-        String areaCode,
+        int areaCode,
         String addr1,
         String addr2,
         String imageUrl,

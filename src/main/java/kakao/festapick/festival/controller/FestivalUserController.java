@@ -42,14 +42,14 @@ public class FestivalUserController {
 
     //해당 지역에서 열리는 모든 축제
     @GetMapping("/area/{areaCode}")
-    public ResponseEntity<List<FestivalDetailResponse>> getFestivalByArea(@PathVariable String areaCode){
+    public ResponseEntity<List<FestivalDetailResponse>> getFestivalByArea(@PathVariable int areaCode){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedOneByArea(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
     //해당 지역에서 현재 열리고 있는 축제
     @GetMapping("/area/{areaCode}/current")
-    public ResponseEntity<List<FestivalDetailResponse>> getCurrentFestivalByArea(@PathVariable String areaCode){
+    public ResponseEntity<List<FestivalDetailResponse>> getCurrentFestivalByArea(@PathVariable int areaCode){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode);
         return ResponseEntity.ok(festivalResponseDtos);
     }

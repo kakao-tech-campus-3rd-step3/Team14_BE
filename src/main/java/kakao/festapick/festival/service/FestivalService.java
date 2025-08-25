@@ -2,7 +2,6 @@ package kakao.festapick.festival.service;
 
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,7 +68,7 @@ public class FestivalService {
     //READ
     //contentId를 통한 축제 조회(to get Overview)
     public boolean checkExistenceByContentId(String contentId) {
-        Optional<Festival> festival = festivalRepository.findFestivalByContentIdAndState(contentId, FestivalState.APPROVED);
+        Optional<Festival> festival = festivalRepository.findFestivalByContentId(contentId);
         return festival.isEmpty();
     }
 
@@ -80,15 +79,14 @@ public class FestivalService {
         return new FestivalDetailResponse(festival);
     }
 
-    //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회[Pending]
-    public List<FestivalDetailResponse> findApprovedAreaAndDate(String areaCode) {
-        List<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndDate(areaCode,
-                getDate(), FestivalState.APPROVED);
+    //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
+    public List<FestivalDetailResponse> findApprovedAreaAndDate(int areaCode) {
+        List<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndDate(areaCode, LocalDate.now(), FestivalState.APPROVED);
         return convertToResponseDtoList(festivalList);
     }
 
     //지역코드를 통해 승인된 축제 조회[Pending]
-    public List<FestivalDetailResponse> findApprovedOneByArea(String areaCode) {
+    public List<FestivalDetailResponse> findApprovedOneByArea(int areaCode) {
         List<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndState(areaCode,
                 FestivalState.APPROVED);
         return convertToResponseDtoList(festivalList);
@@ -142,13 +140,6 @@ public class FestivalService {
     @Transactional
     public void deleteFestivalForAdmin(Long festivalId) {
         festivalRepository.deleteById(festivalId);
-    }
-
-    //현재 날짜 구하기
-    private String getDate() {
-        LocalDate now = LocalDate.now();
-        DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyyMMdd");
-        return now.format(date);
     }
 
     private String getHomePage(String homePage){

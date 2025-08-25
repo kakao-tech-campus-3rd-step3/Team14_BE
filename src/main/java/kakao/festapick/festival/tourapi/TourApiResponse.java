@@ -26,7 +26,7 @@ public class TourApiResponse {
                                 new FestivalRequestDto(
                                         info.get("contentid"),
                                         info.get("title"),
-                                        info.get("areacode"),
+                                        Integer.parseInt(info.get("areacode")),
                                         info.get("addr1"),
                                         info.get("addr2"),
                                         info.get("firstimage"),

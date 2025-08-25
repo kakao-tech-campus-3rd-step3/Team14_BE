@@ -6,7 +6,7 @@ import java.time.LocalDate;
 public record CustomFestivalRequestDto(
         @NotBlank
         String title,
-        String areaCode,
+        int areaCode,
         String addr1,
         String addr2,
         String imageUrl,

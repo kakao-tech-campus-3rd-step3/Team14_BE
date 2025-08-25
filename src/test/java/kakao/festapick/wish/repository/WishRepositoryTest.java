@@ -33,7 +33,7 @@ public class WishRepositoryTest {
     private static final String identifier = "GOOGLE-1234";
 
     private final FestivalRequestDto requestDto = new FestivalRequestDto("1234567", "test festival",
-            "11", "test addr1", "test addr2", "http://asd.test.com/example.jpg",
+            11, "test addr1", "test addr2", "http://asd.test.com/example.jpg",
             toLocalDate("20250823"), toLocalDate("20251231"));
 
     @Autowired
