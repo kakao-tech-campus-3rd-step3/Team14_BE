@@ -178,7 +178,6 @@ class FestivalRepositoryTest {
     void findFestivalByAreaCodeAndState() {
     }
 
-
     private FestivalRequestDto FestivalRequest(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){
         return new FestivalRequestDto(
                 contentId, title, areaCode, "addr1", "addr2",
@@ -190,7 +189,7 @@ class FestivalRepositoryTest {
         return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), "overview", "homePage");
     }
 
-    private CustomFestivalRequestDto CustomFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
+    private CustomFestivalRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
         return new CustomFestivalRequestDto(
                  title, areaCode, "addr1", "addr2",
                 "imageUrl", startDate, endDate, "homePage", "overView"
@@ -198,7 +197,7 @@ class FestivalRepositoryTest {
     }
 
     private Festival creatCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
-        return new Festival(CustomFestivalRequest(title, areaCode, startDate, endDate), user);
+        return new Festival(customFestivalRequest(title, areaCode, startDate, endDate), user);
     }
 
     private UserEntity createUser(String identifier){

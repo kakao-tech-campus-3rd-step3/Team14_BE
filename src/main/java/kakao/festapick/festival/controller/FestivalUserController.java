@@ -6,6 +6,7 @@ import kakao.festapick.festival.dto.CustomFestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponse;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.service.FestivalService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,13 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/festivals")
+@RequiredArgsConstructor
 public class FestivalUserController {
 
     private final FestivalService festivalService;
-
-    public FestivalUserController(FestivalService festivalService) {
-        this.festivalService = festivalService;
-    }
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
@@ -40,7 +38,7 @@ public class FestivalUserController {
         return ResponseEntity.created(URI.create("/api/festivals/" + festivalId)).build();
     }
 
-    //해당 지역에서 열리는 모든 축제
+    //해당 지역에서 열리는 모든 축제[보류]
     @GetMapping("/area/{areaCode}")
     public ResponseEntity<List<FestivalDetailResponse>> getFestivalByArea(@PathVariable int areaCode){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedOneByArea(areaCode);
@@ -54,14 +52,14 @@ public class FestivalUserController {
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
-    //모든 지역의 축제 조회(승인된 축제만)
+    //모든 지역의 축제 조회(승인된 축제만)[보류]
     @GetMapping("/all")
     public ResponseEntity<List<FestivalDetailResponse>> getApprovedFestivals(){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApproved();
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
-    //Keyword를 통한 축제 검색
+    //Keyword를 통한 축제 검색[보류]
     @GetMapping
     public ResponseEntity<List<FestivalDetailResponse>> getFestivalByKeyword(@RequestParam String keyword){
         List<FestivalDetailResponse> festivalResponseDtos = festivalService.findApprovedOneByKeyword(keyword);
