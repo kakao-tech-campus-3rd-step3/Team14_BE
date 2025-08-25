@@ -18,7 +18,10 @@ public enum ExceptionCode {
     WISH_NOT_FOUND("존재하지 않는 좋아요입니다."),
 
     //CONFLICT
-    WISH_DUPLICATE("이미 좋아요한 축제입니다.");
+    WISH_DUPLICATE("이미 좋아요한 축제입니다."),
+
+    //FORBIDDEN
+    FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다.");
 
     private final String errorMessage;
 
