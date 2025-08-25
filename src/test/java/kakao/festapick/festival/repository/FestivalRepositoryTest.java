@@ -22,6 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
@@ -116,14 +119,15 @@ class FestivalRepositoryTest {
         festivalRepository.save(festival2);
 
         //when
-        List<Festival> festivals = festivalRepository.findFestivalByAreaCodeAndDate(areaCode, toLocalDate("20250816"), FestivalState.APPROVED);
+        Pageable pageable = PageRequest.of(0,10);
+        Page<Festival> festivals = festivalRepository.findFestivalByAreaCodeAndDate(areaCode, toLocalDate("20250816"), FestivalState.APPROVED, pageable);
 
         //then
         assertAll(
-                () -> assertThat(festivals.size()).isGreaterThan(1),
+                () -> assertThat(festivals.getTotalElements()).isGreaterThan(1),
                 () -> assertThat(festivals).contains(festival1),
                 () -> assertThat(festivals).doesNotContain(festival2),
-                () -> assertThat(festivals.getFirst().getAreaCode()).isEqualTo(areaCode)
+                () -> assertThat(festivals.getContent().getFirst().getAreaCode()).isEqualTo(areaCode)
         );
     }
 

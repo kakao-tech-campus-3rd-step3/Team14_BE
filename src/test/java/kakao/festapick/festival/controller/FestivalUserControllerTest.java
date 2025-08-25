@@ -126,15 +126,23 @@ class FestivalUserControllerTest {
     }
 
     @Test
-    void getFestivalByArea() {
-    }
+    void getFestivalInfo() throws Exception{
+        //given
+        Festival festival = createFestival("FESTAPICK_999", "정컴 컴공 다모여라", 1, toLocalDate("20250901"), toLocalDate("20250903"));
+        Long festivalId = festivalRepository.save(festival).getId();
 
-    @Test
-    void getApprovedFestivals() {
-    }
+        //when-then
+        MvcResult result = mockMvc.perform(get("/api/festivals/{festvialID}", festivalId))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andReturn();
 
-    @Test
-    void getFestivalByKeyword() {
+        FestivalDetailResponse response = objectMapper.readValue(result.getResponse().getContentAsString(), FestivalDetailResponse.class);
+        assertAll(
+                () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
+                () -> assertThat(response.overView()).isNotNull(),
+                () -> assertThat(response.addr2()).isNotNull()
+        );
+
     }
 
     @Test
@@ -150,8 +158,6 @@ class FestivalUserControllerTest {
 
         FestivalRequestDto updateInfo = createUpdateInfo("카테캠 축제");
         String updateRequest = objectMapper.writeValueAsString(updateInfo);
-
-        System.out.println("festival = " + festival.getTitle());
 
         //when-then
         MvcResult mvcResult = mockMvc.perform(patch("/api/festivals/{festivalId}", saved.getId())
@@ -231,6 +237,18 @@ class FestivalUserControllerTest {
 
     private LocalDate toLocalDate(String date){
         return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
+    }
+
+    @Test
+    void getFestivalByArea() {
+    }
+
+    @Test
+    void getApprovedFestivals() {
+    }
+
+    @Test
+    void getFestivalByKeyword() {
     }
 
 }
