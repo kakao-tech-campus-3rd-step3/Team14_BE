@@ -124,7 +124,7 @@ public class ReviewRepositoryTest {
 
         Review saved = reviewRepository.save(new Review(userEntity, festival, "testtesttest", 4));
 
-        Page<Review> find = reviewRepository.findByUserIdentifier(userEntity.getIdentifier(),
+        Page<Review> find = reviewRepository.findByUserIdentifierWithAll(userEntity.getIdentifier(),
                 PageRequest.of(0, 1));
 
         Review actual = find.getContent().get(0);
@@ -148,7 +148,7 @@ public class ReviewRepositoryTest {
 
         Review saved = reviewRepository.save(new Review(userEntity, festival, "testtesttest", 4));
 
-        Page<Review> find = reviewRepository.findByFestivalId(festival.getId(),
+        Page<Review> find = reviewRepository.findByFestivalIdWithAll(festival.getId(),
                 PageRequest.of(0, 1));
 
         Review actual = find.getContent().get(0);

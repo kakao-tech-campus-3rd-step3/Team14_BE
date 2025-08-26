@@ -40,22 +40,17 @@ public class ReviewService {
         Review newReview = new Review(user, festival, requestDto.content(), requestDto.score());
         Review saved = reviewRepository.save(newReview);
 
-        return new ReviewResponseDto(saved.getId(), user.getUsername(), festival.getTitle(),
-                saved.getContent(), saved.getScore());
+        return new ReviewResponseDto(saved);
     }
 
     public Page<ReviewResponseDto> getFestivalReviews(Long festivalId, Pageable pageable) {
-        Page<Review> reviews = reviewRepository.findByFestivalId(festivalId, pageable);
-        return reviews.map(review -> new ReviewResponseDto(review.getId(),
-                review.getReviewerName(), review.getFestivalTitle(), review.getContent(),
-                review.getScore()));
+        Page<Review> reviews = reviewRepository.findByFestivalIdWithAll(festivalId, pageable);
+        return reviews.map(review -> new ReviewResponseDto(review));
     }
 
     public Page<ReviewResponseDto> getMyReviews(String identifier, Pageable pageable) {
-        Page<Review> reviews = reviewRepository.findByUserIdentifier(identifier, pageable);
-        return reviews.map(review -> new ReviewResponseDto(review.getId(),
-                review.getReviewerName(), review.getFestivalTitle(), review.getContent(),
-                review.getScore()));
+        Page<Review> reviews = reviewRepository.findByUserIdentifierWithAll(identifier, pageable);
+        return reviews.map(review -> new ReviewResponseDto(review));
     }
 
     @Transactional
@@ -66,8 +61,7 @@ public class ReviewService {
         review.changeContent(requestDto.content());
         review.changeScore(requestDto.score());
 
-        return new ReviewResponseDto(review.getId(), review.getReviewerName(),
-                review.getFestivalTitle(), review.getContent(), review.getScore());
+        return new ReviewResponseDto(review);
     }
 
     @Transactional

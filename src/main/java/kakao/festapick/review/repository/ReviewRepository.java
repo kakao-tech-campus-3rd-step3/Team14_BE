@@ -16,11 +16,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query(value = "select r from Review r join fetch r.festival f join fetch r.user u where f.id= :festivalId",
             countQuery = "select count(r) from Review r where r.festival.id= :festivalId")
-    Page<Review> findByFestivalId(Long festivalId, Pageable pageable);
+    Page<Review> findByFestivalIdWithAll(Long festivalId, Pageable pageable);
 
     @Query(value = "select r from Review r join fetch r.user u join fetch r.festival f where u.identifier= :identifier",
             countQuery = "select count(r) from Review r where r.user.identifier= :identifier")
-    Page<Review> findByUserIdentifier(String identifier, Pageable pageable);
+    Page<Review> findByUserIdentifierWithAll(String identifier, Pageable pageable);
 
     @Query(value = "select r from Review r where r.user.identifier= :identifier and r.id= :reviewId")
     Optional<Review> findByUserIdentifierAndId(String identifier, Long reviewId);
