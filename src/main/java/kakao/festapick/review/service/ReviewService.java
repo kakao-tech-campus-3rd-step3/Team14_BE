@@ -66,9 +66,8 @@ public class ReviewService {
 
     @Transactional
     public void removeReview(Long reviewId, String identifier) {
-        Review review = reviewRepository.findByUserIdentifierAndId(identifier, reviewId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND));
-
-        reviewRepository.delete(review);
+        if (reviewRepository.deleteByUserIdentifierAndId(identifier, reviewId) == 0) {
+            throw new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND);
+        }
     }
 }
