@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
@@ -33,7 +34,8 @@ public class Review {
     @JoinColumn(name = "festival_id", nullable = false)
     private Festival festival;
 
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, length = 500)
+    @Size(min = 10, max = 500)
     private String content;
 
     @Column(name = "score", nullable = false)
