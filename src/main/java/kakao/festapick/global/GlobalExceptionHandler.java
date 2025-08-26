@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateEntityException.class)
     public ResponseEntity<Map<String,String>> handleDuplicateEntityException(DuplicateEntityException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getExceptionCode().getErrorMessage()));
     }
 
     @ExceptionHandler(ResourceAccessException.class)
