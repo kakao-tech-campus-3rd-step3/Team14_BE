@@ -3,7 +3,7 @@ package kakao.festapick.festival.dto;
 import java.time.LocalDate;
 import kakao.festapick.festival.domain.Festival;
 
-public record FestivalDetailResponse(
+public record FestivalDetailResponseDto(
         Long id,
         String contentId,
         String title,
@@ -16,8 +16,7 @@ public record FestivalDetailResponse(
         String overView,
         String homePage
 ) {
-
-    public FestivalDetailResponse(Festival festival){
+    public FestivalDetailResponseDto(Festival festival){
         this(
                 festival.getId(),
                 festival.getContentId(),

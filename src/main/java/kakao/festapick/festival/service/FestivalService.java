@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
-import kakao.festapick.festival.dto.CustomFestivalRequestDto;
-import kakao.festapick.festival.dto.FestivalDetailResponse;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalStateDto;
+import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -42,7 +44,7 @@ public class FestivalService {
     //CREATE
     //TODO: create - customized Festival (How to upload an image)
     @Transactional
-    public Long addCustomizedFestival(CustomFestivalRequestDto requestDto, String identifier) {
+    public Long addCustomizedFestival(FestivalCustomRequestDto requestDto, String identifier) {
         UserEntity user =  userRepository.findByIdentifier(identifier)
                 .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
         Festival festival = new Festival(requestDto, user);
@@ -70,16 +72,16 @@ public class FestivalService {
     }
 
     //Id를 통한 축제 조회
-    public FestivalDetailResponse findOneById(Long festivalId) {
+    public FestivalDetailResponseDto findOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        return new FestivalDetailResponse(festival);
+        return new FestivalDetailResponseDto(festival);
     }
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
-    public Page<FestivalDetailResponse> findApprovedAreaAndDate(int areaCode, Pageable pageable) {
+    public Page<FestivalListResponse> findApprovedAreaAndDate(int areaCode, Pageable pageable) {
         Page<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndDate(areaCode, LocalDate.now(), FestivalState.APPROVED, pageable);
-        return festivalList.map(FestivalDetailResponse::new);
+        return festivalList.map(FestivalListResponse::new);
     }
 
     //모든 축제 검색 기능(관리자)
@@ -91,20 +93,20 @@ public class FestivalService {
     //UPDATE
     //축제 정보를 업데이트(관리자)
     @Transactional
-    public FestivalDetailResponse updateFestival(String identifier, Long id, FestivalRequestDto requestDto) {
+    public FestivalDetailResponseDto updateFestival(String identifier, Long id, FestivalUpdateRequestDto requestDto) {
         Festival festival = getMyFestival(identifier, id);
         festival.updateFestival(requestDto);
-        return new FestivalDetailResponse(festival);
+        return new FestivalDetailResponseDto(festival);
     }
 
     //축제 상태 변경(admin이 사용자가 등록한 축제를 허용, 관리자)
     @Transactional
-    public FestivalDetailResponse updateState(Long id, FestivalStateDto state) {
+    public FestivalListResponse updateState(Long id, FestivalStateDto state) {
         Festival festival = festivalRepository.findFestivalById(id).orElseThrow(
                 () -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND)
         );
         festival.updateState(FestivalState.valueOf(state.state()));
-        return new FestivalDetailResponse(festival);
+        return new FestivalListResponse(festival);
     }
 
     //DELETE
@@ -144,29 +146,29 @@ public class FestivalService {
     }
 
     //지역코드를 통해 승인된 축제 조회[Pending]
-    public List<FestivalDetailResponse> findApprovedOneByArea(int areaCode) {
+    public List<FestivalListResponse> findApprovedOneByArea(int areaCode) {
         List<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndState(areaCode,
                 FestivalState.APPROVED);
         return convertToResponseDtoList(festivalList);
     }
 
     //축제 검색 기능[Pending]
-    public List<FestivalDetailResponse> findApprovedOneByKeyword(String keyword) {
+    public List<FestivalListResponse> findApprovedOneByKeyword(String keyword) {
         List<Festival> festivalList = festivalRepository.findFestivalByTitleContainingAndState(
                 keyword, FestivalState.APPROVED);
         return convertToResponseDtoList(festivalList);
     }
 
     //모든 승인된 축제 검색 기능[Pending]
-    public List<FestivalDetailResponse> findApproved() {
+    public List<FestivalListResponse> findApproved() {
         List<Festival> festivalList = festivalRepository.findAllByState(FestivalState.APPROVED);
         return convertToResponseDtoList(festivalList);
     }
 
-    private List<FestivalDetailResponse> convertToResponseDtoList(List<Festival> festivalList) {
+    private List<FestivalListResponse> convertToResponseDtoList(List<Festival> festivalList) {
         return new ArrayList<>(
                 festivalList.stream()
-                        .map(FestivalDetailResponse::new)
+                        .map(FestivalListResponse::new)
                         .toList()
         );
     }

@@ -15,11 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.CustomFestivalRequestDto;
-import kakao.festapick.festival.dto.FestivalDetailResponse;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
+import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -63,7 +65,7 @@ class FestivalServiceTest {
 
         //given
         UserEntity user = createTestUser();
-        CustomFestivalRequestDto requestDto = createCustomRequestDto();
+        FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = createCustomFestival(requestDto, user);
         Long festivalId = 1L;
 
@@ -92,7 +94,7 @@ class FestivalServiceTest {
 
         //given
         UserEntity user = createTestUser();
-        CustomFestivalRequestDto requestDto = createCustomRequestDto();
+        FestivalCustomRequestDto requestDto = createCustomRequestDto();
         String testIdentifier = "testIdentifier";
 
         given(userRepository.findByIdentifier(any())).willReturn(Optional.empty());
@@ -182,7 +184,7 @@ class FestivalServiceTest {
         given(festivalRepository.findFestivalById(any())).willReturn(Optional.of(festival));
 
         //when
-        FestivalDetailResponse response = festivalService.findOneById(festival.getId());
+        FestivalDetailResponseDto response = festivalService.findOneById(festival.getId());
 
         //then
         assertAll(
@@ -259,19 +261,19 @@ class FestivalServiceTest {
     void updateFestival() {
         //given
         UserEntity user = createTestUser();
-        CustomFestivalRequestDto requestDto = createCustomRequestDto();
+        FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = createCustomFestival(requestDto, user);
-        FestivalRequestDto updateInfo = createUpdateRequestDto();
+        FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
 
         //when
-        FestivalDetailResponse festivalRequestDto = festivalService.updateFestival(user.getIdentifier(), any(), updateInfo);
+        FestivalDetailResponseDto updated = festivalService.updateFestival(user.getIdentifier(), any(), updateInfo);
 
         //then
         assertAll(
-                () -> assertThat(festivalRequestDto.title()).isEqualTo(updateInfo.title()),
-                () -> assertThat(festivalRequestDto.addr1()).isEqualTo(updateInfo.addr1())
+                () -> assertThat(updated.title()).isEqualTo(updateInfo.title()),
+                () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
         verify(festivalRepository).findFestivalByIdWithManager(any());
         verifyNoMoreInteractions(festivalRepository);
@@ -284,7 +286,7 @@ class FestivalServiceTest {
         UserEntity user = createTestUser();
         Festival festival = createFestival();
 
-        FestivalRequestDto updateInfo = createUpdateRequestDto();
+        FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
 
@@ -305,7 +307,7 @@ class FestivalServiceTest {
 
         //given
         UserEntity user = createTestUser();
-        FestivalRequestDto updateInfo = createUpdateRequestDto();
+        FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.empty());
 
@@ -326,7 +328,7 @@ class FestivalServiceTest {
 
         //given
         UserEntity user = createTestUser();
-        CustomFestivalRequestDto requestDto = createCustomRequestDto();
+        FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
 
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
@@ -346,7 +348,7 @@ class FestivalServiceTest {
 
         //given
         UserEntity user = createTestUser();
-        CustomFestivalRequestDto requestDto = createCustomRequestDto();
+        FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
         String identifierUser2 = "i am user2";
 
@@ -410,8 +412,8 @@ class FestivalServiceTest {
         return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER, SocialType.KAKAO);
     }
 
-    private CustomFestivalRequestDto createCustomRequestDto() {
-        return new CustomFestivalRequestDto(
+    private FestivalCustomRequestDto createCustomRequestDto() {
+        return new FestivalCustomRequestDto(
                 "축제title", 32, "주소1", "상세주소",
                 "imageUrl", toLocalDate("20250824"), toLocalDate("20250825"),
                 "homepageUrl", "축제에 대한 개요");
@@ -425,10 +427,9 @@ class FestivalServiceTest {
 
     }
 
-    private FestivalRequestDto createUpdateRequestDto() {
-        return new FestivalRequestDto(
-                "contentId","updated_title", 32, "updated_주소1", "상세주소",
-                "updated_imageUrl", toLocalDate("20250824"), toLocalDate("20250825"));
+    private FestivalUpdateRequestDto createUpdateRequestDto() {
+        return new FestivalUpdateRequestDto("updated_title", 32, "updated_주소1", "상세주소",
+                "updated_imageUrl", toLocalDate("20250824"), toLocalDate("20250825"), "homepage", "overview");
 
     }
 
@@ -436,7 +437,7 @@ class FestivalServiceTest {
         return new Festival(createRequestDto(), "overview", "homepage");
     }
 
-    private Festival createCustomFestival(CustomFestivalRequestDto requestDto, UserEntity user){
+    private Festival createCustomFestival(FestivalCustomRequestDto requestDto, UserEntity user){
         return new Festival(requestDto, user);
     }
 

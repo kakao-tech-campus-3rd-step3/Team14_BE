@@ -3,7 +3,8 @@ package kakao.festapick.festival.controller;
 
 import jakarta.validation.Valid;
 import kakao.festapick.festival.domain.FestivalState;
-import kakao.festapick.festival.dto.FestivalDetailResponse;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalStateDto;
@@ -35,7 +36,7 @@ public class FestivalAdminController {
 
     @GetMapping("/{festivalId}")
     public String getFestivalInfo(@PathVariable Long festivalId, Model model){
-        FestivalDetailResponse festivalInfo = festivalService.findOneById(festivalId);
+        FestivalDetailResponseDto festivalInfo = festivalService.findOneById(festivalId);
 
         model.addAttribute("festival", festivalInfo);
 

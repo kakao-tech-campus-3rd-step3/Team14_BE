@@ -13,8 +13,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
-import kakao.festapick.festival.dto.CustomFestivalRequestDto;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
 
@@ -63,17 +64,17 @@ public class Festival {
     protected Festival() { }
 
     //TODO: contentId 규칙 만들기
-    public Festival(CustomFestivalRequestDto customFestivalRequestDto, UserEntity user) {
+    public Festival(FestivalCustomRequestDto festivalCustomRequestDto, UserEntity user) {
         this.contentId = "tempcontentId";
-        this.title = customFestivalRequestDto.title();
-        this.areaCode = customFestivalRequestDto.areaCode();
-        this.addr1 = customFestivalRequestDto.addr1();
-        this.addr2 = customFestivalRequestDto.addr2();
-        this.imageUrl = customFestivalRequestDto.imageUrl();
-        this.startDate = customFestivalRequestDto.startDate();
-        this.endDate = customFestivalRequestDto.endDate();
-        this.overView = customFestivalRequestDto.overView();
-        this.homePage = customFestivalRequestDto.homePage();
+        this.title = festivalCustomRequestDto.title();
+        this.areaCode = festivalCustomRequestDto.areaCode();
+        this.addr1 = festivalCustomRequestDto.addr1();
+        this.addr2 = festivalCustomRequestDto.addr2();
+        this.imageUrl = festivalCustomRequestDto.imageUrl();
+        this.startDate = festivalCustomRequestDto.startDate();
+        this.endDate = festivalCustomRequestDto.endDate();
+        this.overView = festivalCustomRequestDto.overView();
+        this.homePage = festivalCustomRequestDto.homePage();
         this.state = FestivalState.PROCESSING;
         this.manager = user;
     }
@@ -93,7 +94,7 @@ public class Festival {
     }
 
     //축제 정보 수정
-    public void updateFestival(FestivalRequestDto requestDto){
+    public void updateFestival(FestivalUpdateRequestDto requestDto){
         this.title = requestDto.title();
         this.areaCode = requestDto.areaCode();
         this.addr1 = requestDto.addr1();

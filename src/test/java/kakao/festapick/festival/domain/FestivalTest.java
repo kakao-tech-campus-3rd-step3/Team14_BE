@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.time.LocalDate;
-import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import org.junit.jupiter.api.Test;
 
 class FestivalTest {
@@ -14,7 +14,7 @@ class FestivalTest {
 
         //given
         Festival festival = createFestival();
-        FestivalRequestDto updateInfo = createUpdateInfo();
+        FestivalUpdateRequestDto updateInfo = createUpdateInfo();
 
         //when
         festival.updateFestival(updateInfo);
@@ -44,10 +44,10 @@ class FestivalTest {
         return new Festival();
     }
 
-    private FestivalRequestDto createUpdateInfo(){
-        return new FestivalRequestDto(    "contentId", "update_title",
+    private FestivalUpdateRequestDto createUpdateInfo(){
+        return new FestivalUpdateRequestDto("update_title",
                 1, "update_addr1", "update_addr2",
-                "update_imageUrl", LocalDate.now(), LocalDate.now());
+                "update_imageUrl", LocalDate.now(), LocalDate.now(), "hompage", "overview");
     }
 
 }

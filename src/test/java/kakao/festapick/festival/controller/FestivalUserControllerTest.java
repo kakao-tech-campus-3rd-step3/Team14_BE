@@ -14,9 +14,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.CustomFestivalRequestDto;
-import kakao.festapick.festival.dto.FestivalDetailResponse;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.SocialType;
@@ -76,7 +78,7 @@ class FestivalUserControllerTest {
     void addFestival() throws Exception {
 
         //given
-        CustomFestivalRequestDto requestDto = customFestivalRequest("title", 1, toLocalDate("20250804"), toLocalDate("20250806"));
+        FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, toLocalDate("20250804"), toLocalDate("20250806"));
         String customRequestDto = objectMapper.writeValueAsString(requestDto);
 
         //when-then
@@ -94,7 +96,7 @@ class FestivalUserControllerTest {
     void addFestivalFail() throws Exception {
 
         //given
-        CustomFestivalRequestDto requestDto = customFestivalRequest("title", 1, toLocalDate("20250804"), toLocalDate("20250806"));
+        FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, toLocalDate("20250804"), toLocalDate("20250806"));
         String customRequestDto = objectMapper.writeValueAsString(requestDto);
 
         //when-then
@@ -117,12 +119,9 @@ class FestivalUserControllerTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
-        List<FestivalDetailResponse> festivals = Arrays.asList(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), FestivalDetailResponse[].class));
+        List<FestivalListResponse> festivals = Arrays.asList(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), FestivalListResponse[].class));
 
-        assertAll(
-                () -> assertThat(festivals.size()).isEqualTo(2),
-                () -> assertThat(festivals.getFirst().areaCode()).isEqualTo(areaCode)
-        );
+        assertThat(festivals.size()).isEqualTo(2);
     }
 
     @Test
@@ -136,7 +135,7 @@ class FestivalUserControllerTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
-        FestivalDetailResponse response = objectMapper.readValue(result.getResponse().getContentAsString(), FestivalDetailResponse.class);
+        FestivalDetailResponseDto response = objectMapper.readValue(result.getResponse().getContentAsString(), FestivalDetailResponseDto.class);
         assertAll(
                 () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(response.overView()).isNotNull(),
@@ -156,7 +155,7 @@ class FestivalUserControllerTest {
                 toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
-        FestivalRequestDto updateInfo = createUpdateInfo("카테캠 축제");
+        FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3");
         String updateRequest = objectMapper.writeValueAsString(updateInfo);
 
         //when-then
@@ -166,12 +165,11 @@ class FestivalUserControllerTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
-        Festival updatedFestival = objectMapper.readValue(
-                mvcResult.getResponse().getContentAsString(), Festival.class);
+        FestivalDetailResponseDto updatedFestival = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), FestivalDetailResponseDto.class);
 
         assertAll(
-                () -> assertThat(updatedFestival.getId()).isEqualTo(saved.getId()),
-                () -> assertThat(updatedFestival.getTitle()).isEqualTo("카테캠 축제")
+                () -> assertThat(updatedFestival.id()).isEqualTo(saved.getId()),
+                () -> assertThat(updatedFestival.title()).isEqualTo("카테캠 축제 시즌 3")
         );
     }
 
@@ -214,10 +212,11 @@ class FestivalUserControllerTest {
         return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), "overview", "homePage");
     }
 
-    private CustomFestivalRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
-        return new CustomFestivalRequestDto(
+    private FestivalCustomRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
+        String overview = "The overview is a section for writing a description of the festival, and it must contain at least 50 characters.";
+        return new FestivalCustomRequestDto(
                 title, areaCode, "addr1", "addr2",
-                "imageUrl", startDate, endDate, "homePage", "overView"
+                "imageUrl", startDate, endDate, "homePage", overview
         );
     }
 
@@ -229,10 +228,11 @@ class FestivalUserControllerTest {
         return new UserEntity(identifier, "example@gmail.com", "exampleName", UserRoleType.FESTIVAL_MANAGER, SocialType.GOOGLE);
     }
 
-    private FestivalRequestDto createUpdateInfo(String title){
-        return new FestivalRequestDto(    "contentId", title,
-                1, "update_addr1", "update_addr2",
-                "update_imageUrl", LocalDate.now(), LocalDate.now());
+    private FestivalUpdateRequestDto createUpdateInfo(String title){
+        String overview = "The Kakao Tech Campus Festival was held at Pusan National University, and PNU Dev Bros won first place.";
+        return new FestivalUpdateRequestDto(    title, 1,
+                "update_addr1", "update_addr2", "update_imageUrl",
+                LocalDate.now(), LocalDate.now(), "homePage", overview);
     }
 
     private LocalDate toLocalDate(String date){

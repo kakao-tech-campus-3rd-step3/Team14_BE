@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
-import kakao.festapick.festival.dto.CustomFestivalRequestDto;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
@@ -193,8 +193,8 @@ class FestivalRepositoryTest {
         return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), "overview", "homePage");
     }
 
-    private CustomFestivalRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
-        return new CustomFestivalRequestDto(
+    private FestivalCustomRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
+        return new FestivalCustomRequestDto(
                  title, areaCode, "addr1", "addr2",
                 "imageUrl", startDate, endDate, "homePage", "overView"
         );

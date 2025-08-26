@@ -127,7 +127,7 @@
   $(document).ready(function () {
     $("#loadFestivals").click(function () {
       $.ajax({
-        url: "/api/festivals/approved/all",
+        url: "/api/festivals/all",
         method: "GET",
         success: function (data) {
           let tableBody = $("#festivalTable tbody");
@@ -137,9 +137,8 @@
             let row = `
                             <tr>
                                 <td>
-                                    <a href="${festival.homePage}" target="_blank">
-                                        <img src="${festival.imageUrl}" alt="image">
-                                    </a>
+                                       <img src="${festival.imageUrl}" alt="image">
+
                                 </td>
                                 <td>
                                     <div class="festival-title">${festival.title}</div>
