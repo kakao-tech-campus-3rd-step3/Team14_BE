@@ -130,7 +130,7 @@ public class FestivalService {
                     .orElseThrow(() -> new IllegalArgumentException("홈페이지의 주소를 찾을 수 없습니다."));
         } catch (NullPointerException | IllegalArgumentException e) {
             log.error("홈페이지 정보를 찾을 수 없습니다.");
-            log.error("homePage = " + homePage);
+            log.error("homePage = {}", homePage);
         }
         return "no_homepage";
     }
@@ -145,6 +145,12 @@ public class FestivalService {
         throw new ForbiddenException(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
     }
 
+    //모든 승인된 축제 검색 기능 - for view
+    public List<FestivalListResponse> findApproved() {
+        List<Festival> festivalList = festivalRepository.findAllByState(FestivalState.APPROVED);
+        return festivalList.stream().map(FestivalListResponse::new).toList();
+    }
+
     //지역코드를 통해 승인된 축제 조회[Pending]
     public List<FestivalListResponse> findApprovedOneByArea(int areaCode) {
         List<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndState(areaCode,
@@ -156,12 +162,6 @@ public class FestivalService {
     public List<FestivalListResponse> findApprovedOneByKeyword(String keyword) {
         List<Festival> festivalList = festivalRepository.findFestivalByTitleContainingAndState(
                 keyword, FestivalState.APPROVED);
-        return convertToResponseDtoList(festivalList);
-    }
-
-    //모든 승인된 축제 검색 기능[Pending]
-    public List<FestivalListResponse> findApproved() {
-        List<Festival> festivalList = festivalRepository.findAllByState(FestivalState.APPROVED);
         return convertToResponseDtoList(festivalList);
     }
 

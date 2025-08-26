@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -118,9 +119,8 @@ class FestivalServiceTest {
         FestivalRequestDto requestDto = createRequestDto();
 
         String overView = "overView of test Festival";
-        //String homepage = "<a href\"https://www.festapick.com\">www.festapick.com</a>";
+        String homepage = "<a href\"https://www.festapick.com\">www.festapick.com</a>";
 
-        String homepage = null;
         TourDetailResponse tourDetailResponse = createTourDetails(overView, homepage);
 
         Festival festival = createFestival();
@@ -176,7 +176,7 @@ class FestivalServiceTest {
     }
 
     @Test
-    @DisplayName("Id를 통해 축제의 정보를 검색")
+    @DisplayName("Id를 통해 축제의 정보를 검색(상세조회)")
     void findOneById() {
 
         //given
@@ -216,7 +216,29 @@ class FestivalServiceTest {
     }
 
     @Test
+    @DisplayName("지역 정보와 날짜를 통해 축제를 조회") //페이지네이션과 형 변환을 확인
     void findApprovedAreaAndDate() {
+
+        //given
+        int areaCode = 1;
+        Pageable pageable = PageRequest.of(0, 2);
+        List<Festival> festivals = getFestivals();
+        Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
+
+        given(festivalRepository.findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any())).willReturn(pagedFestivals);
+
+        //when
+        Page<FestivalListResponse> festivalList = festivalService.findApprovedAreaAndDate(areaCode, pageable);
+
+        //then
+        assertAll(
+                () -> assertThat(festivalList.getContent().size()).isEqualTo(festivals.size()),
+                () -> assertThat(festivalList.getPageable().getPageSize()).isEqualTo(pageable.getPageSize()),
+                () -> assertThat(festivalList.getContent().getFirst()).isInstanceOf(FestivalListResponse.class)
+        );
+
+        verify(festivalRepository).findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any());
+        verifyNoMoreInteractions(festivalRepository);
     }
 
     @Test
@@ -247,7 +269,7 @@ class FestivalServiceTest {
 
         //then(타입에 대한 검사)
         assertAll(
-                () -> assertThat(result.getTotalPages()).isEqualTo(pagedFestivals.getTotalPages()),
+                () -> assertThat(result.getPageable().getPageSize()).isEqualTo(pageable.getPageSize()),
                 () -> assertThat(result.getContent().size()).isEqualTo(festivals.size()),
                 () -> assertThat(result.getContent().getFirst()).isInstanceOf(FestivalListResponseForAdmin.class)
         );

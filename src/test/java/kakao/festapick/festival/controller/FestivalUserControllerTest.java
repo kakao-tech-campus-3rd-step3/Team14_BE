@@ -125,6 +125,7 @@ class FestivalUserControllerTest {
     }
 
     @Test
+    @DisplayName("축제의 상세 정보 조회")
     void getFestivalInfo() throws Exception{
         //given
         Festival festival = createFestival("FESTAPICK_999", "정컴 컴공 다모여라", 1, toLocalDate("20250901"), toLocalDate("20250903"));
@@ -136,6 +137,7 @@ class FestivalUserControllerTest {
                 .andReturn();
 
         FestivalDetailResponseDto response = objectMapper.readValue(result.getResponse().getContentAsString(), FestivalDetailResponseDto.class);
+
         assertAll(
                 () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(response.overView()).isNotNull(),

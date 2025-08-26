@@ -4,7 +4,6 @@ package kakao.festapick.festival.controller;
 import jakarta.validation.Valid;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
-import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalStateDto;
@@ -73,7 +72,6 @@ public class FestivalAdminController {
             redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors());
             return "redirect:/admin/festivals";
         }
-
 
         festivalService.updateState(festivalId, state);
         return "redirect:/admin/festivals";
