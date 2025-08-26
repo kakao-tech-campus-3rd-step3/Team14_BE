@@ -131,7 +131,7 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         Festival festival = saveFestival();
 
-        Review target = reviewRepository.save(new Review(userEntity, festival, "test", 3));
+        Review target = reviewRepository.save(new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
 
         mockMvc.perform(delete(String.format("/api/reviews/%s", target.getId())))
                 .andExpect(status().isNoContent());
@@ -148,9 +148,9 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         Festival festival = saveFestival();
 
-        ReviewRequestDto requestDto = new ReviewRequestDto("update", 1);
+        ReviewRequestDto requestDto = new ReviewRequestDto("update 정성리뷰 10글자 이상 해야 해요", 1);
 
-        Review target = reviewRepository.save(new Review(userEntity, festival, "test", 3));
+        Review target = reviewRepository.save(new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
 
         mockMvc.perform(patch(String.format("/api/reviews/%s", target.getId()))
                 .contentType(MediaType.APPLICATION_JSON)
