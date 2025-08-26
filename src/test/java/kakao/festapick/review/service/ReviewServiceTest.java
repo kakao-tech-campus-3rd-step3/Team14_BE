@@ -129,13 +129,12 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.findByUserIdentifierAndId(any(), any()))
-                .willReturn(Optional.of(review));
+        given(reviewRepository.deleteByUserIdentifierAndId(any(), any()))
+                .willReturn(1);
 
         reviewService.removeReview(review.getId(), user.getIdentifier());
 
-        verify(reviewRepository).findByUserIdentifierAndId(any(), any());
-        verify(reviewRepository).delete(any());
+        verify(reviewRepository).deleteByUserIdentifierAndId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
         verifyNoMoreInteractions(oAuth2UserService);
         verifyNoMoreInteractions(reviewRepository);
@@ -152,14 +151,14 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.findByUserIdentifierAndId(any(), any()))
-                .willReturn(Optional.empty());
+        given(reviewRepository.deleteByUserIdentifierAndId(any(), any()))
+                .willReturn(0);
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
                 () -> reviewService.removeReview(review.getId(), user.getIdentifier()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
 
-        verify(reviewRepository).findByUserIdentifierAndId(any(), any());
+        verify(reviewRepository).deleteByUserIdentifierAndId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
         verifyNoMoreInteractions(oAuth2UserService);
         verifyNoMoreInteractions(reviewRepository);
