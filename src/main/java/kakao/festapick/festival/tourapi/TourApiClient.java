@@ -57,7 +57,7 @@ public class TourApiClient {
         this.festivalService = festivalService;
     }
 
-    @GetMapping("/update")
+    @GetMapping("/update") // 테스트용 - 개발 완료시 삭제할 것
     @Scheduled(cron = "0 10 3 * * *")
     public void fetchFestivals() {
         TourApiResponse tourApiResponse = getFestivals(getMaxColumns()).getBody();

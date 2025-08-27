@@ -107,7 +107,7 @@ public class WishRepositoryTest {
 
         wishRepository.save(new Wish(userEntity, festival));
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
+        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(userEntity.getIdentifier(),
                 festival.getId());
 
         assertThat(find).isPresent();
