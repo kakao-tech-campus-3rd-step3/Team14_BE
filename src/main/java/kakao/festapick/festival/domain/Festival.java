@@ -10,8 +10,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import kakao.festapick.festival.dto.CustomFestivalRequestDto;
+import java.time.LocalDate;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
 
@@ -25,26 +27,31 @@ public class Festival {
 
     private String contentId;
 
+    @Column(nullable = false)
     private String title;
 
-    private String areaCode;
+    private int areaCode;
 
+    @Column(nullable = false)
     private String addr1;
 
     private String addr2;
 
     private String imageUrl;
 
-    private String startDate;
+    @Column(nullable = false)
+    private LocalDate startDate;
 
-    private String endDate;
+    @Column(nullable = false)
+    private LocalDate endDate;
 
-    @Column(length = 5000)
+    @Column(length = 5000, nullable = false)
     private String overView;
 
-    @Column(length = 5000)
+    @Column(length = 500)
     private String homePage;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private FestivalState state;
 
@@ -55,17 +62,17 @@ public class Festival {
     protected Festival() { }
 
     //TODO: contentId 규칙 만들기
-    public Festival(CustomFestivalRequestDto customFestivalRequestDto, UserEntity user) {
+    public Festival(FestivalCustomRequestDto festivalCustomRequestDto, UserEntity user) {
         this.contentId = "tempcontentId";
-        this.title = customFestivalRequestDto.title();
-        this.areaCode = customFestivalRequestDto.areaCode();
-        this.addr1 = customFestivalRequestDto.addr1();
-        this.addr2 = customFestivalRequestDto.addr2();
-        this.imageUrl = customFestivalRequestDto.imageUrl();
-        this.startDate = customFestivalRequestDto.startDate();
-        this.endDate = customFestivalRequestDto.endDate();
-        this.overView = customFestivalRequestDto.overView();
-        this.homePage = customFestivalRequestDto.homePage();
+        this.title = festivalCustomRequestDto.title();
+        this.areaCode = festivalCustomRequestDto.areaCode();
+        this.addr1 = festivalCustomRequestDto.addr1();
+        this.addr2 = festivalCustomRequestDto.addr2();
+        this.imageUrl = festivalCustomRequestDto.imageUrl();
+        this.startDate = festivalCustomRequestDto.startDate();
+        this.endDate = festivalCustomRequestDto.endDate();
+        this.overView = festivalCustomRequestDto.overView();
+        this.homePage = festivalCustomRequestDto.homePage();
         this.state = FestivalState.PROCESSING;
         this.manager = user;
     }
@@ -84,8 +91,8 @@ public class Festival {
         this.state = FestivalState.APPROVED;
     }
 
-    //자신이 등록한 축제에 대해서만
-    public void updateFestival(FestivalRequestDto requestDto){
+    //축제 정보 수정
+    public void updateFestival(FestivalUpdateRequestDto requestDto){
         this.title = requestDto.title();
         this.areaCode = requestDto.areaCode();
         this.addr1 = requestDto.addr1();
@@ -96,7 +103,7 @@ public class Festival {
         this.homePage = requestDto.homePage();
     }
 
-    //admin만
+    //admin만 축제 권한 변경
     public void updateState(FestivalState festivalState){
         this.state = festivalState;
     }

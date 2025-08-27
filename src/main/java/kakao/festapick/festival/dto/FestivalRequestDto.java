@@ -1,28 +1,28 @@
 package kakao.festapick.festival.dto;
 
-import jakarta.persistence.Column;
+import java.time.LocalDate;
 
 public record FestivalRequestDto(
         String contentId,
         String title,
-        String areaCode,
+        int areaCode,
         String addr1,
         String addr2,
         String imageUrl,
-        String startDate,
-        String endDate,
+        LocalDate startDate,
+        LocalDate endDate,
         String homePage,
         String overView
 ){
     public FestivalRequestDto(
             String contentId,
             String title,
-            String areaCode,
+            int areaCode,
             String addr1,
             String addr2,
             String imageUrl,
-            String startDate,
-            String endDate
+            LocalDate startDate,
+            LocalDate endDate
     )
     {
         this(contentId, title, areaCode, addr1, addr2, imageUrl, startDate, endDate, "homePage", "overView");

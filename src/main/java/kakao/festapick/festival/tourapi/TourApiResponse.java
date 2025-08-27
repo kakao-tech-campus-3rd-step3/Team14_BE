@@ -1,11 +1,14 @@
 package kakao.festapick.festival.tourapi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import lombok.Getter;
+
 
 @Getter
 public class TourApiResponse {
@@ -23,16 +26,21 @@ public class TourApiResponse {
                                 new FestivalRequestDto(
                                         info.get("contentid"),
                                         info.get("title"),
-                                        info.get("areacode"),
+                                        Integer.parseInt(info.get("areacode")),
                                         info.get("addr1"),
                                         info.get("addr2"),
                                         info.get("firstimage"),
-                                        info.get("eventstartdate"),
-                                        info.get("eventenddate")
+                                        toLocalDate(info.get("eventstartdate")),
+                                        toLocalDate(info.get("eventenddate"))
                                 )
                 )
                 .toList();
     }
+
+    private LocalDate toLocalDate(String date){
+        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
+    }
+
 }
 
 

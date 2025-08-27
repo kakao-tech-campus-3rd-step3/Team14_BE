@@ -1,22 +1,22 @@
 package kakao.festapick.festival.dto;
 
+import java.time.LocalDate;
 import kakao.festapick.festival.domain.Festival;
 
-public record FestivalDetailResponse(
+public record FestivalDetailResponseDto(
         Long id,
         String contentId,
         String title,
-        String areaCode,
+        int areaCode,
         String addr1,
         String addr2,
         String imageUrl,
-        String startDate,
-        String endDate,
+        LocalDate startDate,
+        LocalDate endDate,
         String overView,
         String homePage
 ) {
-
-    public FestivalDetailResponse(Festival festival){
+    public FestivalDetailResponseDto(Festival festival){
         this(
                 festival.getId(),
                 festival.getContentId(),

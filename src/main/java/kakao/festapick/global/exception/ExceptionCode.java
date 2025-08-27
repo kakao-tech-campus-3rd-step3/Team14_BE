@@ -20,7 +20,10 @@ public enum ExceptionCode {
 
     //CONFLICT
     WISH_DUPLICATE("이미 좋아요한 축제입니다."),
-    REVIEW_DUPLICATE("이미 리뷰를 한 축제입니다, 리뷰 수정을 이용해주세요.");
+    REVIEW_DUPLICATE("이미 리뷰를 한 축제입니다, 리뷰 수정을 이용해주세요."),
+  
+    //FORBIDDEN
+    FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다.");
 
     private final String errorMessage;
 

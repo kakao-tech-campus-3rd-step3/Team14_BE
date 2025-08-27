@@ -3,7 +3,7 @@ package kakao.festapick.festival.controller;
 
 import jakarta.validation.Valid;
 import kakao.festapick.festival.domain.FestivalState;
-import kakao.festapick.festival.dto.FestivalDetailResponse;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalStateDto;
@@ -15,7 +15,12 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -30,7 +35,7 @@ public class FestivalAdminController {
 
     @GetMapping("/{festivalId}")
     public String getFestivalInfo(@PathVariable Long festivalId, Model model){
-        FestivalDetailResponse festivalInfo = festivalService.findOneById(festivalId);
+        FestivalDetailResponseDto festivalInfo = festivalService.findOneById(festivalId);
 
         model.addAttribute("festival", festivalInfo);
 
@@ -67,7 +72,6 @@ public class FestivalAdminController {
             redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors());
             return "redirect:/admin/festivals";
         }
-
 
         festivalService.updateState(festivalId, state);
         return "redirect:/admin/festivals";
