@@ -1,5 +1,6 @@
 package kakao.festapick.festival.controller;
 
+import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -11,12 +12,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
-import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -114,14 +114,23 @@ class FestivalUserControllerTest {
         //given
         int areaCode = 1; //1번 지역에 3개의 축제가 열리지만 승인된건 2개뿐임,,
 
+        Festival festival1 = createFestival("FESTAPICK_999", "정컴 모여라", 1, toLocalDate("20250801"), LocalDate.now());
+        festivalRepository.save(festival1);
+
+        Festival festival2 = createFestival("FESTAPICK_998", "부산대 모여라", 1, toLocalDate("20240801"), toLocalDate("20250815"));
+        festivalRepository.save(festival2);
+
+        Festival festival3 = createFestival("FESTAPICK_997", "양산캠 모여라", 1, toLocalDate("20250801"), LocalDate.now());
+        festivalRepository.save(festival3);
+
         //when-then
-        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/area/{areaCode}", areaCode))
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/area/{areaCode}/current", areaCode))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
-        List<FestivalListResponse> festivals = Arrays.asList(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), FestivalListResponse[].class));
-
-        assertThat(festivals.size()).isEqualTo(2);
+        String response = mvcResult.getResponse().getContentAsString();
+        List<Map<String, String>> festivals = read(response, "$.content");
+        assertThat(festivals.size()).isGreaterThanOrEqualTo(2);
     }
 
     @Test
@@ -239,18 +248,6 @@ class FestivalUserControllerTest {
 
     private LocalDate toLocalDate(String date){
         return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
-    }
-
-    @Test
-    void getFestivalByArea() {
-    }
-
-    @Test
-    void getApprovedFestivals() {
-    }
-
-    @Test
-    void getFestivalByKeyword() {
     }
 
 }

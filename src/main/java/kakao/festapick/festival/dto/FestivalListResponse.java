@@ -1,5 +1,6 @@
 package kakao.festapick.festival.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 import kakao.festapick.festival.domain.Festival;
 

@@ -32,12 +32,12 @@
         <div class="info"><span class="label">기간:</span><span th:text="|${festival.startDate} ~ ${festival.endDate}|">2025-10-01 ~ 2025-10-03</span></div>
         <div class="info">
             <span class="label">홈페이지:</span>
-            <a th:if="${festival.homePage != 'festivalHomePage'}"
+            <a th:if="${festival.homePage != 'no_homepage'}"
                th:href="${festival.homePage}"
                th:text="${festival.homePage}"
                target="_blank"
                class="muted"></a>
-            <span th:if="${festival.homePage == 'festivalHomePage'}"
+            <span th:if="${festival.homePage == 'no_homepage'}"
                   class="muted"
                   style="opacity:0.5; cursor:not-allowed;">홈페이지 없음</span>
         </div>

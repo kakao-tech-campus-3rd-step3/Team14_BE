@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -91,22 +90,5 @@ public class FestivalUserController {
         List<FestivalListResponse> festivalResponseDtos = festivalService.findApproved();
         return ResponseEntity.ok(festivalResponseDtos);
     }
-
-
-
-    //해당 지역에서 열리는 모든 축제[보류]
-    @GetMapping("/area/{areaCode}")
-    public ResponseEntity<List<FestivalListResponse>> getFestivalByArea(@PathVariable int areaCode){
-        List<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedOneByArea(areaCode);
-        return ResponseEntity.ok(festivalResponseDtos);
-    }
-
-    //Keyword를 통한 축제 검색[보류]
-    @GetMapping
-    public ResponseEntity<List<FestivalListResponse>> getFestivalByKeyword(@RequestParam String keyword){
-        List<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedOneByKeyword(keyword);
-        return ResponseEntity.ok(festivalResponseDtos);
-    }
-
 
 }

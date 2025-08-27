@@ -8,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -226,8 +228,8 @@ public class ReviewServiceTest {
 
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
-                "11", "test area1", "test area2", "http://asd.example.com/test.jpg", "20250823",
-                "20251231");
+                11, "test area1", "test area2", "http://asd.example.com/test.jpg", toLocalDate("20250823"),
+                toLocalDate("20251231"));
         Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
                 "testtesttest");
 
@@ -242,5 +244,9 @@ public class ReviewServiceTest {
 
         return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER,
                 SocialType.KAKAO);
+    }
+
+    private LocalDate toLocalDate(String date){
+        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 }

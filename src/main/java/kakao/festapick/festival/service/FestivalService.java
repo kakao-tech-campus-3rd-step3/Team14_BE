@@ -151,20 +151,6 @@ public class FestivalService {
         return festivalList.stream().map(FestivalListResponse::new).toList();
     }
 
-    //지역코드를 통해 승인된 축제 조회[Pending]
-    public List<FestivalListResponse> findApprovedOneByArea(int areaCode) {
-        List<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndState(areaCode,
-                FestivalState.APPROVED);
-        return convertToResponseDtoList(festivalList);
-    }
-
-    //축제 검색 기능[Pending]
-    public List<FestivalListResponse> findApprovedOneByKeyword(String keyword) {
-        List<Festival> festivalList = festivalRepository.findFestivalByTitleContainingAndState(
-                keyword, FestivalState.APPROVED);
-        return convertToResponseDtoList(festivalList);
-    }
-
     private List<FestivalListResponse> convertToResponseDtoList(List<Festival> festivalList) {
         return new ArrayList<>(
                 festivalList.stream()
@@ -172,6 +158,5 @@ public class FestivalService {
                         .toList()
         );
     }
-
 
 }

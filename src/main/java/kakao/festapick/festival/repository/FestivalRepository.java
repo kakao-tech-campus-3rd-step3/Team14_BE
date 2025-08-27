@@ -25,8 +25,4 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Query("select f from Festival f left join fetch f.manager where f.id= :id")
     Optional<Festival> findFestivalByIdWithManager(Long id);
 
-    //pending
-    List<Festival> findFestivalByTitleContainingAndState(String title, FestivalState state);
-    List<Festival> findFestivalByAreaCodeAndState(int areaCode, FestivalState state);
-
 }

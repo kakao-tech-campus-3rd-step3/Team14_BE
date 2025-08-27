@@ -242,18 +242,6 @@ class FestivalServiceTest {
     }
 
     @Test
-    void findApprovedOneByArea() {
-    }
-
-    @Test
-    void findApprovedOneByKeyword() {
-    }
-
-    @Test
-    void findApproved() {
-    }
-
-    @Test
     void findAllWithPage() {
 
         //given

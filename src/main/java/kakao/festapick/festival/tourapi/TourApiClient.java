@@ -22,7 +22,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 @Slf4j
 @RestController
 @RequestMapping("/api/festivals")
-public class ApiClient {
+public class TourApiClient {
 
     @Value("${tour.api.secret.key}")
     private String tourApiKey;
@@ -33,7 +33,7 @@ public class ApiClient {
 
     private final FestivalService festivalService;
 
-    public ApiClient(RestClient.Builder builder, FestivalService festivalService) {
+    public TourApiClient(RestClient.Builder builder, FestivalService festivalService) {
 
         //TODO: make Config for RestClient
         DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(baseUrl);
