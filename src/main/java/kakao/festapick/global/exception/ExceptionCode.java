@@ -23,7 +23,10 @@ public enum ExceptionCode {
     REVIEW_DUPLICATE("이미 리뷰를 한 축제입니다, 리뷰 수정을 이용해주세요."),
   
     //FORBIDDEN
-    FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다.");
+    FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다."),
+
+    //BAD_REQUEST
+    BAD_REQUEST("잘못된 요청입니다.");
 
     private final String errorMessage;
 
