@@ -1,5 +1,6 @@
 package kakao.festapick.festival.service;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,6 +27,8 @@ import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.fileupload.service.S3Service;
+import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -33,6 +36,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +60,9 @@ class FestivalServiceTest {
 
     @Mock
     private QFestivalRepository qFestivalRepository;
+
+    @Mock
+    private S3Service s3Service;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -108,6 +115,32 @@ class FestivalServiceTest {
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.USER_NOT_FOUND);
 
         verify(userRepository).findByIdentifier(any());
+        verifyNoMoreInteractions(festivalRepository);
+    }
+
+
+    @Test
+    @DisplayName("시작일이 종료일보다 늦을 경우 축제 예외 반환")
+    void addCustomizedFestivalFail2() {
+        // given
+        UserEntity user = createTestUser();
+        FestivalCustomRequestDto requestDto =
+                new FestivalCustomRequestDto(
+                        "축제title", 32, "주소1", "상세주소",
+                        "imageUrl", toLocalDate("20250827"), toLocalDate("20250825"),
+                        "homepageUrl", "축제에 대한 개요");
+
+        given(userRepository.findByIdentifier(any()))
+                .willReturn(Optional.of(user));
+
+        // when & then
+        assertThatThrownBy(()->
+                festivalService.addCustomizedFestival(requestDto, user.getIdentifier()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining(ExceptionCode.BAD_REQUEST.getErrorMessage());
+
+        verify(userRepository).findByIdentifier(any());
+        verifyNoMoreInteractions(userRepository);
         verifyNoMoreInteractions(festivalRepository);
     }
 
@@ -380,12 +413,16 @@ class FestivalServiceTest {
     void deleteFestivalForAdmin() {
         //given
         Long festivalId = 1L;
+        Festival festival = createFestival();
+        given(festivalRepository.findFestivalById(any()))
+                .willReturn(Optional.of(festival));
 
         //when
         festivalService.deleteFestivalForAdmin(festivalId);
 
         //then: 행위만을 검증
         verify(festivalRepository).deleteById(festivalId);
+        verify(festivalRepository).findFestivalById(festivalId);
         verifyNoMoreInteractions(festivalRepository);
     }
 

@@ -19,6 +19,7 @@ import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -26,6 +27,7 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class FestivalService {
     private final FestivalRepository festivalRepository;
     private final UserRepository userRepository;
     private final QFestivalRepository  qFestivalRepository;
+    private final S3Service s3Service;
 
     //CREATE
     //TODO: create - customized Festival (How to upload an image)
@@ -118,7 +121,12 @@ public class FestivalService {
 
     @Transactional
     public void deleteFestivalForAdmin(Long festivalId) {
+        Festival festival = festivalRepository.findFestivalById(festivalId)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+
         festivalRepository.deleteById(festivalId);
+
+        s3Service.deleteS3File(festival.getImageUrl());
     }
 
     private String getHomePage(String homePage){

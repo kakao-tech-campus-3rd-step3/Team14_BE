@@ -30,5 +30,4 @@ public record FestivalCustomRequestDto(
         @Length(min = 30, max = 5000)
         String overView
 ) {
-
 }

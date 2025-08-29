@@ -47,8 +47,9 @@ public class S3Service {
                 .forEach(this::deleteS3File);
     }
 
-    private void deleteS3File(String imageURL) {
+    public void deleteS3File(String imageURL) {
         String path = extractFileName(imageURL);
+        if (path.startsWith("defaultImage")) return;
 
         DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)

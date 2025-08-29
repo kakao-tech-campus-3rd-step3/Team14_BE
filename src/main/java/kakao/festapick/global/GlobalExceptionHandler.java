@@ -1,6 +1,7 @@
 package kakao.festapick.global;
 
 import kakao.festapick.global.exception.AuthenticationException;
+import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import lombok.extern.slf4j.Slf4j;
@@ -61,4 +62,10 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("globalErrors", globalErrors, "fieldErrors", fieldErrors));
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String,String>> handleBadRequestException(BadRequestException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+    }
+
 }
