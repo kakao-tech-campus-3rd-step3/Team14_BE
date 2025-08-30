@@ -1,20 +1,23 @@
 package kakao.festapick.review.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
+
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.dto.ReviewRequestDto;
@@ -53,6 +56,9 @@ public class ReviewControllerTest {
     @Autowired
     private ReviewRepository reviewRepository;
 
+    @Autowired
+    private FileService fileService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -63,17 +69,17 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         Festival festival = saveFestival();
 
-        ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3);
+        ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3, List.of("imageUrl1","imageUrl2"), "videoUrl");
 
-        String result =  mockMvc.perform(post(String.format("/api/festivals/%s/reviews", festival.getId()))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
+        String header = mockMvc.perform(post(String.format("/api/festivals/%s/reviews", festival.getId()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andReturn().getResponse().getHeader("location");
 
-        Long savedReviewId = objectMapper.readValue(result, ReviewResponseDto.class).reviewId();
+        int idx = header.lastIndexOf("/");
+        Long savedReviewId = Long.valueOf(header.substring(idx + 1));
+
 
         Optional<Review> find = reviewRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
                 savedReviewId);
@@ -90,6 +96,11 @@ public class ReviewControllerTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getScore())
                         .isEqualTo(requestDto.score())
         );
+
+        List<FileEntity> files = fileService.findByDomainIdAndDomainType(actual.getId(), DomainType.REVIEW);
+
+        assertThat(files.size()).isEqualTo(3);
+
     }
 
     @Test
@@ -97,7 +108,7 @@ public class ReviewControllerTest {
     @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void createReviewFail() throws Exception {
 
-        ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3);
+        ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3, null, null);
 
         mockMvc.perform(post(String.format("/api/festivals/%s/reviews", 999L))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -116,7 +127,6 @@ public class ReviewControllerTest {
 
     @Test
     @DisplayName("축제 리뷰 조회 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void getReviewsSuccess2() throws Exception {
 
         Festival festival = saveFestival();
@@ -150,11 +160,12 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         Festival festival = saveFestival();
 
-        ReviewRequestDto requestDto = new ReviewRequestDto("update 정성리뷰 10글자 이상 해야 해요", 1);
+        ReviewRequestDto requestDto = new ReviewRequestDto
+                ("update 정성리뷰 10글자 이상 해야 해요", 1, List.of("imageUrl1","imageUrl2"), "videoUrl");
 
         Review target = reviewRepository.save(new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
 
-        mockMvc.perform(patch(String.format("/api/reviews/%s", target.getId()))
+        mockMvc.perform(put(String.format("/api/reviews/%s", target.getId()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk());
@@ -175,6 +186,37 @@ public class ReviewControllerTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getScore())
                         .isEqualTo(requestDto.score())
         );
+
+        List<FileEntity> files = fileService.findByDomainIdAndDomainType(actual.getId(), DomainType.REVIEW);
+        assertThat(files.size()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("특정 리뷰 조회 성공")
+    void getReviewByIdSuccess() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        Festival festival = saveFestival();
+
+
+        Review target = reviewRepository.save(
+                new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
+
+        String response = mockMvc.perform(get(String.format("/api/reviews/%s", target.getId())))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        ReviewResponseDto responseDto = objectMapper.readValue(response, ReviewResponseDto.class);
+
+        assertSoftly(softly-> {
+            softly.assertThat(responseDto.reviewId()).isEqualTo(target.getId());
+            softly.assertThat(responseDto.content()).isEqualTo(responseDto.content());
+            softly.assertThat(responseDto.score()).isEqualTo(responseDto.score());
+            softly.assertThat(responseDto.reviewerName()).isEqualTo(responseDto.reviewerName());
+            softly.assertThat(responseDto.festivalTitle()).isEqualTo(responseDto.festivalTitle());
+            softly.assertThat(responseDto.videoUrl()).isNull();
+            softly.assertThat(responseDto.imageUrls()).isNull();
+        });
     }
 
     private UserEntity saveUserEntity() {

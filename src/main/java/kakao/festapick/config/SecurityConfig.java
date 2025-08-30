@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -54,7 +55,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth->auth
                 .requestMatchers("/api/users/**").authenticated()
                 .requestMatchers("/api/wishes/**").authenticated()
-                .requestMatchers("/api/reviews/**").authenticated()
+                .requestMatchers("/api/presigned-urls/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE,"/api/reviews/**").authenticated()
+                .requestMatchers(HttpMethod.POST,"/api/reviews/**").authenticated()
+                .requestMatchers(HttpMethod.PUT,"/api/reviews/**").authenticated()
                 .requestMatchers("/admin/**").hasRole(UserRoleType.ADMIN.name())
                 .anyRequest().permitAll());
 
