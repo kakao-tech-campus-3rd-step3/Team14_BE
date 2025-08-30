@@ -2,7 +2,7 @@ package kakao.festapick.user.controller;
 
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.domain.UserRoleType;
-import kakao.festapick.user.dto.UserResponseDto;
+import kakao.festapick.user.dto.UserResponseDtoForAdmin;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +38,7 @@ public class UserAdminController {
                                      Model model) {
 
 
-        Page<UserResponseDto> response = oAuth2UserService.findByIdentifierOrUserEmail(new UserSearchCond(identifier,email, role), pageable);
+        Page<UserResponseDtoForAdmin> response = oAuth2UserService.findByIdentifierOrUserEmail(new UserSearchCond(identifier,email, role), pageable);
 
         model.addAttribute("pageData", response);
         model.addAttribute("identifier", identifier);

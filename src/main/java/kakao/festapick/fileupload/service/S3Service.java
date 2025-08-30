@@ -61,6 +61,6 @@ public class S3Service {
 
     private String extractFileName(String imageURL) {
         int idx = imageURL.indexOf(".amazonaws.com/") + ".amazonaws.com/".length();
-        return imageURL.substring(idx, idx+36);
+        return imageURL.substring(idx);
     }
 }
