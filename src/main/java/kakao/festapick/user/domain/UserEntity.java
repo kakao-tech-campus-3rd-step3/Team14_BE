@@ -21,6 +21,9 @@ import java.util.List;
 @Getter
 public class UserEntity {
 
+    private static final String defaultImage
+            = "https://festapick-file.s3.ap-northeast-2.amazonaws.com/defaultImage/userDefaultImage.jpeg";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -43,6 +46,9 @@ public class UserEntity {
     @Column(nullable = false)
     private SocialType socialType;
 
+    @Column(nullable = false)
+    private String profileImageUrl;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RefreshToken> refreshToken;
 
@@ -59,6 +65,7 @@ public class UserEntity {
         this.username = username;
         this.roleType = userRoleType;
         this.socialType = socialType;
+        this.profileImageUrl = defaultImage;
     }
 
     public UserEntity(Long id, String identifier, String email, String username, UserRoleType roleType, SocialType socialType) {
@@ -68,9 +75,14 @@ public class UserEntity {
         this.username = username;
         this.roleType = roleType;
         this.socialType = socialType;
+        this.profileImageUrl = defaultImage;
     }
 
     public void changeUserRole(UserRoleType roleType) {
         this.roleType = roleType;
+    }
+
+    public void changeProfileImage(String imageUrl) {
+        this.profileImageUrl = imageUrl;
     }
 }

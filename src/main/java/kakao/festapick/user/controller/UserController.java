@@ -1,14 +1,15 @@
 package kakao.festapick.user.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import kakao.festapick.user.dto.ProfileImageUpdateRequest;
+import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,6 +25,23 @@ public class UserController {
         oAuth2UserService.withDraw(identifier,response);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PatchMapping("/profileImage") // 프로필 이미지 변경
+    public ResponseEntity<Void> changeProfileImage(@Valid @RequestBody ProfileImageUpdateRequest profileImageUpdateRequest,
+                                                   @AuthenticationPrincipal String identifier) {
+
+        oAuth2UserService.changeProfileImage(identifier, profileImageUpdateRequest.imageUrl());
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping // 본인 정보 조회
+    public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal String identifier) {
+
+        UserResponseDto response = oAuth2UserService.findMyInfo(identifier);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

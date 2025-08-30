@@ -1,6 +1,7 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.global.component.CookieComponent;
@@ -31,6 +32,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
     private final UserRepository userRepository;
     private final CookieComponent cookieComponent;
     private final QUserRepository qUserRepository;
+    private final S3Service s3Service;
 
 
     @Override
@@ -62,9 +64,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
     }
 
-    public Page<UserResponseDto> findByIdentifierOrUserEmail(UserSearchCond userSearchCond, Pageable pageable) {
+    public Page<UserResponseDtoForAdmin> findByIdentifierOrUserEmail(UserSearchCond userSearchCond, Pageable pageable) {
         return qUserRepository.findByIdentifierOrUserEmail(userSearchCond, pageable)
-                .map(UserResponseDto::new);
+                .map(UserResponseDtoForAdmin::new);
     }
 
     public void deleteUser(Long id) {
@@ -75,6 +77,21 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
         UserEntity findUser = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
         findUser.changeUserRole(role);
+    }
+
+    public void changeProfileImage(String identifier, String imageUrl) {
+        UserEntity findUser = userRepository.findByIdentifier(identifier)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+
+        s3Service.deleteS3File(findUser.getProfileImageUrl());
+        findUser.changeProfileImage(imageUrl);
+    }
+
+    public UserResponseDto findMyInfo(String identifier) {
+        UserEntity findUser = userRepository.findByIdentifier(identifier)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+
+        return new UserResponseDto(findUser);
     }
 
     private OAuth2Response parseOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
