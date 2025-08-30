@@ -4,8 +4,6 @@ import jakarta.validation.Valid;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.service.ReviewService;
-import kakao.festapick.wish.dto.WishResponseDto;
-import kakao.festapick.wish.service.WishService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,17 +11,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.Mapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api")
@@ -37,10 +29,11 @@ public class ReviewController {
             @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId,
             @Valid @RequestBody ReviewRequestDto requestDto) {
-        return new ResponseEntity<>(reviewService.createReview(festivalId, requestDto, identifier),
-                HttpStatus.CREATED);
-    }
 
+        Long reviewId = reviewService.createReview(festivalId, requestDto, identifier);
+
+        return ResponseEntity.created(URI.create("/api/festivals/" + festivalId + "/reviews/" + reviewId)).build();
+    }
     @GetMapping("/festivals/{festivalId}/reviews")
     public ResponseEntity<Page<ReviewResponseDto>> getFestivalReviews(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
@@ -51,6 +44,7 @@ public class ReviewController {
                 HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ROLE_USER')")
     @GetMapping("/reviews")
     public ResponseEntity<Page<ReviewResponseDto>> getMyReviews(
             @AuthenticationPrincipal String identifier,
@@ -61,13 +55,25 @@ public class ReviewController {
                 HttpStatus.OK);
     }
 
-    @PatchMapping("/reviews/{reviewId}")
-    public ResponseEntity<ReviewResponseDto> updateReview(
+    @GetMapping("/reviews/{reviewId}")
+    public ResponseEntity<ReviewResponseDto> getReview( @PathVariable Long reviewId) {
+
+        ReviewResponseDto response = reviewService.getReview(reviewId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
+    @PutMapping("/reviews/{reviewId}")
+    public ResponseEntity<Void> updateReview(
             @PathVariable Long reviewId,
             @AuthenticationPrincipal String identifier,
             @Valid @RequestBody ReviewRequestDto requestDto) {
-        return new ResponseEntity<>(reviewService.updateReview(reviewId, requestDto, identifier),
-                HttpStatus.OK);
+
+        reviewService.updateReview(reviewId, requestDto, identifier);
+
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @DeleteMapping("/reviews/{reviewId}")

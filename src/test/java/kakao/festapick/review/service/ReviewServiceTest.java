@@ -1,19 +1,20 @@
 package kakao.festapick.review.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.assertj.core.api.SoftAssertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -25,7 +26,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.OAuth2UserService;
-import org.assertj.core.api.AssertionsForClassTypes;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,9 @@ public class ReviewServiceTest {
     @Mock
     private ReviewRepository reviewRepository;
 
+    @Mock
+    private FileService fileService;
+
     @Test
     @DisplayName("리뷰 등록 성공")
     void createReviewSuccess() throws NoSuchFieldException, IllegalAccessException {
@@ -67,30 +71,19 @@ public class ReviewServiceTest {
         given(reviewRepository.save(any()))
                 .willReturn(review);
 
-        ReviewRequestDto requestDto = new ReviewRequestDto(content, score);
+        ReviewRequestDto requestDto = new ReviewRequestDto(content, score, List.of("image"), null);
 
-        ReviewResponseDto responseDto = reviewService.createReview(festival.getId(),
+        Long savedId = reviewService.createReview(festival.getId(),
                 requestDto, user.getIdentifier());
 
-        assertAll(
-                () -> AssertionsForClassTypes.assertThat(responseDto.reviewId()).isNotNull(),
-                () -> AssertionsForClassTypes.assertThat(responseDto.reviewerName())
-                        .isEqualTo(user.getUsername()),
-                () -> AssertionsForClassTypes.assertThat(responseDto.festivalTitle())
-                        .isEqualTo(festival.getTitle()),
-                () -> AssertionsForClassTypes.assertThat(responseDto.content())
-                        .isEqualTo(content),
-                () -> AssertionsForClassTypes.assertThat(responseDto.score())
-                        .isEqualTo(score)
-        );
+        assertThat(review.getId()).isEqualTo(savedId);
 
         verify(festivalRepository).findFestivalById(any());
         verify(oAuth2UserService).findByIdentifier(any());
         verify(reviewRepository).existsByUserIdAndFestivalId(any(), any());
         verify(reviewRepository).save(any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
-        verifyNoMoreInteractions(reviewRepository);
+        verify(fileService).saveAll(anyList());
+        verifyNoMoreInteractions(festivalRepository,oAuth2UserService,reviewRepository,fileService);
     }
 
     @Test
@@ -108,7 +101,7 @@ public class ReviewServiceTest {
         given(reviewRepository.existsByUserIdAndFestivalId(any(), any()))
                 .willReturn(true);
 
-        ReviewRequestDto requestDto = new ReviewRequestDto(content, score);
+        ReviewRequestDto requestDto = new ReviewRequestDto(content, score, null, null);
 
         DuplicateEntityException e = Assertions.assertThrows(DuplicateEntityException.class,
                 () -> reviewService.createReview(festival.getId(), requestDto, user.getIdentifier()));
@@ -117,9 +110,7 @@ public class ReviewServiceTest {
         verify(festivalRepository).findFestivalById(any());
         verify(oAuth2UserService).findByIdentifier(any());
         verify(reviewRepository).existsByUserIdAndFestivalId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
-        verifyNoMoreInteractions(reviewRepository);
+        verifyNoMoreInteractions(festivalRepository,oAuth2UserService,reviewRepository,fileService);
     }
 
     @Test
@@ -137,9 +128,8 @@ public class ReviewServiceTest {
         reviewService.removeReview(review.getId(), user.getIdentifier());
 
         verify(reviewRepository).deleteByUserIdentifierAndId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
-        verifyNoMoreInteractions(reviewRepository);
+        verify(fileService).deleteByDomainId(any(),any());
+        verifyNoMoreInteractions(festivalRepository,oAuth2UserService,reviewRepository,fileService);
     }
 
 
@@ -161,9 +151,7 @@ public class ReviewServiceTest {
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
 
         verify(reviewRepository).deleteByUserIdentifierAndId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
-        verifyNoMoreInteractions(reviewRepository);
+        verifyNoMoreInteractions(festivalRepository,oAuth2UserService,reviewRepository,fileService);
     }
 
     @Test
@@ -178,26 +166,13 @@ public class ReviewServiceTest {
         given(reviewRepository.findByUserIdentifierAndId(any(), any()))
                 .willReturn(Optional.of(review));
 
-        ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5);
+        ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5, null, null);
 
-        ReviewResponseDto responseDto = reviewService.updateReview(review.getId(), requestDto, user.getIdentifier());
-
-        assertAll(
-                () -> AssertionsForClassTypes.assertThat(responseDto.reviewId()).isNotNull(),
-                () -> AssertionsForClassTypes.assertThat(responseDto.reviewerName())
-                        .isEqualTo(user.getUsername()),
-                () -> AssertionsForClassTypes.assertThat(responseDto.festivalTitle())
-                        .isEqualTo(festival.getTitle()),
-                () -> AssertionsForClassTypes.assertThat(responseDto.content())
-                        .isEqualTo("updated"),
-                () -> AssertionsForClassTypes.assertThat(responseDto.score())
-                        .isEqualTo(5)
-        );
+        reviewService.updateReview(review.getId(), requestDto, user.getIdentifier());
 
         verify(reviewRepository).findByUserIdentifierAndId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
-        verifyNoMoreInteractions(reviewRepository);
+        verify(fileService).deleteByDomainId(any(),any());
+        verifyNoMoreInteractions(festivalRepository,oAuth2UserService,reviewRepository,fileService);
     }
 
     @Test
@@ -212,16 +187,45 @@ public class ReviewServiceTest {
         given(reviewRepository.findByUserIdentifierAndId(any(), any()))
                 .willReturn(Optional.empty());
 
-        ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5);
+        ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5, null, null);
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
                 () -> reviewService.updateReview(review.getId(), requestDto, user.getIdentifier()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
 
         verify(reviewRepository).findByUserIdentifierAndId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
-        verifyNoMoreInteractions(reviewRepository);
+        verifyNoMoreInteractions(festivalRepository,oAuth2UserService,reviewRepository,fileService);
+    }
+
+    @Test
+    @DisplayName("리뷰 id로 조회")
+    void getReviewByIdSuccess() throws NoSuchFieldException, IllegalAccessException {
+
+        // given
+
+        UserEntity user = testUser();
+        Festival festival = testFestival();
+        String content = "test content";
+        Integer score = 1;
+        Review review = new Review(1L, user, festival, content, score);
+
+        given(reviewRepository.findById(any()))
+                .willReturn(Optional.of(review));
+
+        // when
+        ReviewResponseDto reviewDto = reviewService.getReview(review.getId());
+
+        // then
+        assertSoftly(softly-> {
+            softly.assertThat(reviewDto.reviewId()).isEqualTo(review.getId());
+            softly.assertThat(reviewDto.reviewerName()).isEqualTo(review.getReviewerName());
+            softly.assertThat(reviewDto.content()).isEqualTo(content);
+            softly.assertThat(reviewDto.festivalTitle()).isEqualTo(festival.getTitle());
+            softly.assertThat(reviewDto.score()).isEqualTo(score);
+            softly.assertThat(reviewDto.imageUrls()).isNull();
+            softly.assertThat(reviewDto.videoUrl()).isNull();
+        });
+
     }
 
 
