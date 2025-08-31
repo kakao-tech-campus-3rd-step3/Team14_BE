@@ -60,7 +60,9 @@ public class S3Service {
     }
 
     private String extractFileName(String imageURL) {
-        int idx = imageURL.indexOf(".amazonaws.com/") + ".amazonaws.com/".length();
-        return imageURL.substring(idx);
+        int pathStartIdx = imageURL.indexOf(".amazonaws.com/") + ".amazonaws.com/".length();
+        int pathEndIdx = imageURL.contains("?") ? imageURL.indexOf("?") : imageURL.length();
+
+        return imageURL.substring(pathStartIdx, pathEndIdx);
     }
 }
