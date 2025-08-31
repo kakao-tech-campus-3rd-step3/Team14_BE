@@ -18,15 +18,15 @@ public class S3Controller {
     private final S3Service s3Service;
 
     // Presigned URL 발급받기
-    @PostMapping
+    @GetMapping
     public ResponseEntity<Map<String, String>> getPresignedURL() {
         String uploadPresignedURL = s3Service.createUploadPresignedURL();
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("presignedUrl",uploadPresignedURL));
     }
 
-    // 파일 삭제 (업로드 취소할 경우 꼭 호출해줘야함)
-    @DeleteMapping
+    // 파일 다건 삭제 (업로드 취소할 경우 꼭 호출해줘야함)
+    @PostMapping("/delete")
     public ResponseEntity<Void> deleteS3File(@Valid @RequestBody S3FileDeleteRequest s3FileDeleteRequest) {
 
         s3Service.deleteFiles(s3FileDeleteRequest);
