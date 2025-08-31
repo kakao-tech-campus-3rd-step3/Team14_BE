@@ -137,7 +137,7 @@ class FestivalServiceTest {
         assertThatThrownBy(()->
                 festivalService.addCustomizedFestival(requestDto, user.getIdentifier()))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining(ExceptionCode.BAD_REQUEST.getErrorMessage());
+                .hasMessage(ExceptionCode.FESTIVAL_BAD_DATE.getErrorMessage());
 
         verify(userRepository).findByIdentifier(any());
         verifyNoMoreInteractions(userRepository);

@@ -26,7 +26,7 @@ public enum ExceptionCode {
     FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다."),
 
     //BAD_REQUEST
-    BAD_REQUEST("잘못된 요청입니다.");
+    FESTIVAL_BAD_DATE("축제 시작일은 종료일보다 빨라야합니다.");
 
     private final String errorMessage;
 

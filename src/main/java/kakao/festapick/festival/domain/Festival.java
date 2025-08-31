@@ -122,7 +122,7 @@ public class Festival {
     }
 
     private void checkStartAndEndDate(LocalDate startDate, LocalDate endDate) {
-        if (endDate.isBefore(startDate)) throw new BadRequestException(ExceptionCode.BAD_REQUEST,"시작일은 종료일보다 빨라야합니다.");
+        if (endDate.isBefore(startDate)) throw new BadRequestException(ExceptionCode.FESTIVAL_BAD_DATE);
     }
 
 }
