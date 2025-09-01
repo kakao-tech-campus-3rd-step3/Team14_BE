@@ -25,14 +25,14 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping("/festivals/{festivalId}/reviews")
-    public ResponseEntity<ReviewResponseDto> createReview(
+    public ResponseEntity<Void> createReview(
             @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId,
             @Valid @RequestBody ReviewRequestDto requestDto) {
 
         Long reviewId = reviewService.createReview(festivalId, requestDto, identifier);
 
-        return ResponseEntity.created(URI.create("/api/festivals/" + festivalId + "/reviews/" + reviewId)).build();
+        return ResponseEntity.created(URI.create("/api/reviews/" + reviewId)).build();
     }
     @GetMapping("/festivals/{festivalId}/reviews")
     public ResponseEntity<Page<ReviewResponseDto>> getFestivalReviews(
