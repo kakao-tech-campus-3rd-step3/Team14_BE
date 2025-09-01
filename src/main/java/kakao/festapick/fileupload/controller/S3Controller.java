@@ -25,13 +25,4 @@ public class S3Controller {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("presignedUrl",uploadPresignedURL));
     }
 
-    // 파일 다건 삭제 (업로드 취소할 경우 꼭 호출해줘야함)
-    @PostMapping("/delete")
-    public ResponseEntity<Void> deleteS3File(@Valid @RequestBody S3FileDeleteRequest s3FileDeleteRequest) {
-
-        s3Service.deleteFiles(s3FileDeleteRequest);
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
 }
