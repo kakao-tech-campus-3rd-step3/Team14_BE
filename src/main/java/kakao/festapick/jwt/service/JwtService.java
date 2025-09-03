@@ -18,6 +18,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 @Service
@@ -88,5 +89,10 @@ public class JwtService {
     public RefreshToken findByUserIdentifier(String identifier) {
         return refreshTokenRepository.findByUserIdentifier(identifier)
                 .orElseThrow(() -> new AuthenticationException(ExceptionCode.REFRESH_TOKEN_NOT_EXIST));
+    }
+
+    public void deleteExpiredRefreshTokens() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(8);
+        refreshTokenRepository.deleteExpiredRefreshToken(cutoff);
     }
 }
