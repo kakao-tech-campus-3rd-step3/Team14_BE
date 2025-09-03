@@ -75,7 +75,7 @@ public class Festival {
         this.areaCode = festivalCustomRequestDto.areaCode();
         this.addr1 = festivalCustomRequestDto.addr1();
         this.addr2 = festivalCustomRequestDto.addr2();
-        this.imageUrl = resolveImage(festivalCustomRequestDto.imageUrl());
+        this.imageUrl = resolveImage(festivalCustomRequestDto.imageInfo().presignedUrl());
         this.startDate = festivalCustomRequestDto.startDate();
         this.endDate = festivalCustomRequestDto.endDate();
         this.overView = festivalCustomRequestDto.overView();

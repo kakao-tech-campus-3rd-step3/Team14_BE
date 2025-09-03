@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -51,7 +52,7 @@ class FestivalTest {
     @DisplayName("이미지 url이 빈값일때, 기본 이미지 반환")
     void returnDefaultImage() {
         FestivalCustomRequestDto festivalCustomRequestDto = new FestivalCustomRequestDto("축제title", 32, "주소1", "상세주소",
-                "", LocalDate.of(2025, 8, 24), LocalDate.of(2025, 8, 25), "hompage", "overivew");
+                new FileUploadRequest(1L,""), LocalDate.of(2025, 8, 24), LocalDate.of(2025, 8, 25), "hompage", "overivew");
 
         Festival festival = new Festival(festivalCustomRequestDto, new UserEntity("GOOGLE-1234",
                 "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE));

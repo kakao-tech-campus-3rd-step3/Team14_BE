@@ -19,6 +19,7 @@ import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
@@ -43,6 +44,7 @@ public class FestivalService {
     private final UserRepository userRepository;
     private final QFestivalRepository  qFestivalRepository;
     private final S3Service s3Service;
+    private final TemporalFileRepository temporalFileRepository;
 
     //CREATE
     //TODO: create - customized Festival (How to upload an image)
@@ -52,6 +54,7 @@ public class FestivalService {
                 .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
+        temporalFileRepository.deleteById(requestDto.imageInfo().id());
         return savedFestival.getId();
     }
 

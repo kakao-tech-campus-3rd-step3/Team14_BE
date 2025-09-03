@@ -27,6 +27,8 @@ import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -64,6 +66,9 @@ class FestivalServiceTest {
     @Mock
     private S3Service s3Service;
 
+    @Mock
+    private TemporalFileRepository temporalFileRepository;
+
     @InjectMocks
     private FestivalService festivalService;
 
@@ -92,8 +97,8 @@ class FestivalServiceTest {
 
         verify(userRepository).findByIdentifier(any());
         verify(festivalRepository).save(any());
-        verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(festivalRepository);
+        verify(temporalFileRepository).deleteById(any());
+        verifyNoMoreInteractions(userRepository, qFestivalRepository, s3Service, temporalFileRepository);
     }
 
     @Test
@@ -127,7 +132,7 @@ class FestivalServiceTest {
         FestivalCustomRequestDto requestDto =
                 new FestivalCustomRequestDto(
                         "축제title", 32, "주소1", "상세주소",
-                        "imageUrl", toLocalDate("20250827"), toLocalDate("20250825"),
+                        new FileUploadRequest(1L,"imageUrl"), toLocalDate("20250827"), toLocalDate("20250825"),
                         "homepageUrl", "축제에 대한 개요");
 
         given(userRepository.findByIdentifier(any()))
@@ -462,7 +467,7 @@ class FestivalServiceTest {
     private FestivalCustomRequestDto createCustomRequestDto() {
         return new FestivalCustomRequestDto(
                 "축제title", 32, "주소1", "상세주소",
-                "imageUrl", toLocalDate("20250824"), toLocalDate("20250825"),
+                new FileUploadRequest(1L,"imageUrl"), toLocalDate("20250824"), toLocalDate("20250825"),
                 "homepageUrl", "축제에 대한 개요");
 
     }

@@ -1,6 +1,8 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.user.dto.UserSearchCond;
@@ -33,6 +35,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
     private final CookieComponent cookieComponent;
     private final QUserRepository qUserRepository;
     private final S3Service s3Service;
+    private final TemporalFileRepository temporalFileRepository;
 
 
     @Override
@@ -79,12 +82,13 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
         findUser.changeUserRole(role);
     }
 
-    public void changeProfileImage(String identifier, String imageUrl) {
+    public void changeProfileImage(String identifier, FileUploadRequest fileUploadRequest) {
         UserEntity findUser = userRepository.findByIdentifier(identifier)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
 
         s3Service.deleteS3File(findUser.getProfileImageUrl());
-        findUser.changeProfileImage(imageUrl);
+        findUser.changeProfileImage(fileUploadRequest.presignedUrl());
+        temporalFileRepository.deleteById(fileUploadRequest.id());
     }
 
     public UserResponseDto findMyInfo(String identifier) {

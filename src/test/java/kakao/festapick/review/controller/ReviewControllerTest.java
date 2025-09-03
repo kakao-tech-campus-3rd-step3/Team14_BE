@@ -17,6 +17,9 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.domain.TemporalFile;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.review.domain.Review;
@@ -28,6 +31,7 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +63,9 @@ public class ReviewControllerTest {
     @Autowired
     private FileService fileService;
 
+    @Autowired
+    private TemporalFileRepository temporalFileRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -68,8 +75,14 @@ public class ReviewControllerTest {
 
         UserEntity userEntity = saveUserEntity();
         Festival festival = saveFestival();
+        TemporalFile t1 = temporalFileRepository.save(new TemporalFile("imageUrl1"));
+        TemporalFile t2 = temporalFileRepository.save(new TemporalFile("imageUrl2"));
+        TemporalFile t3 = temporalFileRepository.save(new TemporalFile("videoUrl"));
 
-        ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3, List.of("imageUrl1","imageUrl2"), "videoUrl");
+
+        ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3,
+                List.of(new FileUploadRequest(t1),new FileUploadRequest(t2)),
+                new FileUploadRequest(t3));
 
         String header = mockMvc.perform(post(String.format("/api/festivals/%s/reviews", festival.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -85,21 +98,20 @@ public class ReviewControllerTest {
                 savedReviewId);
         assertThat(find).isPresent();
         Review actual = find.get();
-        assertAll(
-                () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),
-                () -> AssertionsForClassTypes.assertThat(actual.getFestival())
-                        .isEqualTo(festival),
-                () -> AssertionsForClassTypes.assertThat(actual.getUser())
-                        .isEqualTo(userEntity),
-                () -> AssertionsForClassTypes.assertThat(actual.getContent())
-                        .isEqualTo(requestDto.content()),
-                () -> AssertionsForClassTypes.assertThat(actual.getScore())
-                        .isEqualTo(requestDto.score())
+        assertSoftly(softly -> {
+                softly.assertThat(actual.getId()).isNotNull();
+                softly.assertThat(actual.getFestival().getId()).isEqualTo(festival.getId());
+                softly.assertThat(actual.getUser().getId()).isEqualTo(userEntity.getId());
+                softly.assertThat(actual.getContent()).isEqualTo(requestDto.content());
+                softly.assertThat(actual.getScore()).isEqualTo(requestDto.score());
+            }
         );
 
         List<FileEntity> files = fileService.findByDomainIdAndDomainType(actual.getId(), DomainType.REVIEW);
+        List<TemporalFile> all = temporalFileRepository.findAll();
 
         assertThat(files.size()).isEqualTo(3);
+        assertThat(all.size()).isEqualTo(0);
 
     }
 
@@ -160,8 +172,14 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         Festival festival = saveFestival();
 
+        TemporalFile t1 = temporalFileRepository.save(new TemporalFile("imageUrl1"));
+        TemporalFile t2 = temporalFileRepository.save(new TemporalFile("imageUrl2"));
+        TemporalFile t3 = temporalFileRepository.save(new TemporalFile("videoUrl"));
+
         ReviewRequestDto requestDto = new ReviewRequestDto
-                ("update 정성리뷰 10글자 이상 해야 해요", 1, List.of("imageUrl1","imageUrl2"), "videoUrl");
+                ("update 정성리뷰 10글자 이상 해야 해요", 1,
+                        List.of(new FileUploadRequest(t1),new FileUploadRequest(t2)),
+                        new FileUploadRequest(t3));
 
         Review target = reviewRepository.save(new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
 
@@ -175,20 +193,20 @@ public class ReviewControllerTest {
         assertThat(find).isPresent();
 
         Review actual = find.get();
-        assertAll(
-                () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),
-                () -> AssertionsForClassTypes.assertThat(actual.getFestival())
-                        .isEqualTo(festival),
-                () -> AssertionsForClassTypes.assertThat(actual.getUser())
-                        .isEqualTo(userEntity),
-                () -> AssertionsForClassTypes.assertThat(actual.getContent())
-                        .isEqualTo(requestDto.content()),
-                () -> AssertionsForClassTypes.assertThat(actual.getScore())
-                        .isEqualTo(requestDto.score())
+        assertSoftly(softly -> {
+                    softly.assertThat(actual.getId()).isNotNull();
+                    softly.assertThat(actual.getFestival().getId()).isEqualTo(festival.getId());
+                    softly.assertThat(actual.getUser().getId()).isEqualTo(userEntity.getId());
+                    softly.assertThat(actual.getContent()).isEqualTo(requestDto.content());
+                    softly.assertThat(actual.getScore()).isEqualTo(requestDto.score());
+                }
         );
 
         List<FileEntity> files = fileService.findByDomainIdAndDomainType(actual.getId(), DomainType.REVIEW);
+        List<TemporalFile> all = temporalFileRepository.findAll();
         assertThat(files.size()).isEqualTo(3);
+        assertThat(all.size()).isEqualTo(0);
+
     }
 
     @Test

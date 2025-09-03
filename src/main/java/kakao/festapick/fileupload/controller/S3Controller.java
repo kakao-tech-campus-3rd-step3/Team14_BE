@@ -1,7 +1,6 @@
 package kakao.festapick.fileupload.controller;
 
-import jakarta.validation.Valid;
-import kakao.festapick.fileupload.dto.S3FileDeleteRequest;
+import kakao.festapick.fileupload.dto.PresignedUrlResponse;
 import kakao.festapick.fileupload.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,10 +18,10 @@ public class S3Controller {
 
     // Presigned URL 발급받기
     @GetMapping
-    public ResponseEntity<Map<String, String>> getPresignedURL() {
-        String uploadPresignedURL = s3Service.createUploadPresignedURL();
+    public ResponseEntity<PresignedUrlResponse> getPresignedURL() {
+        PresignedUrlResponse uploadPresignedURL = s3Service.createUploadPresignedURL();
 
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("presignedUrl",uploadPresignedURL));
+        return ResponseEntity.status(HttpStatus.OK).body(uploadPresignedURL);
     }
 
 }

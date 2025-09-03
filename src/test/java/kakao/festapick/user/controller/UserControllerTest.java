@@ -1,15 +1,16 @@
 package kakao.festapick.user.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import kakao.festapick.fileupload.domain.TemporalFile;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
-import kakao.festapick.user.dto.ProfileImageUpdateRequest;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,12 @@ class UserControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TemporalFileRepository temporalFileRepository;
+
+    @Autowired
+    private EntityManager em;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -92,7 +99,10 @@ class UserControllerTest {
         // given
         UserEntity userEntity = saveUserEntity();
 
-        ProfileImageUpdateRequest updateImageUrl = new ProfileImageUpdateRequest("updateImageUrl");
+
+        TemporalFile saved = temporalFileRepository.save(new TemporalFile("updateImageUrl"));
+
+        FileUploadRequest updateImageUrl = new FileUploadRequest(saved.getId(),"updateImageUrl");
 
         String request = objectMapper.writeValueAsString(updateImageUrl);
 
@@ -104,7 +114,7 @@ class UserControllerTest {
 
         UserEntity findUser = userRepository.findById(userEntity.getId()).get();
 
-        assertThat(findUser.getProfileImageUrl()).isEqualTo(updateImageUrl.imageUrl());
+        assertThat(findUser.getProfileImageUrl()).isEqualTo(updateImageUrl.presignedUrl());
     }
 
     private UserEntity saveUserEntity() {

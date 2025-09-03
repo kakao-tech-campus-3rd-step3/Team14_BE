@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
 
 import java.util.List;
 
@@ -16,8 +17,8 @@ public record ReviewRequestDto(
         @Min(value = 1, message = "점수는 최소 1점에서 최대 5점 까지 가능합니다")
         @Max(value = 5, message = "점수는 최소 1점에서 최대 5점 까지 가능합니다")
         Integer score,
-        List<String> imageUrls,
-        String videoUrl // 일단 video url은 한개만 제한
+        List<FileUploadRequest> imageInfos,
+        FileUploadRequest videoInfo // 일단 video url은 한개만 제한
 ) {
 
 }

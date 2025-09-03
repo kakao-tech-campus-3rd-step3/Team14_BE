@@ -20,6 +20,7 @@ import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
@@ -227,7 +228,7 @@ class FestivalUserControllerTest {
         String overview = "The overview is a section for writing a description of the festival, and it must contain at least 50 characters.";
         return new FestivalCustomRequestDto(
                 title, areaCode, "addr1", "addr2",
-                "imageUrl", startDate, endDate, "homePage", overview
+                new FileUploadRequest(1L,"imageUrl"), startDate, endDate, "homePage", overview
         );
     }
 
