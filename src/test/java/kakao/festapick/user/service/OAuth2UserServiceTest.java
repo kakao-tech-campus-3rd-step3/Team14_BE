@@ -1,6 +1,8 @@
 package kakao.festapick.user.service;
 
 
+import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -39,6 +41,9 @@ class OAuth2UserServiceTest {
 
     @Mock
     private S3Service s3Service;
+
+    @Mock
+    private TemporalFileRepository temporalFileRepository;
 
 
     @Test
@@ -124,12 +129,13 @@ class OAuth2UserServiceTest {
                 .willReturn(Optional.of(userEntity));
 
         // when
-        oAuth2UserService.changeProfileImage(userEntity.getIdentifier(), "updateImageUrl");
+        oAuth2UserService.changeProfileImage(userEntity.getIdentifier(), new FileUploadRequest(1L,"updateImageUrl"));
 
         // then
         verify(userRepository).findByIdentifier(any());
         verify(s3Service).deleteS3File(any());
-        verifyNoMoreInteractions(userRepository,s3Service);
+        verify(temporalFileRepository).deleteById(any());
+        verifyNoMoreInteractions(userRepository,s3Service, temporalFileRepository);
 
     }
 
@@ -144,10 +150,10 @@ class OAuth2UserServiceTest {
 
         // when & then
         assertThatThrownBy(()->
-                oAuth2UserService.changeProfileImage("GOOGLE-1234", "updateImageUrl")
+                oAuth2UserService.changeProfileImage("GOOGLE-1234", new FileUploadRequest(1L,"updateImageUrl"))
         ).isInstanceOf(NotFoundEntityException.class);
         verify(userRepository).findByIdentifier(any());
-        verifyNoMoreInteractions(userRepository,s3Service);
+        verifyNoMoreInteractions(userRepository,s3Service, temporalFileRepository);
 
     }
 

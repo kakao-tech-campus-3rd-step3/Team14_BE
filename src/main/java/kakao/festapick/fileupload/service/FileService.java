@@ -2,8 +2,6 @@ package kakao.festapick.fileupload.service;
 
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
-import kakao.festapick.fileupload.domain.FileType;
-import kakao.festapick.fileupload.dto.S3FileDeleteRequest;
 import kakao.festapick.fileupload.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,7 +37,7 @@ public class FileService {
                 .stream()
                 .map(FileEntity::getUrl).toList();
 
-        s3Service.deleteFiles(new S3FileDeleteRequest(urls));
+        s3Service.deleteFiles(urls);
 
         fileRepository.deleteByDomainAndDomainType(domainId,domainType);
     }

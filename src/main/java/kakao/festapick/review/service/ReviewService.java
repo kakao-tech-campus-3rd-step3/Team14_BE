@@ -6,6 +6,7 @@ import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -35,6 +36,7 @@ public class ReviewService {
     private final OAuth2UserService oAuth2UserService;
     private final FestivalRepository festivalRepository;
     private final FileService fileService;
+    private final TemporalFileRepository temporalFileRepository;
 
 
     public Long createReview(Long festivalId, @Valid ReviewRequestDto requestDto, String identifier) {
@@ -126,15 +128,22 @@ public class ReviewService {
 
     private void saveFiles(ReviewRequestDto requestDto, Review saved) {
         List<FileEntity> files = new ArrayList<>();
+        List<Long> temporalFileIds = new ArrayList<>();
 
-        if(requestDto.imageUrls() != null) requestDto.imageUrls().forEach(url ->
-                files.add(new FileEntity(url, FileType.IMAGE, DomainType.REVIEW, saved.getId())));
+        if(requestDto.imageInfos() != null)
+            requestDto.imageInfos().forEach(imageInfo ->{
+                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.REVIEW, saved.getId()));
+                temporalFileIds.add(imageInfo.id());
+            });
 
-        if (requestDto.videoUrl() != null && !requestDto.videoUrl().isBlank())
-            files.add(new FileEntity(requestDto.videoUrl(), FileType.VIDEO, DomainType.REVIEW, saved.getId()));
+        if (requestDto.videoInfo() != null){
+            files.add(new FileEntity(requestDto.videoInfo().presignedUrl(), FileType.VIDEO, DomainType.REVIEW, saved.getId()));
+            temporalFileIds.add(requestDto.videoInfo().id());
+        }
 
 
         if (!files.isEmpty()) fileService.saveAll(files);
+        temporalFileRepository.deleteByIds(temporalFileIds);
     }
 
     // 리뷰와 관련된 파일 가져오기 - 쿼리 1개

@@ -2,7 +2,7 @@ package kakao.festapick.user.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import kakao.festapick.user.dto.ProfileImageUpdateRequest;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +28,10 @@ public class UserController {
     }
 
     @PatchMapping("/profileImage") // 프로필 이미지 변경
-    public ResponseEntity<Void> changeProfileImage(@Valid @RequestBody ProfileImageUpdateRequest profileImageUpdateRequest,
+    public ResponseEntity<Void> changeProfileImage(@Valid @RequestBody FileUploadRequest fileUploadRequest,
                                                    @AuthenticationPrincipal String identifier) {
 
-        oAuth2UserService.changeProfileImage(identifier, profileImageUpdateRequest.imageUrl());
+        oAuth2UserService.changeProfileImage(identifier, fileUploadRequest);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

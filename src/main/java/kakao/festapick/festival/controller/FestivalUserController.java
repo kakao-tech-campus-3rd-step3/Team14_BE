@@ -34,7 +34,8 @@ public class FestivalUserController {
 
     //축제 등록
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+//    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Void> addFestival(
             @AuthenticationPrincipal String identifier,
             @RequestBody @Valid FestivalCustomRequestDto requestDto

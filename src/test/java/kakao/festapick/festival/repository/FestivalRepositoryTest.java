@@ -11,6 +11,7 @@ import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -196,7 +197,7 @@ class FestivalRepositoryTest {
     private FestivalCustomRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
         return new FestivalCustomRequestDto(
                  title, areaCode, "addr1", "addr2",
-                "imageUrl", startDate, endDate, "homePage", "overView"
+                new FileUploadRequest(1L, "imageUrl"), startDate, endDate, "homePage", "overView"
         );
     }
 
