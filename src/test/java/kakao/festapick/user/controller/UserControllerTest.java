@@ -100,9 +100,9 @@ class UserControllerTest {
         UserEntity userEntity = saveUserEntity();
 
 
-        TemporalFile saved = temporalFileRepository.save(new TemporalFile("updateImageUrl"));
+        TemporalFile saved = temporalFileRepository.save(new TemporalFile("http://updateImageUrl"));
 
-        FileUploadRequest updateImageUrl = new FileUploadRequest(saved.getId(),"updateImageUrl");
+        FileUploadRequest updateImageUrl = new FileUploadRequest(saved.getId(),"http://updateImageUrl");
 
         String request = objectMapper.writeValueAsString(updateImageUrl);
 

@@ -108,6 +108,7 @@ public class Festival {
         this.addr2 = requestDto.addr2();
         this.startDate = requestDto.startDate();
         this.endDate = requestDto.endDate();
+        this.imageUrl = requestDto.imageInfo().presignedUrl();
         this.overView = requestDto.overView();
         this.homePage = requestDto.homePage();
     }

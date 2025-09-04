@@ -67,7 +67,7 @@ class FestivalTest {
     private FestivalUpdateRequestDto createUpdateInfo(){
         return new FestivalUpdateRequestDto("update_title",
                 1, "update_addr1", "update_addr2",
-                "update_imageUrl", LocalDate.now(), LocalDate.now(), "hompage", "overview");
+                new FileUploadRequest(1L,"update_imageUrl"), LocalDate.now(), LocalDate.now(), "hompage", "overview");
     }
 
 }

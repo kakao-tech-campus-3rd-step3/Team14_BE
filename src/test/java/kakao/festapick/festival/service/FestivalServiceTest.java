@@ -324,7 +324,8 @@ class FestivalServiceTest {
                 () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
         verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(temporalFileRepository).deleteById(any());
+        verifyNoMoreInteractions(festivalRepository, temporalFileRepository);
     }
 
     @Test
@@ -346,7 +347,7 @@ class FestivalServiceTest {
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
         verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalRepository, temporalFileRepository);
     }
 
     @Test
@@ -481,7 +482,7 @@ class FestivalServiceTest {
 
     private FestivalUpdateRequestDto createUpdateRequestDto() {
         return new FestivalUpdateRequestDto("updated_title", 32, "updated_주소1", "상세주소",
-                "updated_imageUrl", toLocalDate("20250824"), toLocalDate("20250825"), "homepage", "overview");
+                new FileUploadRequest(1L,"updated_imageUrl"), toLocalDate("20250824"), toLocalDate("20250825"), "homepage", "overview");
 
     }
 
