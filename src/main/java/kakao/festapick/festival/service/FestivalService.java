@@ -102,6 +102,7 @@ public class FestivalService {
     public FestivalDetailResponseDto updateFestival(String identifier, Long id, FestivalUpdateRequestDto requestDto) {
         Festival festival = getMyFestival(identifier, id);
         festival.updateFestival(requestDto);
+        if (requestDto.imageInfo() != null) temporalFileRepository.deleteById(requestDto.imageInfo().id());
         return new FestivalDetailResponseDto(festival);
     }
 

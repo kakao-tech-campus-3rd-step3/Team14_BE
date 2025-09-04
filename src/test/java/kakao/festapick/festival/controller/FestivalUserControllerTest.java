@@ -243,7 +243,7 @@ class FestivalUserControllerTest {
     private FestivalUpdateRequestDto createUpdateInfo(String title){
         String overview = "The Kakao Tech Campus Festival was held at Pusan National University, and PNU Dev Bros won first place.";
         return new FestivalUpdateRequestDto(    title, 1,
-                "update_addr1", "update_addr2", "update_imageUrl",
+                "update_addr1", "update_addr2", new FileUploadRequest(1L,"update_imageUrl"),
                 LocalDate.now(), LocalDate.now(), "homePage", overview);
     }
 
