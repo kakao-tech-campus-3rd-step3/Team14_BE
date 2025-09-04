@@ -46,9 +46,9 @@ public class S3Service {
 
         String fileUrl = presignedPutObjectRequest.url().toString();
 
-        TemporalFile saved = temporalFileRepository.save(new TemporalFile(fileUrl));
+        TemporalFile saved = temporalFileRepository.save(new TemporalFile(extractFileUrl(fileUrl)));
 
-        return new PresignedUrlResponse(saved);
+        return new PresignedUrlResponse(saved.getId(), fileUrl);
     }
 
     public void deleteOrphanS3Files() {
@@ -85,5 +85,11 @@ public class S3Service {
         int pathEndIdx = fileUrl.contains("?") ? fileUrl.indexOf("?") : fileUrl.length();
 
         return fileUrl.substring(pathStartIdx, pathEndIdx);
+    }
+
+    private String extractFileUrl(String fileUrl) {
+        int parameterIdx = fileUrl.indexOf("?");
+
+        return fileUrl.substring(0, parameterIdx);
     }
 }
