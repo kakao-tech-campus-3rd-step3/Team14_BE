@@ -21,7 +21,7 @@ public class ScheduleConfig {
         jwtService.deleteExpiredRefreshTokens();
     }
 
-    @Scheduled(cron = "0 10 3 * * *")
+    @Scheduled(cron = "0 20 3 * * *")
     public void removeOrphanS3File() {;
         s3Service.deleteOrphanS3Files();
     }
