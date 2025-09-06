@@ -7,7 +7,7 @@ import java.util.List;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.festival.tourapi.TourApiMaxRows;
-import kakao.festapick.festival.tourapi.TourApiResponse;
+import kakao.festapick.festival.tourapi.TourInfoResponse;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,27 +66,30 @@ public class TourInfoScheduler {
     @Scheduled(cron = "0 10 3 * * *")
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
-        if(maxRows > 0){
-            TourApiResponse tourApiResponse = getFestivals(maxRows).getBody();
+        System.out.println("maxRows = " + maxRows);
+        if (maxRows > 0) {
+            TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
             festivalList.stream()
-                    .filter(requestDto -> festivalService.existFestivalByContentId(requestDto.contentId()))
-                    .forEach(requestDto -> festivalService.addFestival(requestDto, getDetails(requestDto.contentId())));
+                    .filter(requestDto -> festivalService.existFestivalByContentId(
+                            requestDto.contentId()))
+                    .forEach(requestDto -> festivalService.addFestival(requestDto,
+                            getDetails(requestDto.contentId())));
         }
     }
 
-    private ResponseEntity<TourApiResponse> getFestivals(int numOfRows) {
-        ResponseEntity<TourApiResponse> response = restClient.get()
+    private ResponseEntity<TourInfoResponse> getFestivals(int numOfRows) {
+        ResponseEntity<TourInfoResponse> response = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
-                        .queryParam("eventStartDate", getDate())
+                        .queryParam("eventStartDate", 20250101)
                         .queryParam("serviceKey", tourApiKey)
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", numOfRows)
                         .build())
                 .retrieve()
-                .toEntity(TourApiResponse.class);
+                .toEntity(TourInfoResponse.class);
         return response;
     }
 
@@ -104,7 +107,7 @@ public class TourInfoScheduler {
         return response.getBody();
     }
 
-    private int getMaxColumns(){
+    private int getMaxColumns() {
         ResponseEntity<TourApiMaxRows> response = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")

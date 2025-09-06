@@ -1,8 +1,10 @@
 package kakao.festapick.festival.tourapi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
-import java.util.Map;
+import kakao.festapick.festival.tourapi.response.TourApiBody;
+import kakao.festapick.festival.tourapi.response.TourApiItem;
+import kakao.festapick.festival.tourapi.response.TourApiItems;
+import kakao.festapick.festival.tourapi.response.TourApiResponse;
 import lombok.Getter;
 
 @Getter
@@ -13,12 +15,13 @@ public class TourDetailResponse {
     private String homepage;
 
     @JsonProperty("response")
-    private void unpackNested(Map<String, Object> response) {
-        Map<String, Object> body = (Map<String, Object>) response.get("body");
-        Map<String, Object> items = (Map<String, Object>) body.get("items");
-        List<Map<String, String>> item = (List<Map<String, String>>) items.get("item");
-        overview = item.getFirst().get("overview");
-        homepage = item.getFirst().get("homepage");
+    private void unpackNested(TourApiResponse tourApiResponse) {
+        TourApiBody tourApiBody = tourApiResponse.tourApiBody();
+        TourApiItems tourApiItems = tourApiBody.items();
+        TourApiItem tourDetailInfo = tourApiItems.TourApiItems().getFirst();
+
+        overview = tourDetailInfo.overview();
+        homepage = tourDetailInfo.homepage();
     }
 
 }

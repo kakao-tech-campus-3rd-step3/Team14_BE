@@ -44,10 +44,10 @@ public class GlobalExceptionHandler {
         log.error("timeout 발생 : " + e.getMessage());
     }
 
-    @ExceptionHandler(UnknownContentTypeException.class)
-    public void handelRestClientLimitException(UnknownContentTypeException e){
-        log.error("1일 API 호출 횟수 초과");
-    }
+//    @ExceptionHandler(UnknownContentTypeException.class)
+//    public void handelRestClientLimitException(UnknownContentTypeException e){
+//        log.error("1일 API 호출 횟수 초과");
+//    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, List<Map<String,String>>>>  handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
