@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.service.FestivalService;
-import kakao.festapick.festival.tourapi.TourApiMaxColumns;
+import kakao.festapick.festival.tourapi.TourApiMaxRows;
 import kakao.festapick.festival.tourapi.TourApiResponse;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -30,13 +30,15 @@ public class TourInfoScheduler {
     @Value("${tour.api.secret.key}")
     private String tourApiKey;
 
-    private String baseUrl = "https://apis.data.go.kr";
-
     private final RestClient restClient;
 
     private final FestivalService festivalService;
 
-    public TourInfoScheduler(RestClient.Builder builder, FestivalService festivalService) {
+    public TourInfoScheduler(
+            RestClient.Builder builder,
+            FestivalService festivalService,
+            @Value("${tour.api.baseUrl}") String baseUrl
+    ) {
 
         //TODO: make Config for RestClient
         DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(baseUrl);
@@ -63,11 +65,14 @@ public class TourInfoScheduler {
     @GetMapping("/update") // 테스트용 - 개발 완료시 삭제할 것
     @Scheduled(cron = "0 10 3 * * *")
     public void fetchFestivals() {
-        TourApiResponse tourApiResponse = getFestivals(getMaxColumns()).getBody();
-        List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
-        festivalList.stream()
-                .filter(requestDto -> festivalService.existFestivalByContentId(requestDto.contentId()))
-                .forEach(requestDto -> festivalService.addFestival(requestDto, getDetails(requestDto.contentId())));
+        int maxRows = getMaxColumns();
+        if(maxRows > 0){
+            TourApiResponse tourApiResponse = getFestivals(maxRows).getBody();
+            List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
+            festivalList.stream()
+                    .filter(requestDto -> festivalService.existFestivalByContentId(requestDto.contentId()))
+                    .forEach(requestDto -> festivalService.addFestival(requestDto, getDetails(requestDto.contentId())));
+        }
     }
 
     private ResponseEntity<TourApiResponse> getFestivals(int numOfRows) {
@@ -100,7 +105,7 @@ public class TourInfoScheduler {
     }
 
     private int getMaxColumns(){
-        ResponseEntity<TourApiMaxColumns> response = restClient.get()
+        ResponseEntity<TourApiMaxRows> response = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
@@ -110,7 +115,7 @@ public class TourInfoScheduler {
                         .queryParam("numOfRows", 1)
                         .build())
                 .retrieve()
-                .toEntity(TourApiMaxColumns.class);
+                .toEntity(TourApiMaxRows.class);
         return (response.getBody() != null) ? response.getBody().getMaxColumns() : 0;
     }
 
