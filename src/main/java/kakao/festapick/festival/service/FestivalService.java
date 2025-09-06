@@ -108,11 +108,11 @@ public class FestivalService {
 
     //축제 상태 변경(admin이 사용자가 등록한 축제를 허용, 관리자)
     @Transactional
-    public FestivalListResponse updateState(Long id, FestivalStateDto state) {
+    public FestivalListResponse updateState(Long id, FestivalStateDto stateDto) {
         Festival festival = festivalRepository.findFestivalById(id).orElseThrow(
                 () -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND)
         );
-        festival.updateState(FestivalState.valueOf(state.state()));
+        festival.updateState(FestivalState.valueOf(stateDto.state()));
         return new FestivalListResponse(festival);
     }
 

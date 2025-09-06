@@ -5,7 +5,7 @@ import java.util.Map;
 import lombok.Getter;
 
 @Getter
-public class TourApiMaxColumns {
+public class TourApiMaxRows {
 
     private int maxColumns;
 
