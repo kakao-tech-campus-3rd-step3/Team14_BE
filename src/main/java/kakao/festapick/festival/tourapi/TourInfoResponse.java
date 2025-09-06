@@ -6,10 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.festival.dto.FestivalRequestDto;
-import kakao.festapick.festival.tourapi.response.TourApiBody;
-import kakao.festapick.festival.tourapi.response.TourApiItem;
-import kakao.festapick.festival.tourapi.response.TourApiItems;
 import kakao.festapick.festival.tourapi.response.TourApiResponse;
+import kakao.festapick.festival.tourapi.response.TourApiResponse.FestivalInfo;
 import lombok.Getter;
 
 
@@ -20,9 +18,7 @@ public class TourInfoResponse {
 
     @JsonProperty("response")
     private void unpackNested(TourApiResponse tourApiResponse) {
-        TourApiBody tourApiBody = tourApiResponse.tourApiBody();
-        TourApiItems items = tourApiBody.items();
-        List<TourApiItem> tourApiItemList = items.TourApiItems();
+        List<FestivalInfo> tourApiItemList = tourApiResponse.body().items().item();
 
         festivalResponseDtoList = tourApiItemList.stream()
                 .map(
