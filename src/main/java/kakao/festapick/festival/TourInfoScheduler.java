@@ -7,8 +7,8 @@ import java.util.List;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.festival.tourapi.TourApiMaxRows;
-import kakao.festapick.festival.tourapi.TourInfoResponse;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.festival.tourapi.TourInfoResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -83,7 +83,7 @@ public class TourInfoScheduler {
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
-                        .queryParam("eventStartDate", 20250101)
+                        .queryParam("eventStartDate", getDate())
                         .queryParam("serviceKey", tourApiKey)
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", numOfRows)

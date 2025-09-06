@@ -3,7 +3,10 @@ package kakao.festapick.festival.controller;
 
 import jakarta.validation.Valid;
 import kakao.festapick.festival.domain.FestivalState;
-import kakao.festapick.festival.dto.*;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
+import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
+import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
+import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.service.FestivalService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
