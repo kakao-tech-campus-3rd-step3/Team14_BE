@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>관리자 페이지</title>
     <style>
-        body {
+        tourApiBody {
             margin: 0;
             min-height: 100vh;
             display: flex;
@@ -52,7 +52,7 @@
         }
     </style>
 </head>
-<body>
+<tourApiBody>
 <div class="topbar">
     <!-- ... 다른 요소들 ... -->
     <div th:replace="~{admin/fragments :: logout(@{/admin/logout}, '로그아웃')}"></div>
@@ -62,5 +62,5 @@
     <a class="btn" th:href="@{/admin/users}">회원 관리</a>
     <a class="btn" th:href="@{/admin/festivals}">축제 관리</a>
 </main>
-</body>
+</tourApiBody>
 </html>
