@@ -1,6 +1,7 @@
 package kakao.festapick.festival.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import java.net.URI;
 import java.util.List;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
@@ -9,7 +10,9 @@ import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.service.FestivalService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -40,10 +43,10 @@ public class FestivalUserController {
     @GetMapping("/area/{areaCode}/current")
     public ResponseEntity<Page<FestivalListResponse>> getCurrentFestivalByArea(
             @PathVariable int areaCode,
-            @PageableDefault(size = 5) Pageable pageable
-
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
     ){
-        Page<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode, pageable);
+        Page<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode, PageRequest.of(page, size));
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
