@@ -188,7 +188,7 @@ class FestivalServiceTest {
         given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.of(festival));
 
         //when
-        boolean result = festivalService.checkExistenceByContentId(festival.getContentId());
+        boolean result = festivalService.existFestivalByContentId(festival.getContentId());
 
         //then
         assertThat(result).isEqualTo(false);
@@ -205,7 +205,7 @@ class FestivalServiceTest {
         given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.empty());
 
         //when
-        boolean result = festivalService.checkExistenceByContentId(testContentId);
+        boolean result = festivalService.existFestivalByContentId(testContentId);
 
         //then
         assertThat(result).isEqualTo(true);

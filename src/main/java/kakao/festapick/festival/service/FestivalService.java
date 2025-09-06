@@ -72,7 +72,7 @@ public class FestivalService {
 
     //READ
     //contentId를 통한 축제 조회(to get Overview)
-    public boolean checkExistenceByContentId(String contentId) {
+    public boolean existFestivalByContentId(String contentId) {
         Optional<Festival> festival = festivalRepository.findFestivalByContentId(contentId);
         return festival.isEmpty();
     }

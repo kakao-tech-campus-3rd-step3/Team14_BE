@@ -1,4 +1,4 @@
-package kakao.festapick.festival.tourapi;
+package kakao.festapick.festival;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -6,6 +6,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.service.FestivalService;
+import kakao.festapick.festival.tourapi.TourApiMaxColumns;
+import kakao.festapick.festival.tourapi.TourApiResponse;
+import kakao.festapick.festival.tourapi.TourDetailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -22,7 +25,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 @Slf4j
 @RestController
 @RequestMapping("/api/festivals")
-public class TourApiClient {
+public class TourInfoScheduler {
 
     @Value("${tour.api.secret.key}")
     private String tourApiKey;
@@ -33,7 +36,7 @@ public class TourApiClient {
 
     private final FestivalService festivalService;
 
-    public TourApiClient(RestClient.Builder builder, FestivalService festivalService) {
+    public TourInfoScheduler(RestClient.Builder builder, FestivalService festivalService) {
 
         //TODO: make Config for RestClient
         DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(baseUrl);
@@ -63,7 +66,7 @@ public class TourApiClient {
         TourApiResponse tourApiResponse = getFestivals(getMaxColumns()).getBody();
         List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
         festivalList.stream()
-                .filter(requestDto -> festivalService.checkExistenceByContentId(requestDto.contentId()))
+                .filter(requestDto -> festivalService.existFestivalByContentId(requestDto.contentId()))
                 .forEach(requestDto -> festivalService.addFestival(requestDto, getDetails(requestDto.contentId())));
     }
 
