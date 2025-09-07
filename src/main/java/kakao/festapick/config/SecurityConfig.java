@@ -53,14 +53,9 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(auth->auth
-                .requestMatchers("/api/users/**").authenticated()
-                .requestMatchers("/api/wishes/**").authenticated()
-                .requestMatchers("/api/presigned-urls/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE,"/api/reviews/**").authenticated()
-                .requestMatchers(HttpMethod.POST,"/api/reviews/**").authenticated()
-                .requestMatchers(HttpMethod.PUT,"/api/reviews/**").authenticated()
+                .requestMatchers(whiteList).permitAll()
                 .requestMatchers("/admin/**").hasRole(UserRoleType.ADMIN.name())
-                .anyRequest().permitAll());
+                .anyRequest().authenticated());
 
         http.oauth2Login(oauth2->oauth2
                 .userInfoEndpoint((userInfoEndpointConfig ->
@@ -103,4 +98,11 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
+
+    private static String[] whiteList = {
+            "/api/jwt/exchange",
+            "/api/festivals/**",
+            "/api/reviews/**",
+    };
 }

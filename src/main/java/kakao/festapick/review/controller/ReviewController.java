@@ -24,6 +24,7 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
+    @PreAuthorize("isAuthenticated()") // 리뷰 작성은 인증 필요
     @PostMapping("/festivals/{festivalId}/reviews")
     public ResponseEntity<Void> createReview(
             @AuthenticationPrincipal String identifier,
@@ -34,7 +35,9 @@ public class ReviewController {
 
         return ResponseEntity.created(URI.create("/api/reviews/" + reviewId)).build();
     }
-    @GetMapping("/festivals/{festivalId}/reviews")
+
+
+    @GetMapping("/festivals/{festivalId}/reviews") // 리뷰 조회는 인증 불필요
     public ResponseEntity<Page<ReviewResponseDto>> getFestivalReviews(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
             Pageable pageable,
@@ -44,7 +47,7 @@ public class ReviewController {
                 HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("isAuthenticated()") // 내 리뷰만 조회는 인증 필요
     @GetMapping("/reviews")
     public ResponseEntity<Page<ReviewResponseDto>> getMyReviews(
             @AuthenticationPrincipal String identifier,
@@ -55,7 +58,7 @@ public class ReviewController {
                 HttpStatus.OK);
     }
 
-    @GetMapping("/reviews/{reviewId}")
+    @GetMapping("/reviews/{reviewId}") // 리뷰 PK를 통한 것은 인증 불필요
     public ResponseEntity<ReviewResponseDto> getReview( @PathVariable Long reviewId) {
 
         ReviewResponseDto response = reviewService.getReview(reviewId);
@@ -64,6 +67,7 @@ public class ReviewController {
     }
 
 
+    @PreAuthorize("isAuthenticated()") // 리뷰 수정은 인증 필요
     @PutMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> updateReview(
             @PathVariable Long reviewId,
@@ -76,6 +80,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @PreAuthorize("isAuthenticated()") // 리뷰 삭제는 인증 필요
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> removeReview(
             @PathVariable Long reviewId,
