@@ -21,8 +21,7 @@ import java.util.List;
 @Getter
 public class UserEntity {
 
-    private static final String defaultImage
-            = "https://festapick-file.s3.ap-northeast-2.amazonaws.com/defaultImage/userDefaultImage.jpeg";
+    private static String defaultImage;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -84,5 +83,9 @@ public class UserEntity {
 
     public void changeProfileImage(String imageUrl) {
         this.profileImageUrl = imageUrl;
+    }
+
+    public static void setDefaultImage(String url) {
+        defaultImage = url;
     }
 }
