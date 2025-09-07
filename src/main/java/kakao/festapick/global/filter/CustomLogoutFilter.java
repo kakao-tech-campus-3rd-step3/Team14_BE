@@ -6,8 +6,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.jwt.JwtUtil;
+import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.service.JwtService;
+import kakao.festapick.jwt.util.TokenType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -56,7 +57,7 @@ public class CustomLogoutFilter extends OncePerRequestFilter {
         }
 
 
-        if(!jwtUtil.validateToken(refreshToken, false)) {
+        if(!jwtUtil.validateToken(refreshToken, TokenType.REFRESH_TOKEN)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }

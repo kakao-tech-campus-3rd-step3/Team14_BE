@@ -2,8 +2,9 @@ package kakao.festapick.jwt.controller;
 
 import jakarta.servlet.http.Cookie;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.jwt.JwtUtil;
+import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.service.JwtService;
+import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
@@ -47,7 +48,7 @@ class JwtControllerTest {
 
         UserEntity userEntity = saveUserEntity();
 
-        String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), false);
+        String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), TokenType.REFRESH_TOKEN);
 
         jwtService.saveRefreshToken(userEntity.getIdentifier(), refreshToken);
 
@@ -88,7 +89,7 @@ class JwtControllerTest {
 
         UserEntity userEntity = saveUserEntity();
 
-        String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), false, 0L);
+        String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), TokenType.REFRESH_TOKEN, 0L);
 
         Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
         mockMvc.perform(post("/api/jwt/exchange")

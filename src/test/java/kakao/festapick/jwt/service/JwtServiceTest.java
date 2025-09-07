@@ -19,7 +19,7 @@ import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.component.TokenEncoder;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.jwt.JwtUtil;
+import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.user.domain.SocialType;
@@ -101,7 +101,7 @@ class JwtServiceTest {
 
         request.setCookies(new Cookie("refreshToken", UUID.randomUUID().toString()));
 
-        given(jwtUtil.validateToken(any(), anyBoolean()))
+        given(jwtUtil.validateToken(any(), any()))
                 .willReturn(true);
 
         Claims claims = mock(Claims.class);
@@ -151,7 +151,7 @@ class JwtServiceTest {
         verify(refreshTokenRepository).deleteByUser(any());
         verify(refreshTokenRepository).save(any());
         verify(jwtUtil).getClaims(any());
-        verify(jwtUtil).validateToken(any(), anyBoolean());
+        verify(jwtUtil).validateToken(any(), any());
         verify(jwtUtil, times(2)).createJWT(any(), any(), any());
         verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
@@ -200,14 +200,14 @@ class JwtServiceTest {
 
         request.setCookies(new Cookie("refreshToken",  UUID.randomUUID().toString()));
 
-        given(jwtUtil.validateToken(any(), anyBoolean()))
+        given(jwtUtil.validateToken(any(), any()))
                 .willReturn(false);
 
         // when & then
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessage(ExceptionCode.INVALID_REFRESH_TOKEN.getErrorMessage());
-        verify(jwtUtil).validateToken(any(), anyBoolean());
+        verify(jwtUtil).validateToken(any(), any());
         verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
