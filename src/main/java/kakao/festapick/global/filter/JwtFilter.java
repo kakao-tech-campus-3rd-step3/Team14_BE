@@ -30,8 +30,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        if (request.getRequestURI().startsWith("/admin")) return true;
-        return false;
+        return request.getRequestURI().startsWith("/admin");
     }
 
     @Override
