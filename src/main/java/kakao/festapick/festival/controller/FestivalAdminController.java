@@ -39,7 +39,7 @@ public class FestivalAdminController {
 
         model.addAttribute("festival", festivalInfo);
 
-        return  "admin/festival-detail";
+        return "admin/festival-detail";
     }
 
     //축제 조회

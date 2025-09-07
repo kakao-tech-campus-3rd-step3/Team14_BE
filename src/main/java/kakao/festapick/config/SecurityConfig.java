@@ -104,5 +104,6 @@ public class SecurityConfig {
             "/api/jwt/exchange",
             "/api/festivals/**",
             "/api/reviews/**",
+            "/login"
     };
 }

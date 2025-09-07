@@ -23,8 +23,7 @@ import lombok.Getter;
 @Getter
 public class Festival {
 
-    private static final String defaultImage =
-            "https://festapick-file.s3.ap-northeast-2.amazonaws.com/defaultImage/festivalDefaultImage.png";
+    private static String defaultImage;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -116,6 +115,10 @@ public class Festival {
     //admin만 축제 권한 변경
     public void updateState(FestivalState festivalState){
         this.state = festivalState;
+    }
+
+    public static void setDefaultImage(String url) {
+        defaultImage = url;
     }
 
     private static String resolveImage(String url) {
