@@ -1,6 +1,5 @@
 package kakao.festapick.wish.controller;
 
-import java.util.List;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.service.WishService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +25,7 @@ public class WishController {
 
     private final WishService wishService;
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/festivals/{festivalId}/wishes")
     public ResponseEntity<WishResponseDto> createWish(
             @AuthenticationPrincipal String identifier,
