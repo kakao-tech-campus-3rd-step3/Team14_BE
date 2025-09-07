@@ -11,6 +11,7 @@ public enum ExceptionCode {
     COOKIE_NOT_EXIST("쿠키가 존재하지 않습니다."),
     REFRESH_TOKEN_NOT_EXIST("리프레시 토큰이 존재하지 않습니다."),
     INVALID_REFRESH_TOKEN("리프레시 토큰이 유효하지 않습니다."),
+    INVALID_ACCESS_TOKEN("액세스 토큰이 유효하지 않습니다."),
 
     //NotFound
     FESTIVAL_NOT_FOUND("존재하지 않는 축제입니다."),

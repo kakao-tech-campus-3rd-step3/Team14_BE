@@ -57,6 +57,15 @@ dependencies {
 	// aws
 	implementation 'software.amazon.awssdk:s3:2.20.0'
 
+	// Websocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// STOMP
+	implementation group: 'org.webjars', name: 'stomp-websocket', version: '2.3.3-1'
+
+	// redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 }
 
 tasks.named('test') {
