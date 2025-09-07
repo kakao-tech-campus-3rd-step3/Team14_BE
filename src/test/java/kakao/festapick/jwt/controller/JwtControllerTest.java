@@ -2,7 +2,7 @@ package kakao.festapick.jwt.controller;
 
 import jakarta.servlet.http.Cookie;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.jwt.JWTUtil;
+import kakao.festapick.jwt.JwtUtil;
 import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.SocialType;
@@ -36,7 +36,7 @@ class JwtControllerTest {
     private JwtService jwtService;
 
     @Autowired
-    private JWTUtil jwtUtil;
+    private JwtUtil jwtUtil;
 
     private static final String identifier = "GOOGLE_1234";
 

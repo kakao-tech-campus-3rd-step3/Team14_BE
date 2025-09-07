@@ -4,9 +4,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.filter.CustomLogoutFilter;
 import kakao.festapick.global.filter.CustomLogoutFilterForAdminPage;
-import kakao.festapick.global.filter.JWTFilter;
-import kakao.festapick.global.filter.JWTFilterForAdminPage;
-import kakao.festapick.jwt.JWTUtil;
+import kakao.festapick.global.filter.JwtFilter;
+import kakao.festapick.global.filter.JwtFilterForAdminPage;
+import kakao.festapick.jwt.JwtUtil;
 import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.oauth2.handler.SocialSuccessHandler;
 import kakao.festapick.user.domain.UserRoleType;
@@ -35,7 +35,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
     private final JwtService jwtService;
     private final CookieComponent cookieComponent;
     private final OAuth2UserService oAuth2UserService;
@@ -79,9 +79,9 @@ public class SecurityConfig {
         http.sessionManagement(session->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.addFilterBefore(new JWTFilter(jwtUtil,oAuth2UserService), LogoutFilter.class);
+        http.addFilterBefore(new JwtFilter(jwtUtil,oAuth2UserService), LogoutFilter.class);
 
-        http.addFilterBefore(new JWTFilterForAdminPage(jwtUtil,oAuth2UserService,cookieComponent), JWTFilter.class);
+        http.addFilterBefore(new JwtFilterForAdminPage(jwtUtil,oAuth2UserService,cookieComponent), JwtFilter.class);
 
         http.addFilterAt(new CustomLogoutFilter(jwtUtil, jwtService, cookieComponent), LogoutFilter.class);
         http.addFilterAfter(new CustomLogoutFilterForAdminPage(jwtUtil, cookieComponent),CustomLogoutFilter.class);

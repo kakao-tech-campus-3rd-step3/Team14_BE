@@ -19,7 +19,7 @@ import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.component.TokenEncoder;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.jwt.JWTUtil;
+import kakao.festapick.jwt.JwtUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.user.domain.SocialType;
@@ -49,7 +49,7 @@ class JwtServiceTest {
     private OAuth2UserService oAuth2UserService;
 
     @Mock
-    private JWTUtil jwtUtil;
+    private JwtUtil jwtUtil;
 
     @Mock
     private CookieComponent cookieComponent;
