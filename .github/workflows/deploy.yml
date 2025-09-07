@@ -18,6 +18,16 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Gradle 캐싱
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: 운영용 .properties로 교체
         run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.properties
 
@@ -38,14 +48,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Docker tag를 위한 날짜 설정
+        run: echo "date=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+
       - name: Docker 이미지 생성
         run: docker build --platform linux/amd64 -t festa-pick-server .
 
       - name: Docker 이미지에 Tag 붙이기
-        run: docker tag festa-pick-server ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:latest
+        run: docker tag festa-pick-server ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
 
       - name: ECR에 Docker 이미지 Push하기
-        run: docker push ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:latest
+        run: docker push ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
 
       - name: SSH로 EC2에 접속하기
         uses: appleboy/ssh-action@v1.0.3
@@ -55,7 +68,7 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script_stop: true
           script: |
+            docker pull ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
             docker stop festa-pick-server || true
             docker rm festa-pick-server || true
-            docker pull ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:latest
-            docker run -d --name festa-pick-server -p 8080:8080 ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:latest
+            docker run -d TZ=Asia/Seoul --name festa-pick-server -p 8080:8080 ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
