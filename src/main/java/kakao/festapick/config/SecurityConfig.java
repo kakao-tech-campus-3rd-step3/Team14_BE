@@ -6,7 +6,7 @@ import kakao.festapick.global.filter.CustomLogoutFilter;
 import kakao.festapick.global.filter.CustomLogoutFilterForAdminPage;
 import kakao.festapick.global.filter.JwtFilter;
 import kakao.festapick.global.filter.JwtFilterForAdminPage;
-import kakao.festapick.jwt.JwtUtil;
+import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.oauth2.handler.SocialSuccessHandler;
 import kakao.festapick.user.domain.UserRoleType;

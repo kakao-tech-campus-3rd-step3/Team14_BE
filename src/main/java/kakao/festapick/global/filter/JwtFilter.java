@@ -6,7 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.jwt.JwtUtil;
+import kakao.festapick.jwt.util.JwtUtil;
+import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String accessToken = authorization.split(" ")[1];
 
-        if (!jwtUtil.validateToken(accessToken, true)) {
+        if (!jwtUtil.validateToken(accessToken, TokenType.ACCESS_TOKEN)) {
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");

@@ -1,4 +1,4 @@
-package kakao.festapick.jwt;
+package kakao.festapick.jwt.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -30,14 +30,13 @@ public class JwtUtil {
                 .getPayload();
     }
 
-    public boolean validateToken(String token, Boolean isAccess) {
+    public boolean validateToken(String token, TokenType tokenType) {
         try {
             Claims claims = getClaims(token);
-            String tokenType = claims.get("tokenType").toString();
+            String realTokenType = claims.get("tokenType").toString();
 
             if (tokenType == null) return false;
-            if (isAccess && tokenType.equals("refresh")) return false;
-            if (!isAccess && tokenType.equals("access")) return false;
+            if (!realTokenType.equals(tokenType.name())) return false;
 
             return true;
         } catch (Exception ex) {
@@ -46,18 +45,18 @@ public class JwtUtil {
     }
 
 
-    public String createJWT(String identifier, String role, Boolean isAccess) {
+    public String createJWT(String identifier, String role, TokenType tokenType) {
 
         long expiredMs;
         String type;
 
-        if (isAccess) {
+        if (tokenType.equals(TokenType.ACCESS_TOKEN)) {
             expiredMs = accessTokenExpiresIn;
-            type = "access";
+            type = TokenType.ACCESS_TOKEN.name();
         }
         else {
             expiredMs = refreshTokenExpiresIn;
-            type = "refresh";
+            type = TokenType.REFRESH_TOKEN.name();
         }
 
         return Jwts.builder()
@@ -70,15 +69,15 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String createJWT(String identifier, String role, Boolean isAccess, Long expiredMs) {
+    public String createJWT(String identifier, String role, TokenType tokenType, Long expiredMs) {
 
         String type;
 
-        if (isAccess) {
-            type = "access";
+        if (tokenType.equals(TokenType.ACCESS_TOKEN)) {
+            type = TokenType.ACCESS_TOKEN.name();
         }
         else {
-            type = "refresh";
+            type = TokenType.REFRESH_TOKEN.name();
         }
 
         return Jwts.builder()

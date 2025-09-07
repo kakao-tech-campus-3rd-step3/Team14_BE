@@ -8,9 +8,10 @@ import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.component.TokenEncoder;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.jwt.JwtUtil;
+import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
+import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +58,7 @@ public class JwtService {
         String oldRefreshToken = refreshCookie.getValue();
 
 
-        if (!jwtUtil.validateToken(oldRefreshToken, false))
+        if (!jwtUtil.validateToken(oldRefreshToken, TokenType.REFRESH_TOKEN))
             throw new AuthenticationException(ExceptionCode.INVALID_REFRESH_TOKEN);
         Claims claims = jwtUtil.getClaims(oldRefreshToken);
         String identifier = claims.get("identifier").toString();
@@ -71,8 +72,8 @@ public class JwtService {
         }
 
 
-        String newAccessToken = jwtUtil.createJWT(identifier, role, true);
-        String newRefreshToken = jwtUtil.createJWT(identifier, role, false);
+        String newAccessToken = jwtUtil.createJWT(identifier, role, TokenType.ACCESS_TOKEN);
+        String newRefreshToken = jwtUtil.createJWT(identifier, role, TokenType.REFRESH_TOKEN);
 
         saveRefreshToken(identifier, newRefreshToken);
 
