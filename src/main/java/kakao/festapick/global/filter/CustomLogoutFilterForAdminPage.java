@@ -6,7 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.jwt.JWTUtil;
+import kakao.festapick.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,7 +17,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class CustomLogoutFilterForAdminPage extends OncePerRequestFilter {
 
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
     private final CookieComponent cookieComponent;
 
     @Override

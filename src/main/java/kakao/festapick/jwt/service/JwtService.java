@@ -8,7 +8,7 @@ import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.component.TokenEncoder;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.jwt.JWTUtil;
+import kakao.festapick.jwt.JwtUtil;
 import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.user.domain.UserEntity;
@@ -29,7 +29,7 @@ public class JwtService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final OAuth2UserService userService;
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
     private final CookieComponent cookieComponent;
     private final TokenEncoder tokenEncoder;
 

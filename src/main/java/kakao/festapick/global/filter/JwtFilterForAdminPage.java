@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.jwt.JWTUtil;
+import kakao.festapick.jwt.JwtUtil;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +25,9 @@ import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class JWTFilterForAdminPage extends OncePerRequestFilter {
+public class JwtFilterForAdminPage extends OncePerRequestFilter {
 
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
     private final OAuth2UserService oAuth2UserService;
     private final CookieComponent cookieComponent;
 
