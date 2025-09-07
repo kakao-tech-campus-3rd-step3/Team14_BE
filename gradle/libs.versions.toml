@@ -1,0 +1,20 @@
+[versions]
+jjwt = "0.12.6"
+querydsl = "5.0.0"
+aws-sdk = "2.20.0"
+spring-dependency-management = "1.1.7"
+
+[libraries]
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+querydsl-jpa = { module = "com.querydsl:querydsl-jpa", version.ref = "querydsl" }
+querydsl-apt = { module = "com.querydsl:querydsl-apt", version.ref = "querydsl" }
+jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api" }
+jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api" }
+
+aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
+
+[plugins]
+dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
