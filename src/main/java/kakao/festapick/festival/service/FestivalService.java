@@ -100,8 +100,12 @@ public class FestivalService {
     @Transactional
     public FestivalDetailResponseDto updateFestival(String identifier, Long id, FestivalUpdateRequestDto requestDto) {
         Festival festival = getMyFestival(identifier, id);
+        String oldImageUrl = festival.getImageUrl();
+
         festival.updateFestival(requestDto);
         if (requestDto.imageInfo() != null) temporalFileRepository.deleteById(requestDto.imageInfo().id());
+
+        s3Service.deleteS3File(oldImageUrl); // s3 파일 삭제는 항상 마지막에 호출
         return new FestivalDetailResponseDto(festival);
     }
 
@@ -120,6 +124,8 @@ public class FestivalService {
     public void removeOne(String identifier, Long id) {
         Festival festival = getMyFestival(identifier, id);
         festivalRepository.deleteById(festival.getId());
+
+        s3Service.deleteS3File(festival.getImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
     }
 
     @Transactional

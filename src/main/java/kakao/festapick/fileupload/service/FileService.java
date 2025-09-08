@@ -31,15 +31,19 @@ public class FileService {
         return fileRepository.findByDomainIdAndDomainType(domainId, domainType);
     }
 
+    public void deleteAllByFileEntity(List<FileEntity> files) {
+        fileRepository.deleteAll(files);
+    }
+
     public void deleteByDomainId(Long domainId, DomainType domainType) {
 
         List<String> urls = fileRepository.findByDomainIdAndDomainType(domainId, domainType)
                 .stream()
                 .map(FileEntity::getUrl).toList();
 
-        s3Service.deleteFiles(urls);
-
         fileRepository.deleteByDomainAndDomainType(domainId,domainType);
+
+        s3Service.deleteFiles(urls); // s3 파일 삭제는 항상 마지막에 호출
     }
 
 }

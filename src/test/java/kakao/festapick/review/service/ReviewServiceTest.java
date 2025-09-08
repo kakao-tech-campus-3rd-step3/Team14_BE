@@ -17,6 +17,7 @@ import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -57,6 +58,9 @@ public class ReviewServiceTest {
 
     @Mock
     private TemporalFileRepository temporalFileRepository;
+
+    @Mock
+    private S3Service s3Service;
 
     @Test
     @DisplayName("리뷰 등록 성공")
@@ -172,13 +176,18 @@ public class ReviewServiceTest {
         given(reviewRepository.findByUserIdentifierAndId(any(), any()))
                 .willReturn(Optional.of(review));
 
+        given(fileService.findByDomainIdAndDomainType(any(), any()))
+                .willReturn(List.of());
+
         ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5, null, null);
 
         reviewService.updateReview(review.getId(), requestDto, user.getIdentifier());
 
         verify(reviewRepository).findByUserIdentifierAndId(any(), any());
-        verify(fileService).deleteByDomainId(any(),any());
+        verify(fileService).findByDomainIdAndDomainType(any(),any());
+        verify(fileService).deleteAllByFileEntity(any());
         verify(temporalFileRepository).deleteByIds(any());
+        verify(s3Service).deleteFiles(any());
         verifyNoMoreInteractions(festivalRepository,userService,reviewRepository,fileService, temporalFileRepository);
     }
 

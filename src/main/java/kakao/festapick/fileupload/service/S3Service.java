@@ -81,7 +81,9 @@ public class S3Service {
     }
 
     private String extractFileName(String fileUrl) {
-        int pathStartIdx = fileUrl.indexOf(".amazonaws.com/") + ".amazonaws.com/".length();
+        int pathStartIdx = fileUrl.contains(".amazonaws.com/") ?
+        fileUrl.indexOf(".amazonaws.com/") + ".amazonaws.com/".length() : 0;
+
         int pathEndIdx = fileUrl.contains("?") ? fileUrl.indexOf("?") : fileUrl.length();
 
         return fileUrl.substring(pathStartIdx, pathEndIdx);

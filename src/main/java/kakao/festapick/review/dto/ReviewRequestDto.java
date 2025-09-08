@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record ReviewRequestDto(
@@ -20,5 +21,8 @@ public record ReviewRequestDto(
         List<FileUploadRequest> imageInfos,
         FileUploadRequest videoInfo // 일단 video url은 한개만 제한
 ) {
+        public ReviewRequestDto {
+                if (imageInfos == null) imageInfos = new ArrayList<>();
+        }
 
 }
