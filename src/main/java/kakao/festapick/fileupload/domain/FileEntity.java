@@ -5,9 +5,13 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Table(indexes = @Index(name = "idx_domainId_domainType", columnList = "domainId, domainType"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class FileEntity {
@@ -30,6 +34,10 @@ public class FileEntity {
 
     @Column(nullable = false)
     private Long domainId;
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdDate;
 
     public FileEntity(String url, FileType fileType, DomainType domainType, Long domainId) {
         this.url = url;
