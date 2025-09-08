@@ -16,7 +16,7 @@ import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +33,7 @@ import java.util.List;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final OAuth2UserService oAuth2UserService;
+    private final UserService userService;
     private final FestivalRepository festivalRepository;
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
@@ -42,7 +42,7 @@ public class ReviewService {
     public Long createReview(Long festivalId, @Valid ReviewRequestDto requestDto, String identifier) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        UserEntity user = oAuth2UserService.findByIdentifier(identifier);
+        UserEntity user = userService.findByIdentifier(identifier);
 
         if (reviewRepository.existsByUserIdAndFestivalId(user.getId(), festivalId)) {
             throw new DuplicateEntityException(ExceptionCode.REVIEW_DUPLICATE);

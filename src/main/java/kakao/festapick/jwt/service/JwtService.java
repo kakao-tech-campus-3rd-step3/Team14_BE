@@ -14,6 +14,7 @@ import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ import java.util.Arrays;
 public class JwtService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final OAuth2UserService userService;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
     private final CookieComponent cookieComponent;
     private final TokenEncoder tokenEncoder;

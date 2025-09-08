@@ -36,15 +36,6 @@ class OAuth2UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private CookieComponent cookieComponent;
-
-    @Mock
-    private S3Service s3Service;
-
-    @Mock
-    private TemporalFileRepository temporalFileRepository;
-
 
     @Test
     @DisplayName("소셜 로그인 성공(회원가입)")
@@ -80,7 +71,6 @@ class OAuth2UserServiceTest {
         verify(userRepository).findByIdentifier(anyString());
         verify(userRepository).save(any());
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(cookieComponent);
     }
 
     @Test
@@ -113,47 +103,6 @@ class OAuth2UserServiceTest {
 
         verify(userRepository).findByIdentifier(anyString());
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(cookieComponent);
-
-    }
-
-    @Test
-    @DisplayName("프로필 이미지 변환 성공")
-    void profileImageChangeSuccess() {
-
-        // given
-        UserEntity userEntity = new UserEntity("GOOGLE-1234",
-                "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE);
-
-        given(userRepository.findByIdentifier(any()))
-                .willReturn(Optional.of(userEntity));
-
-        // when
-        oAuth2UserService.changeProfileImage(userEntity.getIdentifier(), new FileUploadRequest(1L,"updateImageUrl"));
-
-        // then
-        verify(userRepository).findByIdentifier(any());
-        verify(s3Service).deleteS3File(any());
-        verify(temporalFileRepository).deleteById(any());
-        verifyNoMoreInteractions(userRepository,s3Service, temporalFileRepository);
-
-    }
-
-    @Test
-    @DisplayName("프로필 이미지 변환 실패 - 존재하지 않는 회원")
-    void profileImageChangeFail() {
-
-        // given
-
-        given(userRepository.findByIdentifier(any()))
-                .willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(()->
-                oAuth2UserService.changeProfileImage("GOOGLE-1234", new FileUploadRequest(1L,"updateImageUrl"))
-        ).isInstanceOf(NotFoundEntityException.class);
-        verify(userRepository).findByIdentifier(any());
-        verifyNoMoreInteractions(userRepository,s3Service, temporalFileRepository);
 
     }
 
