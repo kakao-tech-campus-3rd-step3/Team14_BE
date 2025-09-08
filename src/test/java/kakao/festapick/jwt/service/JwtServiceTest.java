@@ -4,7 +4,6 @@ package kakao.festapick.jwt.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.BDDMockito.any;
-import static org.mockito.BDDMockito.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.mock;
 import static org.mockito.BDDMockito.times;
@@ -16,7 +15,7 @@ import jakarta.servlet.http.Cookie;
 import java.util.Optional;
 import java.util.UUID;
 import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.global.component.TokenEncoder;
+import kakao.festapick.global.component.HmacUtil;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.jwt.util.JwtUtil;
@@ -25,7 +24,6 @@ import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
-import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,7 +54,7 @@ class JwtServiceTest {
     private CookieComponent cookieComponent;
 
     @Mock
-    private TokenEncoder tokenEncoder;
+    private HmacUtil tokenEncoder;
 
     @Test
     @DisplayName("리프래시 토큰 저장 성공")

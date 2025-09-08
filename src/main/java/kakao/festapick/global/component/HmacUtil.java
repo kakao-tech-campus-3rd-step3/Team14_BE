@@ -9,15 +9,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.util.Base64;
-import java.util.Objects;
 
 @Component
-public class TokenEncoder {
+public class HmacUtil {
     private static final String HMAC_ALGO = "HmacSHA256";
 
     private final SecretKeySpec secretKey;
 
-    public TokenEncoder(@Value("${spring.secretBase64}") String secretBase64) {
+    public HmacUtil(@Value("${spring.secretBase64}") String secretBase64) {
         byte[] keyBytes = Base64.getDecoder().decode(secretBase64);
         this.secretKey = new SecretKeySpec(keyBytes, HMAC_ALGO);
     }
@@ -25,13 +24,12 @@ public class TokenEncoder {
     public boolean match(String encodedToken, String plainText) {
         if (!hasText(encodedToken) || !hasText(plainText)) return false;
         byte[] expected = hmac(plainText.getBytes(StandardCharsets.UTF_8));
-        byte[] provided;
         try {
-            provided = Base64.getDecoder().decode(encodedToken.trim());
+            byte[] provided = Base64.getDecoder().decode(encodedToken.trim());
+            return MessageDigest.isEqual(provided, expected);
         } catch (IllegalArgumentException e) {
             return false;
         }
-        return MessageDigest.isEqual(provided, expected);
     }
 
     public String encode(String plainText) {
@@ -50,6 +48,6 @@ public class TokenEncoder {
     }
 
     private static boolean hasText(String s) {
-        return s != null && !s.trim().isEmpty();
+        return s != null && !s.isBlank();
     }
 }

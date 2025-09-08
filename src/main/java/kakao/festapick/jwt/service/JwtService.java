@@ -5,7 +5,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.global.component.TokenEncoder;
+import kakao.festapick.global.component.HmacUtil;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.jwt.util.JwtUtil;
@@ -13,7 +13,6 @@ import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -33,7 +32,7 @@ public class JwtService {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final CookieComponent cookieComponent;
-    private final TokenEncoder tokenEncoder;
+    private final HmacUtil tokenEncoder;
 
     public RefreshToken saveRefreshToken(String identifier, String refreshToken) {
 
