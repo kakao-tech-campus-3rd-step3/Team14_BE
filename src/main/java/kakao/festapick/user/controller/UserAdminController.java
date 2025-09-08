@@ -4,6 +4,7 @@ import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDtoForAdmin;
 import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserAdminController {
 
     private final OAuth2UserService oAuth2UserService;
+    private final UserService userService;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -38,7 +40,7 @@ public class UserAdminController {
                                      Model model) {
 
 
-        Page<UserResponseDtoForAdmin> response = oAuth2UserService.findByIdentifierOrUserEmail(new UserSearchCond(identifier,email, role), pageable);
+        Page<UserResponseDtoForAdmin> response = userService.findByIdentifierOrUserEmail(new UserSearchCond(identifier,email, role), pageable);
 
         model.addAttribute("pageData", response);
         model.addAttribute("identifier", identifier);
@@ -51,7 +53,7 @@ public class UserAdminController {
     @PostMapping("/admin/users/{id}")
     public String deleteUser(@PathVariable Long id) {
 
-        oAuth2UserService.deleteUser(id);
+        userService.deleteUser(id);
 
         return "redirect:/admin/users";
     }
@@ -61,7 +63,7 @@ public class UserAdminController {
 
         System.out.println(id);
         System.out.println(role);
-        oAuth2UserService.changeUserRole(id, role);
+        userService.changeUserRole(id, role);
 
         return "redirect:/admin/users";
     }

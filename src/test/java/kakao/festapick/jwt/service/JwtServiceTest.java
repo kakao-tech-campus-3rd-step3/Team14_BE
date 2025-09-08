@@ -26,6 +26,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +47,7 @@ class JwtServiceTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
-    private OAuth2UserService oAuth2UserService;
+    private UserService userService;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -65,7 +66,7 @@ class JwtServiceTest {
         String refreshToken = UUID.randomUUID().toString();
         UserEntity userEntity = createUserEntity();
 
-        given(oAuth2UserService.findByIdentifier(any()))
+        given(userService.findByIdentifier(any()))
                 .willReturn(userEntity);
 
         given(tokenEncoder.encode(any()))
@@ -86,7 +87,7 @@ class JwtServiceTest {
                 }
         );
 
-        verify(oAuth2UserService).findByIdentifier(any());
+        verify(userService).findByIdentifier(any());
         verify(refreshTokenRepository).deleteByUser(any());
         verify(tokenEncoder).encode(any());
         verify(refreshTokenRepository).save(any());
@@ -127,7 +128,7 @@ class JwtServiceTest {
                 .willReturn(true);
 
 
-        given(oAuth2UserService.findByIdentifier(any()))
+        given(userService.findByIdentifier(any()))
                 .willReturn(userEntity);
 
         given(refreshTokenRepository.save(any()))
@@ -147,13 +148,13 @@ class JwtServiceTest {
                     softly.assertThat(response.getHeader("Set-Cookie")).isEqualTo(setCookieHeader);
                 }
         );
-        verify(oAuth2UserService).findByIdentifier(any());
+        verify(userService).findByIdentifier(any());
         verify(refreshTokenRepository).deleteByUser(any());
         verify(refreshTokenRepository).save(any());
         verify(jwtUtil).getClaims(any());
         verify(jwtUtil).validateToken(any(), any());
         verify(jwtUtil, times(2)).createJWT(any(), any(), any());
-        verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
     @Test
@@ -169,7 +170,7 @@ class JwtServiceTest {
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessage(ExceptionCode.COOKIE_NOT_EXIST.getErrorMessage());
-        verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
 
     }
 
@@ -187,7 +188,7 @@ class JwtServiceTest {
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessage(ExceptionCode.REFRESH_TOKEN_NOT_EXIST.getErrorMessage());
-        verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
     @Test
@@ -208,7 +209,7 @@ class JwtServiceTest {
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessage(ExceptionCode.INVALID_REFRESH_TOKEN.getErrorMessage());
         verify(jwtUtil).validateToken(any(), any());
-        verifyNoMoreInteractions(oAuth2UserService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
     private UserEntity createUserEntity() {

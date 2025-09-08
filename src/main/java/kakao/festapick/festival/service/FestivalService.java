@@ -129,6 +129,7 @@ public class FestivalService {
 
         festivalRepository.deleteById(festivalId);
 
+        // 꼭 S3 파일 삭제는 외부 호출이기 때문에마지막에 호출해야함!
         s3Service.deleteS3File(festival.getImageUrl());
     }
 

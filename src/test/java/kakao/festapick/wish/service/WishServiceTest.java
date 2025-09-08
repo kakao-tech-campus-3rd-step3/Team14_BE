@@ -21,6 +21,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserService;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.repository.WishRepository;
@@ -40,7 +41,7 @@ public class WishServiceTest {
     private WishService wishService;
 
     @Mock
-    private OAuth2UserService oAuth2UserService;
+    private UserService userService;
 
     @Mock
     private FestivalRepository festivalRepository;
@@ -57,7 +58,7 @@ public class WishServiceTest {
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(oAuth2UserService.findByIdentifier(any()))
+        given(userService.findByIdentifier(any()))
                 .willReturn(user);
         given(wishRepository.findByUserIdentifierAndFestivalId(any(), any()))
                 .willReturn(Optional.empty());
@@ -78,11 +79,11 @@ public class WishServiceTest {
         );
 
         verify(festivalRepository).findFestivalById(any());
-        verify(oAuth2UserService).findByIdentifier(any());
+        verify(userService).findByIdentifier(any());
         verify(wishRepository).findByUserIdentifierAndFestivalId(any(), any());
         verify(wishRepository).save(any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
+        verifyNoMoreInteractions(userService);
         verifyNoMoreInteractions(wishRepository);
     }
 
@@ -95,7 +96,7 @@ public class WishServiceTest {
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(oAuth2UserService.findByIdentifier(any()))
+        given(userService.findByIdentifier(any()))
                 .willReturn(user);
         given(wishRepository.findByUserIdentifierAndFestivalId(any(), any()))
                 .willReturn(Optional.of(wish));
@@ -105,10 +106,10 @@ public class WishServiceTest {
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_DUPLICATE);
 
         verify(festivalRepository).findFestivalById(any());
-        verify(oAuth2UserService).findByIdentifier(any());
+        verify(userService).findByIdentifier(any());
         verify(wishRepository).findByUserIdentifierAndFestivalId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
+        verifyNoMoreInteractions(userService);
         verifyNoMoreInteractions(wishRepository);
     }
 
@@ -127,7 +128,7 @@ public class WishServiceTest {
         verify(wishRepository).findByUserIdentifierAndId(any(), any());
         verify(wishRepository).delete(any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
+        verifyNoMoreInteractions(userService);
         verifyNoMoreInteractions(wishRepository);
     }
 
@@ -147,7 +148,7 @@ public class WishServiceTest {
 
         verify(wishRepository).findByUserIdentifierAndId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(oAuth2UserService);
+        verifyNoMoreInteractions(userService);
         verifyNoMoreInteractions(wishRepository);
     }
 

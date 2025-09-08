@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +18,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final OAuth2UserService oAuth2UserService;
+    private final UserService userService;
 
     @DeleteMapping
     public ResponseEntity<Void> withDrawMember(@AuthenticationPrincipal String identifier,
                                                HttpServletResponse response) {
 
-        oAuth2UserService.withDraw(identifier,response);
+        userService.withDraw(identifier,response);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -31,7 +33,7 @@ public class UserController {
     public ResponseEntity<Void> changeProfileImage(@Valid @RequestBody FileUploadRequest fileUploadRequest,
                                                    @AuthenticationPrincipal String identifier) {
 
-        oAuth2UserService.changeProfileImage(identifier, fileUploadRequest);
+        userService.changeProfileImage(identifier, fileUploadRequest);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -39,7 +41,7 @@ public class UserController {
     @GetMapping // 본인 정보 조회
     public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal String identifier) {
 
-        UserResponseDto response = oAuth2UserService.findMyInfo(identifier);
+        UserResponseDto response = userService.findMyInfo(identifier);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

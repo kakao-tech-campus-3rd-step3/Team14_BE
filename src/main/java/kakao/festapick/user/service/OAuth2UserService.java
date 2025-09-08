@@ -32,11 +32,6 @@ import java.util.Optional;
 public class OAuth2UserService extends DefaultOAuth2UserService  {
 
     private final UserRepository userRepository;
-    private final CookieComponent cookieComponent;
-    private final QUserRepository qUserRepository;
-    private final S3Service s3Service;
-    private final TemporalFileRepository temporalFileRepository;
-
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -55,47 +50,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService  {
 
         if (findUser.isPresent()) return findUser.get();
         return userRepository.save(new UserEntity(identifier, oAuth2Response.getEmail(), oAuth2Response.getUsername(), UserRoleType.USER, oAuth2Response.getProvider()));
-    }
-
-    public UserEntity findByIdentifier(String identifier) {
-        return userRepository.findByIdentifier(identifier)
-                .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
-    }
-
-    public void withDraw(String identifier, HttpServletResponse response) {
-        userRepository.deleteByIdentifier(identifier);
-        response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
-    }
-
-    public Page<UserResponseDtoForAdmin> findByIdentifierOrUserEmail(UserSearchCond userSearchCond, Pageable pageable) {
-        return qUserRepository.findByIdentifierOrUserEmail(userSearchCond, pageable)
-                .map(UserResponseDtoForAdmin::new);
-    }
-
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
-    }
-
-    public void changeUserRole(Long id, UserRoleType role) {
-        UserEntity findUser = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
-        findUser.changeUserRole(role);
-    }
-
-    public void changeProfileImage(String identifier, FileUploadRequest fileUploadRequest) {
-        UserEntity findUser = userRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
-
-        s3Service.deleteS3File(findUser.getProfileImageUrl());
-        findUser.changeProfileImage(fileUploadRequest.presignedUrl());
-        temporalFileRepository.deleteById(fileUploadRequest.id());
-    }
-
-    public UserResponseDto findMyInfo(String identifier) {
-        UserEntity findUser = userRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
-
-        return new UserResponseDto(findUser);
     }
 
     private OAuth2Response parseOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
