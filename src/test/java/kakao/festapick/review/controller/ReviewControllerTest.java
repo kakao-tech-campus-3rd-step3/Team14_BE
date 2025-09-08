@@ -17,6 +17,7 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -172,16 +173,18 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         Festival festival = saveFestival();
 
-        TemporalFile t1 = temporalFileRepository.save(new TemporalFile("imageUrl1"));
         TemporalFile t2 = temporalFileRepository.save(new TemporalFile("imageUrl2"));
         TemporalFile t3 = temporalFileRepository.save(new TemporalFile("videoUrl"));
 
         ReviewRequestDto requestDto = new ReviewRequestDto
                 ("update 정성리뷰 10글자 이상 해야 해요", 1,
-                        List.of(new FileUploadRequest(t1),new FileUploadRequest(t2)),
+                        List.of(new FileUploadRequest(1L, "imageUrl1"),new FileUploadRequest(t2)),
                         new FileUploadRequest(t3));
 
         Review target = reviewRepository.save(new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
+
+        fileService.saveAll(List.of(new FileEntity("oldImageUrl", FileType.IMAGE, DomainType.REVIEW, target.getId()),
+                new FileEntity("imageUrl1", FileType.VIDEO, DomainType.REVIEW, target.getId())));
 
         mockMvc.perform(put(String.format("/api/reviews/%s", target.getId()))
                 .contentType(MediaType.APPLICATION_JSON)

@@ -325,7 +325,8 @@ class FestivalServiceTest {
         );
         verify(festivalRepository).findFestivalByIdWithManager(any());
         verify(temporalFileRepository).deleteById(any());
-        verifyNoMoreInteractions(festivalRepository, temporalFileRepository);
+        verify(s3Service).deleteS3File(any());
+        verifyNoMoreInteractions(festivalRepository, temporalFileRepository,s3Service);
     }
 
     @Test
@@ -347,7 +348,7 @@ class FestivalServiceTest {
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
         verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository, temporalFileRepository);
+        verifyNoMoreInteractions(festivalRepository, temporalFileRepository, s3Service);
     }
 
     @Test
@@ -388,7 +389,8 @@ class FestivalServiceTest {
         //then
         verify(festivalRepository).findFestivalByIdWithManager(any());
         verify(festivalRepository).deleteById(any()); //행위 검증
-        verifyNoMoreInteractions(festivalRepository);
+        verify(s3Service).deleteS3File(any());
+        verifyNoMoreInteractions(festivalRepository,s3Service);
     }
 
     @Test

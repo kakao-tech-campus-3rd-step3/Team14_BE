@@ -37,8 +37,13 @@ public class UserService {
     }
 
     public void withDraw(String identifier, HttpServletResponse response) {
+
+        UserEntity findUser = findByIdentifier(identifier);
+
         userRepository.deleteByIdentifier(identifier);
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
+
+        s3Service.deleteS3File(findUser.getProfileImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
     }
 
     public Page<UserResponseDtoForAdmin> findByIdentifierOrUserEmail(UserSearchCond userSearchCond, Pageable pageable) {
@@ -72,7 +77,12 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        UserEntity findUser = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+
+        userRepository.deleteById(findUser.getId());
+
+        s3Service.deleteS3File(findUser.getProfileImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
     }
 
 
