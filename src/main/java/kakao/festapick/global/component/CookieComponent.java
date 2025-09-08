@@ -14,11 +14,14 @@ public class CookieComponent {
     @Value("${spring.cookie.same}")
     private String same;
 
+    private static final int accessTokenExpiresIn = 3600; // 1시간
+    private static final int refreshTokenExpiresIn = 604800; // 7일;
+
     public String createRefreshToken(String value) {
         return ResponseCookie.from("refreshToken", value)
                 .path("/")
                 .secure(secure)
-                .maxAge(604800)
+                .maxAge(refreshTokenExpiresIn)
                 .domain(domain)
                 .httpOnly(true)
                 .sameSite(same)
@@ -42,7 +45,7 @@ public class CookieComponent {
         return ResponseCookie.from("accessToken", value)
                 .path("/")
                 .secure(secure)
-                .maxAge(3600)
+                .maxAge(accessTokenExpiresIn)
                 .domain(domain)
                 .httpOnly(true)
                 .sameSite(same)
