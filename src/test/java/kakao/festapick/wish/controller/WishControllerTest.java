@@ -86,7 +86,7 @@ public class WishControllerTest {
     @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void getWishesSuccess() throws Exception {
 
-        mockMvc.perform(get("/api/wishes"))
+        mockMvc.perform(get("/api/wishes/my"))
                 .andExpect(status().isOk());
     }
 

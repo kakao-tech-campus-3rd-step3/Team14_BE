@@ -48,7 +48,7 @@ public class ReviewController {
     }
 
     @PreAuthorize("isAuthenticated()") // 내 리뷰만 조회는 인증 필요
-    @GetMapping("/reviews")
+    @GetMapping("/reviews/my")
     public ResponseEntity<Page<ReviewResponseDto>> getMyReviews(
             @AuthenticationPrincipal String identifier,
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)

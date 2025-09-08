@@ -34,7 +34,7 @@ public class WishController {
                 HttpStatus.CREATED);
     }
 
-    @GetMapping("/wishes")
+    @GetMapping("/wishes/my")
     public ResponseEntity<Page<WishResponseDto>> getWishes(
             @AuthenticationPrincipal String identifier,
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
