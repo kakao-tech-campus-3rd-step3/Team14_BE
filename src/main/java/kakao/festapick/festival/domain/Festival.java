@@ -18,6 +18,7 @@ import lombok.Getter;
 
 @Entity
 @Getter
+@Table(indexes = @Index(name = "idx_festival_area_state_startdate_id", columnList= "areaCode, state, startDate, id"))
 public class Festival {
 
     private static String defaultImage;
