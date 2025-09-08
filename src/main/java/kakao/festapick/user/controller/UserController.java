@@ -38,7 +38,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping // 본인 정보 조회
+    @GetMapping("/my") // 본인 정보 조회
     public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal String identifier) {
 
         UserResponseDto response = userService.findMyInfo(identifier);

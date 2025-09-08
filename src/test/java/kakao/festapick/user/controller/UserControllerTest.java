@@ -76,7 +76,7 @@ class UserControllerTest {
         UserEntity userEntity = saveUserEntity();
 
         // when
-        String response = mockMvc.perform(get("/api/users"))
+        String response = mockMvc.perform(get("/api/users/my"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 

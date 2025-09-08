@@ -134,7 +134,7 @@ public class ReviewControllerTest {
     @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void getReviewsSuccess1() throws Exception {
 
-        mockMvc.perform(get("/api/reviews"))
+        mockMvc.perform(get("/api/reviews/my"))
                 .andExpect(status().isOk());
     }
 
