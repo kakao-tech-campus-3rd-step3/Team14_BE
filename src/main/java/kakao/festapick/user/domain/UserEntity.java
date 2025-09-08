@@ -1,7 +1,10 @@
 package kakao.festapick.user.domain;
 
 import jakarta.persistence.*;
+import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.jwt.domain.RefreshToken;
+import kakao.festapick.review.domain.Review;
+import kakao.festapick.wish.domain.Wish;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +14,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -50,6 +54,15 @@ public class UserEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RefreshToken refreshToken;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Wish> wishes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Festival> festivals = new ArrayList<>();
 
     @CreatedDate
     @Column(updatable = false)

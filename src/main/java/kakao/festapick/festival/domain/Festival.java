@@ -1,22 +1,19 @@
 package kakao.festapick.festival.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.wish.domain.Wish;
 import lombok.Getter;
 
 @Entity
@@ -63,6 +60,13 @@ public class Festival {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private UserEntity manager;
+
+    @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Wish>  wishes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
+
 
     protected Festival() { }
 

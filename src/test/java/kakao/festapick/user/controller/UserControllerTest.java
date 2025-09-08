@@ -1,7 +1,6 @@
 package kakao.festapick.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
 import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -42,8 +41,6 @@ class UserControllerTest {
     @Autowired
     private TemporalFileRepository temporalFileRepository;
 
-    @Autowired
-    private EntityManager em;
 
     @Autowired
     private ObjectMapper objectMapper;
