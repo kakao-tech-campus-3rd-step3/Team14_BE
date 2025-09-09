@@ -31,6 +31,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
@@ -66,6 +67,8 @@ public class ReviewControllerTest {
 
     @Autowired
     private TemporalFileRepository temporalFileRepository;
+
+    private final TestUtil testUtil = new TestUtil();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -248,16 +251,12 @@ public class ReviewControllerTest {
 
     private Festival saveFestival() {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
-                11, "test area1", "test area2", "http://asd.example.com/test.jpg", toLocalDate("20250823"),
-                toLocalDate("20251231"));
+                11, "test area1", "test area2", "http://asd.example.com/test.jpg", testUtil.toLocalDate("20250823"),
+                testUtil.toLocalDate("20251231"));
         Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
                 "testtesttest");
 
         return festivalRepository.save(festival);
-    }
-
-    private LocalDate toLocalDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 
 }

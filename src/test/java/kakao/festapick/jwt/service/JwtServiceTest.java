@@ -25,6 +25,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.UserService;
+import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,13 +57,15 @@ class JwtServiceTest {
     @Mock
     private HmacUtil tokenEncoder;
 
+    private final TestUtil testUtil = new TestUtil();
+
     @Test
     @DisplayName("리프래시 토큰 저장 성공")
     void saveRefreshTokenSuccess() {
 
         // given
         String refreshToken = UUID.randomUUID().toString();
-        UserEntity userEntity = createUserEntity();
+        UserEntity userEntity = testUtil.createTestUser();
 
         given(userService.findByIdentifier(any()))
                 .willReturn(userEntity);
@@ -117,7 +120,7 @@ class JwtServiceTest {
         given(jwtUtil.createJWT(any(), any(), any()))
                 .willReturn(accessToken, refreshToken);
 
-        UserEntity userEntity = createUserEntity();
+        UserEntity userEntity = testUtil.createTestUser();
 
         given(refreshTokenRepository.findByUserIdentifier(any()))
                 .willReturn(Optional.of(new RefreshToken(userEntity, UUID.randomUUID().toString())));
@@ -208,11 +211,6 @@ class JwtServiceTest {
                 .hasMessage(ExceptionCode.INVALID_REFRESH_TOKEN.getErrorMessage());
         verify(jwtUtil).validateToken(any(), any());
         verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
-    }
-
-    private UserEntity createUserEntity() {
-        return new UserEntity(1L, "GOOGLE_1234", "example@gmail.com",
-                "exampleName", UserRoleType.USER, SocialType.GOOGLE);
     }
 
 }

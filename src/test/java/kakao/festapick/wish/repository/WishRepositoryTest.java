@@ -13,6 +13,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.DisplayName;
@@ -30,11 +31,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class WishRepositoryTest {
 
+    private final TestUtil testUtil = new TestUtil();
+
     private static final String identifier = "GOOGLE-1234";
 
     private final FestivalRequestDto requestDto = new FestivalRequestDto("1234567", "test festival",
             11, "test addr1", "test addr2", "http://asd.test.com/example.jpg",
-            toLocalDate("20250823"), toLocalDate("20251231"));
+            testUtil.toLocalDate("20250823"), testUtil.toLocalDate("20251231"));
 
     @Autowired
     private WishRepository wishRepository;
@@ -141,10 +144,6 @@ public class WishRepositoryTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(userEntity),
                 () -> AssertionsForClassTypes.assertThat(actual.getFestival()).isEqualTo(festival)
         );
-    }
-
-    private LocalDate toLocalDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 
 }
