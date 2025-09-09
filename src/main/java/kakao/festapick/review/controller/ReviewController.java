@@ -1,11 +1,13 @@
 package kakao.festapick.review.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -39,11 +41,13 @@ public class ReviewController {
 
     @GetMapping("/festivals/{festivalId}/reviews") // 리뷰 조회는 인증 불필요
     public ResponseEntity<Page<ReviewResponseDto>> getFestivalReviews(
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
-            Pageable pageable,
+            @RequestParam(defaultValue = "0", required = false) int page,
+            @Max(value = 1000)
+            @RequestParam(defaultValue = "5", required = false) int size,
             @PathVariable Long festivalId
     ) {
-        return new ResponseEntity<>(reviewService.getFestivalReviews(festivalId, pageable),
+        return new ResponseEntity<>(
+                reviewService.getFestivalReviews(festivalId, PageRequest.of(page, size)),
                 HttpStatus.OK);
     }
 
@@ -51,15 +55,17 @@ public class ReviewController {
     @GetMapping("/reviews/my")
     public ResponseEntity<Page<ReviewResponseDto>> getMyReviews(
             @AuthenticationPrincipal String identifier,
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
-            Pageable pageable
+            @RequestParam(defaultValue = "0", required = false) int page,
+            @Max(value = 1000)
+            @RequestParam(defaultValue = "5", required = false) int size
     ) {
-        return new ResponseEntity<>(reviewService.getMyReviews(identifier, pageable),
+        return new ResponseEntity<>(
+                reviewService.getMyReviews(identifier, PageRequest.of(page, size)),
                 HttpStatus.OK);
     }
 
     @GetMapping("/reviews/{reviewId}") // 리뷰 PK를 통한 것은 인증 불필요
-    public ResponseEntity<ReviewResponseDto> getReview( @PathVariable Long reviewId) {
+    public ResponseEntity<ReviewResponseDto> getReview(@PathVariable Long reviewId) {
 
         ReviewResponseDto response = reviewService.getReview(reviewId);
 
@@ -75,7 +81,6 @@ public class ReviewController {
             @Valid @RequestBody ReviewRequestDto requestDto) {
 
         reviewService.updateReview(reviewId, requestDto, identifier);
-
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
