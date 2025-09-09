@@ -10,6 +10,7 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,8 @@ class UserControllerTest {
     private ObjectMapper objectMapper;
 
     private static final String identifier = "GOOGLE_1234";
+    @Autowired
+    private TestUtil testUtil;
 
     @Test
     @DisplayName("회원 탈퇴 성공")
@@ -116,8 +119,7 @@ class UserControllerTest {
 
     private UserEntity saveUserEntity() {
 
-        return userRepository.save(new UserEntity(identifier,
-                "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE));
+        return userRepository.save(testUtil.createTestUser(identifier));
     }
 
 

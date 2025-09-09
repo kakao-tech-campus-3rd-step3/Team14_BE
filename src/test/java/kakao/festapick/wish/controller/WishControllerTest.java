@@ -113,8 +113,7 @@ public class WishControllerTest {
 
     private UserEntity saveUserEntity() {
 
-        return userRepository.save(new UserEntity(identifier,
-                "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE));
+        return userRepository.save(testUtil.createTestUser(identifier));
     }
 
     private Festival saveFestival() {
