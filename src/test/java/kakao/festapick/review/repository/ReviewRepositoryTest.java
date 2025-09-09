@@ -14,6 +14,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,10 +33,12 @@ public class ReviewRepositoryTest {
 
     private static final String identifier = "GOOGLE-1234";
 
+    private final TestUtil testUtil = new TestUtil();
+
     private final FestivalRequestDto requestDto = new FestivalRequestDto("1234567", "test festival",
             11,
-            "test addr1", "test addr2", "http://asd.test.com/example.jpg", toLocalDate("20250823"),
-            toLocalDate("20251231"));
+            "test addr1", "test addr2", "http://asd.test.com/example.jpg", testUtil.toLocalDate("20250823"),
+            testUtil.toLocalDate("20251231"));
 
     @Autowired
     private ReviewRepository reviewRepository;
@@ -162,9 +165,5 @@ public class ReviewRepositoryTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getContent()).isEqualTo("testtesttest"),
                 () -> AssertionsForClassTypes.assertThat(actual.getScore()).isEqualTo(4)
         );
-    }
-
-    private LocalDate toLocalDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 }

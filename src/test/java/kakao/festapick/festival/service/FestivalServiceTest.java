@@ -38,6 +38,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,8 @@ class FestivalServiceTest {
 
     @InjectMocks
     private FestivalService festivalService;
+
+    private final TestUtil testUtil = new TestUtil();
 
     @Test
     @DisplayName("사용자 축제 등록 성공")
@@ -132,7 +135,7 @@ class FestivalServiceTest {
         FestivalCustomRequestDto requestDto =
                 new FestivalCustomRequestDto(
                         "축제title", 32, "주소1", "상세주소",
-                        new FileUploadRequest(1L,"imageUrl"), toLocalDate("20250827"), toLocalDate("20250825"),
+                        new FileUploadRequest(1L,"imageUrl"), testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
                         "homepageUrl", "축제에 대한 개요");
 
         given(userRepository.findByIdentifier(any()))
@@ -470,7 +473,7 @@ class FestivalServiceTest {
     private FestivalCustomRequestDto createCustomRequestDto() {
         return new FestivalCustomRequestDto(
                 "축제title", 32, "주소1", "상세주소",
-                new FileUploadRequest(1L,"imageUrl"), toLocalDate("20250824"), toLocalDate("20250825"),
+                new FileUploadRequest(1L,"imageUrl"), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
                 "homepageUrl", "축제에 대한 개요");
 
     }
@@ -478,13 +481,13 @@ class FestivalServiceTest {
     private FestivalRequestDto createRequestDto() {
         return new FestivalRequestDto(
                 "contentId","축제title", 32, "주소1", "상세주소",
-                "imageUrl", toLocalDate("20250824"), toLocalDate("20250825"));
+                "imageUrl", testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"));
 
     }
 
     private FestivalUpdateRequestDto createUpdateRequestDto() {
         return new FestivalUpdateRequestDto("updated_title", 32, "updated_주소1", "상세주소",
-                new FileUploadRequest(1L,"updated_imageUrl"), toLocalDate("20250824"), toLocalDate("20250825"), "homepage", "overview");
+                new FileUploadRequest(1L,"updated_imageUrl"), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"), "homepage", "overview");
 
     }
 
@@ -526,10 +529,6 @@ class FestivalServiceTest {
         Field idField = Festival.class.getDeclaredField("id");
         idField.setAccessible(true);
         idField.set(festival, id);
-    }
-
-    private LocalDate toLocalDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 
 }

@@ -30,6 +30,7 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.user.service.UserService;
+import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,10 +63,12 @@ public class ReviewServiceTest {
     @Mock
     private S3Service s3Service;
 
+    private final TestUtil testUtil = new TestUtil();
+
     @Test
     @DisplayName("리뷰 등록 성공")
     void createReviewSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -99,7 +102,7 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("중복으로 인한 리뷰 등록 실패")
     void createReviewFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -126,7 +129,7 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 삭제 성공")
     void deleteReviewSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -147,7 +150,7 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 삭제 실패 (없는 리뷰 삭제 시도)")
     void deleteReviewFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -167,7 +170,7 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 수정 성공")
     void updateReviewSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -194,7 +197,7 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 수정 실패 (없는 리뷰 수정 시도)")
     void updateReviewFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -219,7 +222,7 @@ public class ReviewServiceTest {
 
         // given
 
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -248,8 +251,8 @@ public class ReviewServiceTest {
 
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
-                11, "test area1", "test area2", "http://asd.example.com/test.jpg", toLocalDate("20250823"),
-                toLocalDate("20251231"));
+                11, "test area1", "test area2", "http://asd.example.com/test.jpg", testUtil.toLocalDate("20250823"),
+                testUtil.toLocalDate("20251231"));
         Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
                 "testtesttest");
 
@@ -260,13 +263,4 @@ public class ReviewServiceTest {
         return festival;
     }
 
-    private UserEntity testUser() {
-
-        return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER,
-                SocialType.KAKAO);
-    }
-
-    private LocalDate toLocalDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
-    }
 }

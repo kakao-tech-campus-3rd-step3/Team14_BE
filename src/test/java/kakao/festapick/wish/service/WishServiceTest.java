@@ -22,6 +22,7 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.user.service.UserService;
+import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.repository.WishRepository;
@@ -49,10 +50,12 @@ public class WishServiceTest {
     @Mock
     private WishRepository wishRepository;
 
+    private final TestUtil testUtil = new TestUtil();
+
     @Test
     @DisplayName("위시 등록 성공")
     void createWishSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
@@ -90,7 +93,7 @@ public class WishServiceTest {
     @Test
     @DisplayName("중복으로 인한 위시 등록 실패")
     void createWishFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
@@ -116,7 +119,7 @@ public class WishServiceTest {
     @Test
     @DisplayName("위시 삭제 성공")
     void deleteWishSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
@@ -135,7 +138,7 @@ public class WishServiceTest {
     @Test
     @DisplayName("위시 삭제 실패 (없는 위시 삭제 시도)")
     void deleteWishFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
@@ -155,7 +158,7 @@ public class WishServiceTest {
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 11, "test area1", "test area2", "http://asd.example.com/test.jpg",
-                toLocalDate("20250823"), toLocalDate("20251231"));
+                testUtil.toLocalDate("20250823"), testUtil.toLocalDate("20251231"));
         Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
                 "testtesttest");
 
@@ -164,14 +167,6 @@ public class WishServiceTest {
         idField.set(festival, 1L);
 
         return festival;
-    }
-
-    private UserEntity testUser() {
-        return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER, SocialType.KAKAO);
-    }
-
-    private LocalDate toLocalDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 
 }

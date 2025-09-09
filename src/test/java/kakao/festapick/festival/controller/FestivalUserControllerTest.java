@@ -26,6 +26,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,25 +52,27 @@ class FestivalUserControllerTest {
 
     @Autowired private ObjectMapper objectMapper;
 
+    @Autowired private TestUtil testUtil;
+
     @BeforeEach
     void initTestDB(){
         String identifier = "KAKAO_141036";
-        UserEntity user = createUser(identifier);
+        UserEntity user = testUtil.createTestManager(identifier);
         userRepository.save(user);
 
-        Festival festival1 = createFestival("FESTAPICK_001" , "부산대축제", 1, toLocalDate("20250810"), toLocalDate("20250820"));
+        Festival festival1 = createFestival("FESTAPICK_001" , "부산대축제", 1, testUtil.toLocalDate("20250810"), testUtil.toLocalDate("20250820"));
         festivalRepository.save(festival1);
 
-        Festival festival2 = createFestival("FESTAPICK_002", "경북대축제", 2, toLocalDate("20250812"), toLocalDate("20250815"));
+        Festival festival2 = createFestival("FESTAPICK_002", "경북대축제", 2, testUtil.toLocalDate("20250812"), testUtil.toLocalDate("20250815"));
         festivalRepository.save(festival2);
 
-        Festival festival3 = createFestival("FESTAPICK_003","정컴인축제",  1, toLocalDate("20250814"), toLocalDate("20250817"));
+        Festival festival3 = createFestival("FESTAPICK_003","정컴인축제",  1, testUtil.toLocalDate("20250814"), testUtil.toLocalDate("20250817"));
         festivalRepository.save(festival3);
 
-        Festival festival4 = creatCustomFestival("의생공축제",  1, toLocalDate("20250817"), toLocalDate("20250818"), user);
+        Festival festival4 = creatCustomFestival("의생공축제",  1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
         festivalRepository.save(festival4);
 
-        Festival festival5 = creatCustomFestival("밀양대축제", 3, toLocalDate("20250821"), toLocalDate("20250823"), user);
+        Festival festival5 = creatCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
         festivalRepository.save(festival5);
     }
 
@@ -79,7 +82,7 @@ class FestivalUserControllerTest {
     void addFestival() throws Exception {
 
         //given
-        FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, toLocalDate("20250804"), toLocalDate("20250806"));
+        FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, testUtil.toLocalDate("20250804"), testUtil.toLocalDate("20250806"));
         String customRequestDto = objectMapper.writeValueAsString(requestDto);
 
         //when-then
@@ -97,7 +100,7 @@ class FestivalUserControllerTest {
     void addFestivalFail() throws Exception {
 
         //given
-        FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, toLocalDate("20250804"), toLocalDate("20250806"));
+        FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, testUtil.toLocalDate("20250804"), testUtil.toLocalDate("20250806"));
         String customRequestDto = objectMapper.writeValueAsString(requestDto);
 
         //when-then
@@ -115,13 +118,13 @@ class FestivalUserControllerTest {
         //given
         int areaCode = 1; //1번 지역에 3개의 축제가 열리지만 승인된건 2개뿐임,,
 
-        Festival festival1 = createFestival("FESTAPICK_999", "정컴 모여라", 1, toLocalDate("20250801"), LocalDate.now());
+        Festival festival1 = createFestival("FESTAPICK_999", "정컴 모여라", 1, testUtil.toLocalDate("20250801"), LocalDate.now());
         festivalRepository.save(festival1);
 
-        Festival festival2 = createFestival("FESTAPICK_998", "부산대 모여라", 1, toLocalDate("20240801"), toLocalDate("20250815"));
+        Festival festival2 = createFestival("FESTAPICK_998", "부산대 모여라", 1, testUtil.toLocalDate("20240801"), testUtil.toLocalDate("20250815"));
         festivalRepository.save(festival2);
 
-        Festival festival3 = createFestival("FESTAPICK_997", "양산캠 모여라", 1, toLocalDate("20250801"), LocalDate.now());
+        Festival festival3 = createFestival("FESTAPICK_997", "양산캠 모여라", 1, testUtil.toLocalDate("20250801"), LocalDate.now());
         festivalRepository.save(festival3);
 
         //when-then
@@ -138,7 +141,7 @@ class FestivalUserControllerTest {
     @DisplayName("축제의 상세 정보 조회")
     void getFestivalInfo() throws Exception{
         //given
-        Festival festival = createFestival("FESTAPICK_999", "정컴 컴공 다모여라", 1, toLocalDate("20250901"), toLocalDate("20250903"));
+        Festival festival = createFestival("FESTAPICK_999", "정컴 컴공 다모여라", 1, testUtil.toLocalDate("20250901"), testUtil.toLocalDate("20250903"));
         Long festivalId = festivalRepository.save(festival).getId();
 
         //when-then
@@ -160,11 +163,11 @@ class FestivalUserControllerTest {
     @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void updateFestivalInfo() throws Exception {
         //given
-        UserEntity user = createUser("KAKAO_123456");
+        UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival = creatCustomFestival("축제1", 1, toLocalDate("20250803"),
-                toLocalDate("20250805"), user);
+        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"),
+                testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
         FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3");
@@ -189,10 +192,10 @@ class FestivalUserControllerTest {
     @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void removeFestival() throws Exception {
         //given
-        UserEntity user = createUser("KAKAO_123456");
+        UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival = creatCustomFestival("축제1", 1, toLocalDate("20250803"), toLocalDate("20250805"), user);
+        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
         //when-then
@@ -205,7 +208,7 @@ class FestivalUserControllerTest {
     @DisplayName("User가 축제를 삭제하려고 하는 경우 - 삭제 실패")
     void removeFestivalFail() throws Exception {
         //given
-        Festival festival = createFestival("FESTAPICK_999", "카테캠축제", 1, toLocalDate("20250901"), toLocalDate("20250903"));
+        Festival festival = createFestival("FESTAPICK_999", "카테캠축제", 1, testUtil.toLocalDate("20250901"), testUtil.toLocalDate("20250903"));
         Festival saved = festivalRepository.save(festival);
 
         //when-then
@@ -236,19 +239,11 @@ class FestivalUserControllerTest {
         return new Festival(customFestivalRequest(title, areaCode, startDate, endDate), user);
     }
 
-    private UserEntity createUser(String identifier){
-        return new UserEntity(identifier, "example@gmail.com", "exampleName", UserRoleType.FESTIVAL_MANAGER, SocialType.GOOGLE);
-    }
-
     private FestivalUpdateRequestDto createUpdateInfo(String title){
         String overview = "The Kakao Tech Campus Festival was held at Pusan National University, and PNU Dev Bros won first place.";
         return new FestivalUpdateRequestDto(    title, 1,
                 "update_addr1", "update_addr2", new FileUploadRequest(1L,"update_imageUrl"),
                 LocalDate.now(), LocalDate.now(), "homePage", overview);
-    }
-
-    private LocalDate toLocalDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 
 }
