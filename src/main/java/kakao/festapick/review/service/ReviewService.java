@@ -42,7 +42,7 @@ public class ReviewService {
     private final S3Service s3Service;
 
 
-    public Long createReview(Long festivalId, @Valid ReviewRequestDto requestDto, String identifier) {
+    public Long createReview(Long festivalId, ReviewRequestDto requestDto, String identifier) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         UserEntity user = userService.findByIdentifier(identifier);
