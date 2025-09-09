@@ -4,14 +4,19 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
 import org.hibernate.annotations.Check;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
 @Check(constraints = "score >= 1 AND score <= 5")
+@EntityListeners(AuditingEntityListener.class)
 public class Review {
 
     @Id
@@ -35,6 +40,13 @@ public class Review {
     @Min(1)
     @Max(5)
     private Integer score;
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdDate;
+
+    @LastModifiedDate
+    private LocalDateTime updatedDate;
 
     protected Review() {
     }
