@@ -71,4 +71,4 @@ jobs:
             docker pull ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
             docker stop festa-pick-server || true
             docker rm festa-pick-server || true
-            docker run -d TZ=Asia/Seoul --name festa-pick-server -p 8080:8080 ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
+            docker run -d -e TZ=Asia/Seoul --name festa-pick-server -p 8080:8080 ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
