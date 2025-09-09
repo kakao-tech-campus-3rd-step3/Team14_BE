@@ -4,6 +4,7 @@ import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
+import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,8 @@ class QUserRepositoryTest {
     private UserRepository userRepository;
 
     private static final String identifier = "GOOGLE-1234";
+
+    private final TestUtil testUtil = new TestUtil();
 
     @Test
     @DisplayName("회원 검색 동적 쿼리")
@@ -61,7 +64,6 @@ class QUserRepositoryTest {
 
     private UserEntity saveUserEntity() {
 
-        return userRepository.save(new UserEntity(identifier,
-                "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE));
+        return userRepository.save(testUtil.createTestUser(identifier));
     }
 }

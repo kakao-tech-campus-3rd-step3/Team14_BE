@@ -80,7 +80,7 @@ class FestivalServiceTest {
     void addCustomizedFestival() throws NoSuchFieldException, IllegalAccessException {
 
         //given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = createCustomFestival(requestDto, user);
         Long festivalId = 1L;
@@ -109,7 +109,7 @@ class FestivalServiceTest {
     void addCustomizedFestivalFail(){
 
         //given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         String testIdentifier = "testIdentifier";
 
@@ -131,7 +131,7 @@ class FestivalServiceTest {
     @DisplayName("시작일이 종료일보다 늦을 경우 축제 예외 반환")
     void addCustomizedFestivalFail2() {
         // given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         FestivalCustomRequestDto requestDto =
                 new FestivalCustomRequestDto(
                         "축제title", 32, "주소1", "상세주소",
@@ -311,7 +311,7 @@ class FestivalServiceTest {
     @DisplayName("자신이 등록한 축제를 변경 - 변경 성공")
     void updateFestival() {
         //given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = createCustomFestival(requestDto, user);
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
@@ -336,7 +336,7 @@ class FestivalServiceTest {
     @DisplayName("자신이 등록하지 않은 축제를 수정 - 변경 실패")
     void updateFestivalFail() {
         //given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         Festival festival = createFestival();
 
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
@@ -359,7 +359,7 @@ class FestivalServiceTest {
     void updateStateFestivalNotFound() {
 
         //given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.empty());
@@ -380,7 +380,7 @@ class FestivalServiceTest {
     void removeOne() {
 
         //given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
 
@@ -401,7 +401,7 @@ class FestivalServiceTest {
     void removeOneFail() {
 
         //given
-        UserEntity user = createTestUser();
+        UserEntity user = testUtil.createTestUser();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
         String identifierUser2 = "i am user2";
@@ -465,11 +465,6 @@ class FestivalServiceTest {
         assertThat(result).isEqualTo("no_homepage");
     }
 
-
-    private UserEntity createTestUser() {
-        return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER, SocialType.KAKAO);
-    }
-
     private FestivalCustomRequestDto createCustomRequestDto() {
         return new FestivalCustomRequestDto(
                 "축제title", 32, "주소1", "상세주소",
@@ -519,8 +514,8 @@ class FestivalServiceTest {
         festivals.add(createFestival());
         festivals.add(createFestival());
         festivals.add(createFestival());
-        festivals.add(createCustomFestival(createCustomRequestDto(), createTestUser()));
-        festivals.add(createCustomFestival(createCustomRequestDto(), createTestUser()));
+        festivals.add(createCustomFestival(createCustomRequestDto(), testUtil.createTestUser()));
+        festivals.add(createCustomFestival(createCustomRequestDto(), testUtil.createTestUser()));
         return festivals;
     }
 

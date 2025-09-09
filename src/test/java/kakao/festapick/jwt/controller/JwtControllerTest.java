@@ -10,6 +10,7 @@ import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,8 @@ class JwtControllerTest {
     private JwtUtil jwtUtil;
 
     private static final String identifier = "GOOGLE_1234";
+    @Autowired
+    private TestUtil testUtil;
 
     @Test
     @DisplayName("토큰 교환 성공")
@@ -99,8 +102,7 @@ class JwtControllerTest {
     }
 
     private UserEntity saveUserEntity() {
-        return userRepository.save(new UserEntity(identifier,
-                "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE));
+        return userRepository.save(testUtil.createTestUser(identifier));
     }
 
 }
