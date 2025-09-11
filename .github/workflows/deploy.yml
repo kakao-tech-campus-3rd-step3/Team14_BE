@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - feat/blue-green
+      - develop
 
 jobs:
   deploy:
@@ -80,12 +80,16 @@ jobs:
             fi
             
             docker pull ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
+            docker stop festa-pick-$IDLE || true
+            docker rm festa-pick-$IDLE || true
             docker run -d -e TZ=Asia/Seoul --name festa-pick-$IDLE -p $PORT:8080 ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
             
             for i in {1..10}; do
               sleep 5
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$PORT/management/health_check || true)
               RES=$(curl -s http://127.0.0.1:$PORT/management/health_check || true)
-              if [[ $RES == *"UP"* ]]; then
+              echo "$STATUS, $RES"
+              if [[ $STATUS == "200" && $RES == *"UP"* ]]; then
                 echo "set \$service_url $IDLE;" | sudo tee /etc/nginx/conf.d/service-env.inc
                 sudo nginx -t
                 sudo nginx -s reload
