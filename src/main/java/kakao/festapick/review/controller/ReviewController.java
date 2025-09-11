@@ -2,6 +2,7 @@ package kakao.festapick.review.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.service.ReviewService;
@@ -65,11 +66,11 @@ public class ReviewController {
     }
 
     @GetMapping("/reviews/{reviewId}") // 리뷰 PK를 통한 것은 인증 불필요
-    public ResponseEntity<ReviewResponseDto> getReview(@PathVariable Long reviewId) {
+    public ResponseEntity<ApiResponseDto<ReviewResponseDto>> getReview(@PathVariable Long reviewId) {
 
         ReviewResponseDto response = reviewService.getReview(reviewId);
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        ApiResponseDto<ReviewResponseDto> responseDto = new ApiResponseDto<>(response);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
 

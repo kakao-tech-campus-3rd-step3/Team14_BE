@@ -1,6 +1,7 @@
 package kakao.festapick.wish.controller;
 
 import jakarta.validation.constraints.Max;
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.service.WishService;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +31,12 @@ public class WishController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/festivals/{festivalId}/wishes")
-    public ResponseEntity<WishResponseDto> createWish(
+    public ResponseEntity<ApiResponseDto<WishResponseDto>> createWish(
             @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId) {
-        return new ResponseEntity<>(wishService.createWish(festivalId, identifier),
-                HttpStatus.CREATED);
+        WishResponseDto response = wishService.createWish(festivalId, identifier);
+        ApiResponseDto<WishResponseDto> responseDto = new ApiResponseDto<>(response);
+        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
     @GetMapping("/wishes/my")
