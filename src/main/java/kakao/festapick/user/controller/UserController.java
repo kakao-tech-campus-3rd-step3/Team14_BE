@@ -2,6 +2,7 @@ package kakao.festapick.user.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.service.OAuth2UserService;
@@ -39,11 +40,11 @@ public class UserController {
     }
 
     @GetMapping("/my") // 본인 정보 조회
-    public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal String identifier) {
+    public ResponseEntity<ApiResponseDto<UserResponseDto>> getMyInfo(@AuthenticationPrincipal String identifier) {
 
         UserResponseDto response = userService.findMyInfo(identifier);
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        ApiResponseDto<UserResponseDto> responseDto = new ApiResponseDto<>(response);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
 }

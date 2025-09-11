@@ -3,6 +3,7 @@ package kakao.festapick.festival.controller;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponse;
@@ -56,20 +57,22 @@ public class FestivalUserController {
 
     //축제 상세 조회
     @GetMapping("/{festivalId}")
-    public ResponseEntity<FestivalDetailResponseDto> getFestivalInfo(@PathVariable Long festivalId){
+    public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> getFestivalInfo(@PathVariable Long festivalId){
         FestivalDetailResponseDto festivalDetail = festivalService.findOneById(festivalId);
-        return ResponseEntity.ok(festivalDetail);
+        ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
+        return ResponseEntity.ok(responseDto);
     }
 
     //자신이 올린 축제에 대해서만 수정 가능
     @PatchMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
-    public ResponseEntity<FestivalDetailResponseDto> updateFestivalInfo(
+    public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> updateFestivalInfo(
             @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId,
             @RequestBody @Valid FestivalUpdateRequestDto requestDto
     ){
-        FestivalDetailResponseDto responseDto =  festivalService.updateFestival(identifier, festivalId, requestDto);
+        FestivalDetailResponseDto festivalDetail =  festivalService.updateFestival(identifier, festivalId, requestDto);
+        ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
     }
 

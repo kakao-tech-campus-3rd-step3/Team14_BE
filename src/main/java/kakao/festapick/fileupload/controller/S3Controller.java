@@ -1,5 +1,6 @@
 package kakao.festapick.fileupload.controller;
 
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.fileupload.dto.PresignedUrlResponse;
 import kakao.festapick.fileupload.service.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,10 @@ public class S3Controller {
 
     // Presigned URL 발급받기
     @GetMapping
-    public ResponseEntity<PresignedUrlResponse> getPresignedURL() {
+    public ResponseEntity<ApiResponseDto<PresignedUrlResponse>> getPresignedURL() {
         PresignedUrlResponse uploadPresignedURL = s3Service.createUploadPresignedURL();
-
-        return ResponseEntity.status(HttpStatus.OK).body(uploadPresignedURL);
+        ApiResponseDto<PresignedUrlResponse> responseDto = new ApiResponseDto<>(uploadPresignedURL);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
 }
