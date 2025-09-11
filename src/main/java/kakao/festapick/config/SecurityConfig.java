@@ -106,6 +106,7 @@ public class SecurityConfig {
             "/api/jwt/exchange",
             "/api/festivals/**",
             "/api/reviews/**",
-            "/login"
+            "/login",
+            "/management/health_check"
     };
 }
