@@ -68,4 +68,32 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script_stop: true
           script: |
-            bash ~/deploy.sh ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
+            set -e
+            CURRENT=$(grep "set" /etc/nginx/conf.d/service-env.inc | awk '{print $3}' | sed 's/;//')
+            
+            if [ "$CURRENT" = "blue" ]; then
+              IDLE=green
+              PORT=8081
+            else
+              IDLE=blue
+              PORT=8080
+            fi
+            
+            docker pull ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
+            docker run -d -e TZ=Asia/Seoul --name festa-pick-$IDLE -p $PORT:8080 ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
+            
+            for i in {1..10}; do
+              sleep 5
+              RES=$(curl -s http://127.0.0.1:$PORT/management/health_check || true)
+              if [[ $RES == *"UP"* ]]; then
+                echo "set \$service_url $IDLE;" | sudo tee /etc/nginx/conf.d/service-env.inc
+                sudo nginx -t
+                sudo nginx -s reload
+                docker stop festa-pick-$CURRENT || true
+                docker rm festa-pick-$CURRENT || true
+                exit 0
+              fi
+            done
+            
+            echo "health check failed"
+            exit 1
