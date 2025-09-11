@@ -9,11 +9,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -149,12 +151,12 @@ class FestivalUserControllerTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
-        FestivalDetailResponseDto response = objectMapper.readValue(result.getResponse().getContentAsString(), FestivalDetailResponseDto.class);
-
+        ApiResponseDto<FestivalDetailResponseDto> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<ApiResponseDto<FestivalDetailResponseDto>>() {});
+        FestivalDetailResponseDto content = response.content();
         assertAll(
-                () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
-                () -> assertThat(response.overView()).isNotNull(),
-                () -> assertThat(response.addr2()).isNotNull()
+                () -> assertThat(content.title()).isEqualTo(festival.getTitle()),
+                () -> assertThat(content.overView()).isNotNull(),
+                () -> assertThat(content.addr2()).isNotNull()
         );
 
     }
@@ -180,11 +182,12 @@ class FestivalUserControllerTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
-        FestivalDetailResponseDto updatedFestival = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), FestivalDetailResponseDto.class);
+        ApiResponseDto<FestivalDetailResponseDto> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<ApiResponseDto<FestivalDetailResponseDto>>() {});
+        FestivalDetailResponseDto content = response.content();
 
         assertAll(
-                () -> assertThat(updatedFestival.id()).isEqualTo(saved.getId()),
-                () -> assertThat(updatedFestival.title()).isEqualTo("카테캠 축제 시즌 3")
+                () -> assertThat(content.id()).isEqualTo(saved.getId()),
+                () -> assertThat(content.title()).isEqualTo("카테캠 축제 시즌 3")
         );
     }
 

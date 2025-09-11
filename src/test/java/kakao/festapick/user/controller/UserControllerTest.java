@@ -1,10 +1,13 @@
 package kakao.festapick.user.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.mockuser.WithCustomMockUser;
+import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -81,12 +84,13 @@ class UserControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         // then
-        UserResponseDto userResponseDto = objectMapper.readValue(response, UserResponseDto.class);
+        ApiResponseDto<UserResponseDto> result = objectMapper.readValue(response, new TypeReference<ApiResponseDto<UserResponseDto>>() {});
+        UserResponseDto content = result.content();
 
         assertSoftly(softly -> {
-            softly.assertThat(userResponseDto.email()).isEqualTo(userEntity.getEmail());
-            softly.assertThat(userResponseDto.profileImageUrl()).isEqualTo(userEntity.getProfileImageUrl());
-            softly.assertThat(userResponseDto.username()).isEqualTo(userEntity.getUsername());
+            softly.assertThat(content.email()).isEqualTo(userEntity.getEmail());
+            softly.assertThat(content.profileImageUrl()).isEqualTo(userEntity.getProfileImageUrl());
+            softly.assertThat(content.username()).isEqualTo(userEntity.getUsername());
         });
 
     }
