@@ -6,13 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
@@ -230,16 +233,17 @@ public class ReviewControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        ReviewResponseDto responseDto = objectMapper.readValue(response, ReviewResponseDto.class);
+        ApiResponseDto<ReviewResponseDto> result = objectMapper.readValue(response, new TypeReference<ApiResponseDto<ReviewResponseDto>>() {});
+        ReviewResponseDto content = result.content();
 
         assertSoftly(softly-> {
-            softly.assertThat(responseDto.reviewId()).isEqualTo(target.getId());
-            softly.assertThat(responseDto.content()).isEqualTo(responseDto.content());
-            softly.assertThat(responseDto.score()).isEqualTo(responseDto.score());
-            softly.assertThat(responseDto.reviewerName()).isEqualTo(responseDto.reviewerName());
-            softly.assertThat(responseDto.festivalTitle()).isEqualTo(responseDto.festivalTitle());
-            softly.assertThat(responseDto.videoUrl()).isNull();
-            softly.assertThat(responseDto.imageUrls()).isNull();
+            softly.assertThat(content.reviewId()).isEqualTo(target.getId());
+            softly.assertThat(content.content()).isEqualTo(target.getContent());
+            softly.assertThat(content.score()).isEqualTo(target.getScore());
+            softly.assertThat(content.reviewerName()).isEqualTo(target.getReviewerName());
+            softly.assertThat(content.festivalTitle()).isEqualTo(target.getFestivalTitle());
+            softly.assertThat(content.videoUrl()).isNull();
+            softly.assertThat(content.imageUrls()).isNull();
         });
     }
 
