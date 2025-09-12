@@ -171,6 +171,7 @@ public class ReviewService {
         fileService.deleteByDomainId(reviewId, DomainType.REVIEW);
     }
 
+    //review의 id만 넘기는건 어떤지?
     private void saveFiles(List<FileUploadRequest> imageInfos, FileUploadRequest videoInfo, Review saved) {
         List<FileEntity> files = new ArrayList<>();
         List<Long> temporalFileIds = new ArrayList<>();

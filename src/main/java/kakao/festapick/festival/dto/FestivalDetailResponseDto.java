@@ -1,6 +1,7 @@
 package kakao.festapick.festival.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 
 public record FestivalDetailResponseDto(
@@ -10,11 +11,12 @@ public record FestivalDetailResponseDto(
         int areaCode,
         String addr1,
         String addr2,
-        String imageUrl,
+        String posterInfo,
         LocalDate startDate,
         LocalDate endDate,
         String overView,
-        String homePage
+        String homePage,
+        List<String> images
 ) {
     public FestivalDetailResponseDto(Festival festival){
         this(
@@ -24,11 +26,29 @@ public record FestivalDetailResponseDto(
                 festival.getAreaCode(),
                 festival.getAddr1(),
                 festival.getAddr2(),
-                festival.getImageUrl(),
+                festival.getPosterInfo(),
                 festival.getStartDate(),
                 festival.getEndDate(),
                 festival.getOverView(),
-                festival.getHomePage()
+                festival.getHomePage(),
+                null
+        );
+    }
+
+    public FestivalDetailResponseDto(Festival festival, List<String> images){
+        this(
+                festival.getId(),
+                festival.getContentId(),
+                festival.getTitle(),
+                festival.getAreaCode(),
+                festival.getAddr1(),
+                festival.getAddr2(),
+                festival.getPosterInfo(),
+                festival.getStartDate(),
+                festival.getEndDate(),
+                festival.getOverView(),
+                festival.getHomePage(),
+                images
         );
     }
 }

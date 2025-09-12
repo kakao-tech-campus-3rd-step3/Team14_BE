@@ -21,7 +21,7 @@ public class FileEntity {
     @Column(name = "file_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String url;
 
     @Column(nullable = false)

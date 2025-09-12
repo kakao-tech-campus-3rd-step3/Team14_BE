@@ -8,7 +8,7 @@ public record FestivalRequestDto(
         int areaCode,
         String addr1,
         String addr2,
-        String imageUrl,
+        String posterInfo,
         LocalDate startDate,
         LocalDate endDate,
         String homePage,
@@ -20,12 +20,12 @@ public record FestivalRequestDto(
             int areaCode,
             String addr1,
             String addr2,
-            String imageUrl,
+            String posterInfo,
             LocalDate startDate,
             LocalDate endDate
     )
     {
-        this(contentId, title, areaCode, addr1, addr2, imageUrl, startDate, endDate, "homePage", "overView");
+        this(contentId, title, areaCode, addr1, addr2, posterInfo, startDate, endDate, "homePage", "overView");
     }
 
 }
