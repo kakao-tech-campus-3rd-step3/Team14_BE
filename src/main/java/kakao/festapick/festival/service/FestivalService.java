@@ -3,7 +3,6 @@ package kakao.festapick.festival.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
@@ -19,7 +18,12 @@ import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.domain.FileType;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
+import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
@@ -41,30 +45,29 @@ public class FestivalService {
 
     private final FestivalRepository festivalRepository;
     private final UserRepository userRepository;
-    private final QFestivalRepository  qFestivalRepository;
+    private final QFestivalRepository qFestivalRepository;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
+    private final FileService fileService;
 
     //CREATE
     //TODO: create - customized Festival (How to upload an image)
     @Transactional
     public Long addCustomizedFestival(FestivalCustomRequestDto requestDto, String identifier) {
-        UserEntity user =  userRepository.findByIdentifier(identifier)
-                .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        UserEntity user = userRepository.findByIdentifier(identifier)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
-        temporalFileRepository.deleteById(requestDto.imageInfo().id());
+
+        //포스터 및 관련 이미지 업로드
+        saveFiles(requestDto.posterInfo(), requestDto.imageInfos(), savedFestival.getId());
         return savedFestival.getId();
     }
 
     //create - TourAPI
     @Transactional
     public Long addFestival(FestivalRequestDto requestDto, TourDetailResponse detailResponse) {
-        Festival festival = new Festival(
-                requestDto,
-                detailResponse.getOverview(),
-                getHomePage(detailResponse.getHomepage())
-        );
+        Festival festival = new Festival(requestDto, detailResponse);
         Festival savedFestival = festivalRepository.save(festival);
         return savedFestival.getId();
     }
@@ -80,17 +83,24 @@ public class FestivalService {
     public FestivalDetailResponseDto findOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        return new FestivalDetailResponseDto(festival);
+        List<String> images = fileService.findByDomainIdAndDomainType(festivalId,
+                        DomainType.FESTIVAL)
+                .stream()
+                .map(fileEntity -> fileEntity.getUrl())
+                .toList();
+        return new FestivalDetailResponseDto(festival, images);
     }
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
     public Page<FestivalListResponse> findApprovedAreaAndDate(int areaCode, Pageable pageable) {
-        Page<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndDate(areaCode, LocalDate.now(), FestivalState.APPROVED, pageable);
+        Page<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndDate(areaCode,
+                LocalDate.now(), FestivalState.APPROVED, pageable);
         return festivalList.map(FestivalListResponse::new);
     }
 
     //모든 축제 검색 기능(관리자)
-    public Page<FestivalListResponseForAdmin> findAllWithPage(FestivalSearchCondForAdmin cond, Pageable pageable) {
+    public Page<FestivalListResponseForAdmin> findAllWithPage(FestivalSearchCondForAdmin cond,
+            Pageable pageable) {
         return qFestivalRepository.findByStateAndTitleLike(cond, pageable)
                 .map(FestivalListResponseForAdmin::new);
     }
@@ -98,14 +108,18 @@ public class FestivalService {
     //UPDATE
     //축제 정보를 업데이트(관리자)
     @Transactional
-    public FestivalDetailResponseDto updateFestival(String identifier, Long id, FestivalUpdateRequestDto requestDto) {
+    public FestivalDetailResponseDto updateFestival(String identifier, Long id,
+            FestivalUpdateRequestDto requestDto) {
         Festival festival = getMyFestival(identifier, id);
-        String oldImageUrl = festival.getImageUrl();
+        String oldImageUrl = festival.getPosterInfo();
 
         festival.updateFestival(requestDto);
-        if (requestDto.imageInfo() != null) temporalFileRepository.deleteById(requestDto.imageInfo().id());
+        if (requestDto.posterInfo() != null) {
+            temporalFileRepository.deleteById(requestDto.posterInfo().id());
+        }
 
         s3Service.deleteS3File(oldImageUrl); // s3 파일 삭제는 항상 마지막에 호출
+
         return new FestivalDetailResponseDto(festival);
     }
 
@@ -125,7 +139,7 @@ public class FestivalService {
         Festival festival = getMyFestival(identifier, id);
         festivalRepository.deleteById(festival.getId());
 
-        s3Service.deleteS3File(festival.getImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
+        s3Service.deleteS3File(festival.getPosterInfo()); // s3 파일 삭제는 항상 마지막에 호출
     }
 
     @Transactional
@@ -136,28 +150,14 @@ public class FestivalService {
         festivalRepository.deleteById(festivalId);
 
         // 꼭 S3 파일 삭제는 외부 호출이기 때문에마지막에 호출해야함!
-        s3Service.deleteS3File(festival.getImageUrl());
+        s3Service.deleteS3File(festival.getPosterInfo());
     }
 
-    private String getHomePage(String homePage){
-        try{
-            List<String> parsedResult = Arrays.asList(homePage.split("\""));
-            return parsedResult.stream()
-                    .filter(url -> url.startsWith("http") || url.startsWith("www."))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("홈페이지의 주소를 찾을 수 없습니다."));
-        } catch (NullPointerException | IllegalArgumentException e) {
-            log.error("홈페이지 정보를 찾을 수 없습니다.");
-            log.error("homePage = {}", homePage);
-        }
-        return "no_homepage";
-    }
-
-    private Festival getMyFestival(String identifier, Long id){
+    private Festival getMyFestival(String identifier, Long id) {
         Festival festival = festivalRepository.findFestivalByIdWithManager(id)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         UserEntity manager = festival.getManager();
-        if (manager != null && identifier.equals(manager.getIdentifier())){
+        if (manager != null && identifier.equals(manager.getIdentifier())) {
             return festival;
         }
         throw new ForbiddenException(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
@@ -169,12 +169,25 @@ public class FestivalService {
         return festivalList.stream().map(FestivalListResponse::new).toList();
     }
 
-    private List<FestivalListResponse> convertToResponseDtoList(List<Festival> festivalList) {
-        return new ArrayList<>(
-                festivalList.stream()
-                        .map(FestivalListResponse::new)
-                        .toList()
-        );
+    private void saveFiles(FileUploadRequest posterInfo, List<FileUploadRequest> imageInfos, Long id) {
+        List<FileEntity> files = new ArrayList<>();
+        List<Long> temporalFileIds = new ArrayList<>();
+
+        //포스터의 경우에는 필수 등록임
+        files.add(new FileEntity(posterInfo.presignedUrl(), FileType.IMAGE, DomainType.FESTIVAL, id));
+
+        //관련 이미지의 경우 필수 사항 x
+        if (imageInfos != null) {
+            imageInfos.forEach(imageInfo -> {
+                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.FESTIVAL, id));
+                temporalFileIds.add(imageInfo.id());
+            });
+        }
+
+        if (!files.isEmpty()) {
+            fileService.saveAll(files);
+        }
+        temporalFileRepository.deleteByIds(temporalFileIds);
     }
 
 }
