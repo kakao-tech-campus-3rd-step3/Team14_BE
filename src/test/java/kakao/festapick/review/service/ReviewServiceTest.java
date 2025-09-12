@@ -1,19 +1,20 @@
 package kakao.festapick.review.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.*;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
@@ -25,10 +26,7 @@ import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
-import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.user.service.UserService;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.Assertions;
@@ -247,14 +245,11 @@ public class ReviewServiceTest {
 
     }
 
-
-
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 11, "test area1", "test area2", "http://asd.example.com/test.jpg", testUtil.toLocalDate("20250823"),
                 testUtil.toLocalDate("20251231"));
-        Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
-                "testtesttest");
+        Festival festival = new Festival(festivalRequestDto, new TourDetailResponse());
 
         Field idField = Festival.class.getDeclaredField("id");
         idField.setAccessible(true);

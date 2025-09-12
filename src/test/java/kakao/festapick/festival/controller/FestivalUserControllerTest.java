@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import kakao.festapick.dto.ApiResponseDto;
@@ -22,11 +21,10 @@ import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.mockuser.WithCustomMockUser;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +55,7 @@ class FestivalUserControllerTest {
     @Autowired private TestUtil testUtil;
 
     @BeforeEach
-    void initTestDB(){
+    void initTestDB() throws Exception {
         String identifier = "KAKAO_141036";
         UserEntity user = testUtil.createTestManager(identifier);
         userRepository.save(user);
@@ -226,15 +224,16 @@ class FestivalUserControllerTest {
         );
     }
 
-    private Festival createFestival(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){
-        return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), "overview", "homePage");
+    private Festival createFestival(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate)
+            throws Exception {
+        return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), testUtil.createTourDetailResponse());
     }
 
     private FestivalCustomRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
         String overview = "The overview is a section for writing a description of the festival, and it must contain at least 50 characters.";
         return new FestivalCustomRequestDto(
                 title, areaCode, "addr1", "addr2",
-                new FileUploadRequest(1L,"imageUrl"), startDate, endDate, "homePage", overview
+                new FileUploadRequest(1L,"imageUrl"), null, startDate, endDate, "homePage", overview
         );
     }
 
@@ -245,7 +244,7 @@ class FestivalUserControllerTest {
     private FestivalUpdateRequestDto createUpdateInfo(String title){
         String overview = "The Kakao Tech Campus Festival was held at Pusan National University, and PNU Dev Bros won first place.";
         return new FestivalUpdateRequestDto(    title, 1,
-                "update_addr1", "update_addr2", new FileUploadRequest(1L,"update_imageUrl"),
+                "update_addr1", "update_addr2", new FileUploadRequest(1L,"update_imageUrl"), null,
                 LocalDate.now(), LocalDate.now(), "homePage", overview);
     }
 

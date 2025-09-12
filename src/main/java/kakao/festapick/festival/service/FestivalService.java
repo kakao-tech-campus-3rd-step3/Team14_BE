@@ -83,8 +83,7 @@ public class FestivalService {
     public FestivalDetailResponseDto findOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        List<String> images = fileService.findByDomainIdAndDomainType(festivalId,
-                        DomainType.FESTIVAL)
+        List<String> images = fileService.findByDomainIdAndDomainType(festivalId, DomainType.FESTIVAL)
                 .stream()
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();

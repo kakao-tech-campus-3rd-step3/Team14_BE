@@ -15,7 +15,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -27,6 +29,7 @@ import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.wish.domain.Wish;
 import lombok.Getter;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Entity
@@ -83,13 +86,12 @@ public class Festival {
     @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
-
     protected Festival() { }
 
     //TODO: contentId 규칙 만들기
     public Festival(FestivalCustomRequestDto festivalCustomRequestDto, UserEntity user) {
         checkStartAndEndDate(festivalCustomRequestDto.startDate(), festivalCustomRequestDto.endDate());
-        this.contentId = "tempcontentId";
+        this.contentId = null;
         this.title = festivalCustomRequestDto.title();
         this.areaCode = festivalCustomRequestDto.areaCode();
         this.addr1 = festivalCustomRequestDto.addr1();
@@ -115,7 +117,7 @@ public class Festival {
         this.startDate = festivalRequestDto.startDate();
         this.endDate = festivalRequestDto.endDate();
         this.overView = detailResponse.getOverview();
-        this.homePage = detailResponse.getHomepage();
+        this.homePage = parseHomepageInfo(detailResponse.getHomepage());
         this.state = FestivalState.APPROVED;
     }
 
@@ -148,6 +150,20 @@ public class Festival {
 
     private void checkStartAndEndDate(LocalDate startDate, LocalDate endDate) {
         if (endDate.isBefore(startDate)) throw new BadRequestException(ExceptionCode.FESTIVAL_BAD_DATE);
+    }
+
+    private String parseHomepageInfo(String homePage){
+        try{
+            List<String> parsedResult = Arrays.asList(homePage.split("\""));
+            return parsedResult.stream()
+                    .filter(url -> url.startsWith("http") || url.startsWith("www."))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("홈페이지의 주소를 찾을 수 없습니다."));
+        } catch (NullPointerException | IllegalArgumentException e) {
+            log.error("홈페이지 정보를 찾을 수 없습니다.");
+            log.error("homePage = {}", homePage);
+        }
+        return "no_homepage";
     }
 
 }
