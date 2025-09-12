@@ -107,7 +107,7 @@ public class SecurityConfig {
             "/api/festivals/**",
             "/api/reviews/**",
             "/login",
-            "/view/**" //view 확인용
+            "/view/**", //view 확인용
             "/login",
             "/management/health_check"
     };
