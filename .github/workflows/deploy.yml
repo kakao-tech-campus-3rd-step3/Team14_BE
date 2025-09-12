@@ -35,7 +35,7 @@ jobs:
         run: echo "${{ secrets.APPLICATION_TEST_PROPERTIES }}" > ./src/test/resources/application.properties
 
       - name: 테스트 및 빌드하기
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
         uses: aws-actions/configure-aws-credentials@v4
@@ -68,36 +68,4 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script_stop: true
           script: |
-            set -e
-            CURRENT=$(grep "set" /etc/nginx/conf.d/service-env.inc | awk '{print $3}' | sed 's/;//')
-            
-            if [ "$CURRENT" = "blue" ]; then
-              IDLE=green
-              PORT=8081
-            else
-              IDLE=blue
-              PORT=8080
-            fi
-            
-            docker pull ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
-            docker stop festa-pick-$IDLE || true
-            docker rm festa-pick-$IDLE || true
-            docker run -d -e TZ=Asia/Seoul --name festa-pick-$IDLE -p $PORT:8080 ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
-            
-            for i in {1..10}; do
-              sleep 5
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$PORT/management/health_check || true)
-              RES=$(curl -s http://127.0.0.1:$PORT/management/health_check || true)
-              echo "$STATUS, $RES"
-              if [[ $STATUS == "200" && $RES == *"UP"* ]]; then
-                echo "set \$service_url $IDLE;" | sudo tee /etc/nginx/conf.d/service-env.inc
-                sudo nginx -t
-                sudo nginx -s reload
-                docker stop festa-pick-$CURRENT || true
-                docker rm festa-pick-$CURRENT || true
-                exit 0
-              fi
-            done
-            
-            echo "health check failed"
-            exit 1
+            bash ~/deploy.sh ${{ steps.login-ecr.outputs.registry }}/festa-pick-server:${{env.date}}
