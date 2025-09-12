@@ -3,15 +3,11 @@ package kakao.festapick.wish.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
@@ -47,20 +43,16 @@ public class WishRepositoryTest {
     private FestivalRepository festivalRepository;
 
     private UserEntity saveUserEntity() {
-
         return userRepository.save(testUtil.createTestUser(identifier));
     }
 
-    private Festival saveFestival() {
-
-        String overView = "test overview";
-        String homepage = "http://asd.test.com";
-        return festivalRepository.save(new Festival(requestDto, overView, homepage));
+    private Festival saveFestival() throws Exception {
+        return festivalRepository.save(new Festival(requestDto, testUtil.createTourDetailResponse()));
     }
 
     @Test
     @DisplayName("위시 등록 성공 테스트")
-    void createWishSuccess() {
+    void createWishSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -77,7 +69,7 @@ public class WishRepositoryTest {
 
     @Test
     @DisplayName("위시 아이디로 위시 찾기 성공 테스트")
-    void findWishByIdSuccess() {
+    void findWishByIdSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -101,7 +93,7 @@ public class WishRepositoryTest {
 
     @Test
     @DisplayName("축제 아이디로 위시 찾기 성공 테스트")
-    void findWishByFestivalIdSuccess() {
+    void findWishByFestivalIdSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -125,7 +117,7 @@ public class WishRepositoryTest {
 
     @Test
     @DisplayName("내 위치 리스트 조회 성공 테스트")
-    void findMyWishSuccess() {
+    void findMyWishSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -144,5 +136,4 @@ public class WishRepositoryTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getFestival()).isEqualTo(festival)
         );
     }
-
 }

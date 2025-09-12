@@ -1,7 +1,7 @@
 package kakao.festapick.festival.service;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,11 +11,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import kakao.festapick.config.DefaultImageConfig;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -29,17 +28,16 @@ import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
+import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
+import kakao.festapick.global.DefaultImageProperties;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +48,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.context.ContextConfiguration;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalServiceTest {
@@ -69,6 +67,9 @@ class FestivalServiceTest {
 
     @Mock
     private TemporalFileRepository temporalFileRepository;
+
+    @Mock
+    private FileService fileService;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -100,7 +101,7 @@ class FestivalServiceTest {
 
         verify(userRepository).findByIdentifier(any());
         verify(festivalRepository).save(any());
-        verify(temporalFileRepository).deleteById(any());
+        verify(temporalFileRepository).deleteByIds(any());
         verifyNoMoreInteractions(userRepository, qFestivalRepository, s3Service, temporalFileRepository);
     }
 
@@ -135,7 +136,7 @@ class FestivalServiceTest {
         FestivalCustomRequestDto requestDto =
                 new FestivalCustomRequestDto(
                         "축제title", 32, "주소1", "상세주소",
-                        new FileUploadRequest(1L,"imageUrl"), testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
+                        new FileUploadRequest(1L,"imageUrl"), null, testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
                         "homepageUrl", "축제에 대한 개요");
 
         given(userRepository.findByIdentifier(any()))
@@ -437,38 +438,10 @@ class FestivalServiceTest {
         verifyNoMoreInteractions(festivalRepository);
     }
 
-    @Test
-    @DisplayName("홈페이지 정보가 없는 경우")
-    void getHomePageParsingFail(){
-
-        //given
-        String homepage = null;
-
-        //when
-        String result = ReflectionTestUtils.invokeMethod(festivalService, "getHomePage", homepage);
-
-        //then
-        assertThat(result).isEqualTo("no_homepage");
-    }
-
-    @Test
-    @DisplayName("기존의 형태(패턴)와 다르게 homepage 정보가 제공되는 경우 파싱에 실패")
-    void getHomePagePatternError(){
-
-        //given
-        String homepage = "<a href\"html://www.festapick.com\">www.festapick.com</a>";
-
-        //when
-        String result = ReflectionTestUtils.invokeMethod(festivalService, "getHomePage", homepage);
-
-        //then
-        assertThat(result).isEqualTo("no_homepage");
-    }
-
     private FestivalCustomRequestDto createCustomRequestDto() {
         return new FestivalCustomRequestDto(
                 "축제title", 32, "주소1", "상세주소",
-                new FileUploadRequest(1L,"imageUrl"), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
+                new FileUploadRequest(1L,"imageUrl"), null, testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
                 "homepageUrl", "축제에 대한 개요");
 
     }
@@ -481,13 +454,16 @@ class FestivalServiceTest {
     }
 
     private FestivalUpdateRequestDto createUpdateRequestDto() {
+        List<FileUploadRequest> updatedImages = new ArrayList<>();
+        updatedImages.add(new FileUploadRequest(99L, "https://www.festapick.updateimage.com"));
+        updatedImages.add(new FileUploadRequest(99L, "https://www.festapick.updateimage2.com"));
         return new FestivalUpdateRequestDto("updated_title", 32, "updated_주소1", "상세주소",
-                new FileUploadRequest(1L,"updated_imageUrl"), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"), "homepage", "overview");
+                new FileUploadRequest(1L,"updated_imageUrl"), updatedImages, testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"), "homepage", "overview");
 
     }
 
     private Festival createFestival() {
-        return new Festival(createRequestDto(), "overview", "homepage");
+        return new Festival(createRequestDto(), new TourDetailResponse());
     }
 
     private Festival createCustomFestival(FestivalCustomRequestDto requestDto, UserEntity user){
