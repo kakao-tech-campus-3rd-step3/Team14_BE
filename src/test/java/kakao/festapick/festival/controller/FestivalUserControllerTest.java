@@ -18,6 +18,7 @@ import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -112,7 +113,7 @@ class FestivalUserControllerTest {
 
 
     @Test
-    @DisplayName("현재 특정 지역에서 진행중인 모든 축제를 조회")
+    @DisplayName("현재 특정 지역에서 참여할 수 있는 모든 축제를 조회")
     void getCurrentFestivalByArea() throws Exception {
         //given
         int areaCode = 1; //1번 지역에 3개의 축제가 열리지만 승인된건 2개뿐임,,
@@ -153,9 +154,38 @@ class FestivalUserControllerTest {
         assertAll(
                 () -> assertThat(content.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(content.overView()).isNotNull(),
-                () -> assertThat(content.addr2()).isNotNull()
+                () -> assertThat(content.addr2()).isNotNull(),
+                () -> assertThat(content.images()).isInstanceOf(List.class)
         );
+    }
 
+    @Test
+    @DisplayName("내가 등록한 축제를 조회")
+    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
+    void getMyFestivals() throws Exception {
+
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO_123456");
+        userRepository.save(user);
+
+        Festival festival1 = creatCustomFestival("정컴축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
+        festivalRepository.save(festival1);
+
+        Festival festival2 = creatCustomFestival("카테캠축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
+        festivalRepository.save(festival2);
+
+        //when
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/my"))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andReturn();
+
+        ApiResponseDto<List<FestivalListResponse>> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        List<FestivalListResponse> content = response.content();
+
+        assertAll(
+                () -> assertThat(content.size()).isEqualTo(2),
+                () -> assertThat(content.stream().anyMatch(info -> info.title().equals("카테캠축제")))
+        );
     }
 
     @Test
@@ -165,8 +195,7 @@ class FestivalUserControllerTest {
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"),
-                testUtil.toLocalDate("20250805"), user);
+        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
         FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3");

@@ -9,13 +9,11 @@ import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
-import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
-import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -58,14 +56,6 @@ public class FestivalService {
 
         //포스터 및 관련 이미지 업로드
         saveFiles(requestDto.posterInfo(), requestDto.imageInfos(), savedFestival.getId());
-        return savedFestival.getId();
-    }
-
-    //create - TourAPI
-    @Transactional
-    public Long addFestival(FestivalRequestDto requestDto, TourDetailResponse detailResponse) {
-        Festival festival = new Festival(requestDto, detailResponse);
-        Festival savedFestival = festivalRepository.save(festival);
         return savedFestival.getId();
     }
 
