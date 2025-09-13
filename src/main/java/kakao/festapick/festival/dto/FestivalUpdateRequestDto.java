@@ -19,6 +19,7 @@ public record FestivalUpdateRequestDto(
 
         String addr2,
 
+        @NotNull
         FileUploadRequest posterInfo,
 
         List<FileUploadRequest> imageInfos,

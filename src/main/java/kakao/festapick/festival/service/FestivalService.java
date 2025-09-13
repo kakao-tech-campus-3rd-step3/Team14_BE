@@ -2,7 +2,10 @@ package kakao.festapick.festival.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
@@ -32,6 +35,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value.Str;
 
 @Slf4j
 @Service
@@ -54,8 +58,11 @@ public class FestivalService {
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
 
-        //포스터 및 관련 이미지 업로드
-        saveFiles(requestDto.posterInfo(), requestDto.imageInfos(), savedFestival.getId());
+        //관련 이미지 업로드(포스터의 경우에는 festival 도메인에서만 관리)
+        if(requestDto.imageInfos() != null){
+            saveFiles(requestDto.imageInfos(), savedFestival.getId());
+        }
+
         return savedFestival.getId();
     }
 
@@ -103,21 +110,63 @@ public class FestivalService {
     }
 
     //UPDATE
-    //축제 정보를 업데이트(관리자)
+    //축제 정보를 업데이트(축제 관리자)
     @Transactional
-    public FestivalDetailResponseDto updateFestival(String identifier, Long id,
-            FestivalUpdateRequestDto requestDto) {
-        Festival festival = checkMyFestival(identifier, id);
-        String oldImageUrl = festival.getPosterInfo();
+    public FestivalDetailResponseDto updateFestival(String identifier, Long id, FestivalUpdateRequestDto requestDto) {
 
-        festival.updateFestival(requestDto);
-        if (requestDto.posterInfo() != null) {
-            temporalFileRepository.deleteById(requestDto.posterInfo().id());
+        Festival festival = checkMyFestival(identifier, id);
+
+        // 기존 이미지 파일들
+        List<FileEntity> registeredImages = fileService.findByDomainIdAndDomainType(festival.getId(), DomainType.FESTIVAL);
+        Set<String> registeredImgUrl = registeredImages.stream()
+                .map(FileEntity::getUrl)
+                .collect(Collectors.toSet());
+
+        // 요청에 존재하는 파일들
+        Set<String> requestImgUrl = new HashSet<>();
+        if(requestDto.imageInfos() != null){
+            requestDto.imageInfos().forEach(file -> requestImgUrl.add(file.presignedUrl()));
         }
 
-        s3Service.deleteS3File(oldImageUrl); // s3 파일 삭제는 항상 마지막에 호출
+        //삭제 : 기존 이미지 - 요청 이미지
+        Set<String> deleteImgUrl = new HashSet<>(registeredImgUrl);
+        deleteImgUrl.removeAll(requestImgUrl);
+        List<FileEntity> deleteFileEntities = registeredImages.stream()
+                .filter(fileEntity -> deleteImgUrl.contains(fileEntity.getUrl()))
+                .toList();
 
-        return new FestivalDetailResponseDto(festival);
+        //새롭게 업로드 : 요청 이미지 - 기존 이미지
+        Set<String> uploadImgUrl = new HashSet<>(requestImgUrl);
+        uploadImgUrl.removeAll(registeredImgUrl);
+
+        List<FileUploadRequest> requestFiles = new ArrayList<>();
+        if(requestDto.imageInfos() != null){
+            requestFiles.addAll(requestDto.imageInfos());
+        }
+
+        List<FileUploadRequest> uploadFiles = requestFiles.stream()
+                .filter(fileEntity -> uploadImgUrl.contains(fileEntity.presignedUrl()))
+                .toList();
+
+        // 포스터(Festival 도메인에서만 관리)
+        String oldPosterUrl = festival.getPosterInfo();
+        String newPosterUrl = requestDto.posterInfo().presignedUrl();
+
+        if(!oldPosterUrl.equals(newPosterUrl)){
+            temporalFileRepository.deleteById(requestDto.posterInfo().id());
+            deleteImgUrl.add(oldPosterUrl);
+        }
+        festival.updateFestival(requestDto);
+
+        saveFiles(uploadFiles, festival.getId());
+        fileService.deleteAllByFileEntity(deleteFileEntities);
+        s3Service.deleteFiles(deleteImgUrl.stream().toList()); // s3에서 삭제
+
+        List<String> festivalImgs = fileService.findByDomainIdAndDomainType(festival.getId(), DomainType.FESTIVAL)
+                .stream()
+                .map(FileEntity::getUrl)
+                .toList();
+        return new FestivalDetailResponseDto(festival, festivalImgs);
     }
 
     //축제 상태 변경(admin이 사용자가 등록한 축제를 허용, 관리자)
@@ -136,18 +185,17 @@ public class FestivalService {
         Festival festival = checkMyFestival(identifier, id);
         festivalRepository.deleteById(festival.getId());
 
-        s3Service.deleteS3File(festival.getPosterInfo()); // s3 파일 삭제는 항상 마지막에 호출
+        //축제 삭제 시 관련 이미지를 모두 삭제
+        fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
     }
 
     @Transactional
-    public void deleteFestivalForAdmin(Long festivalId) {
-        Festival festival = festivalRepository.findFestivalById(festivalId)
+    public void deleteFestivalForAdmin(Long id) {
+        Festival festival = festivalRepository.findFestivalById(id)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+        festivalRepository.deleteById(festival.getId());
 
-        festivalRepository.deleteById(festivalId);
-
-        // 꼭 S3 파일 삭제는 외부 호출이기 때문에마지막에 호출해야함!
-        s3Service.deleteS3File(festival.getPosterInfo());
+        fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
     }
 
     //수정 권한을 확인하기 위한 메서드
@@ -167,21 +215,14 @@ public class FestivalService {
         return festivalList.stream().map(FestivalListResponse::new).toList();
     }
 
-    private void saveFiles(FileUploadRequest posterInfo, List<FileUploadRequest> imageInfos, Long id) {
+    private void saveFiles(List<FileUploadRequest> images, Long id) {
         List<FileEntity> files = new ArrayList<>();
         List<Long> temporalFileIds = new ArrayList<>();
 
-        //포스터의 경우에는 필수 등록임
-        files.add(new FileEntity(posterInfo.presignedUrl(), FileType.IMAGE, DomainType.FESTIVAL, id));
-        temporalFileIds.add(posterInfo.id());
-
-        //관련 이미지의 경우 필수 사항 x
-        if (imageInfos != null) {
-            imageInfos.forEach(imageInfo -> {
-                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.FESTIVAL, id));
-                temporalFileIds.add(imageInfo.id());
-            });
-        }
+        images.forEach(imageInfo -> {
+            files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.FESTIVAL, id));
+            temporalFileIds.add(imageInfo.id());
+        });
 
         if (!files.isEmpty()) {
             fileService.saveAll(files);

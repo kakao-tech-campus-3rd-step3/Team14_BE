@@ -81,7 +81,7 @@ public class FestivalUserController {
             @PathVariable Long festivalId,
             @RequestBody @Valid FestivalUpdateRequestDto requestDto
     ){
-        FestivalDetailResponseDto festivalDetail =  festivalService.updateFestival(identifier, festivalId, requestDto);
+        FestivalDetailResponseDto festivalDetail = festivalService.updateFestival(identifier, festivalId, requestDto);
         ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
     }

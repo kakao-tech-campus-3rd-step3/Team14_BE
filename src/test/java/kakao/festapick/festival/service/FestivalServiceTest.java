@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -166,7 +167,7 @@ class FestivalServiceTest {
                 () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(response.contentId()).isEqualTo(festival.getContentId()),
                 () -> assertThat(response.overView()).isEqualTo(festival.getOverView()),
-                () -> assertThat(response.images()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
+                () -> assertThat(response.imageInfos()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
         );
 
         verify(festivalRepository).findFestivalById(any());
@@ -271,7 +272,7 @@ class FestivalServiceTest {
     }
 
     @Test
-    @DisplayName("자신이 등록한 축제를 변경 - 변경 성공")
+    @DisplayName("자신이 등록한 축제를 변경 - 변경 성공(포스터 변경 x)")
     void updateFestival() {
         //given
         UserEntity user = testUtil.createTestUser();
@@ -290,8 +291,9 @@ class FestivalServiceTest {
                 () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
         verify(festivalRepository).findFestivalByIdWithManager(any());
-        verify(temporalFileRepository).deleteById(any());
-        verify(s3Service).deleteS3File(any());
+        verify(temporalFileRepository).deleteByIds(anyList());
+        verify(s3Service).deleteFiles(any());
+
         verifyNoMoreInteractions(festivalRepository, temporalFileRepository,s3Service);
     }
 
@@ -355,8 +357,8 @@ class FestivalServiceTest {
         //then
         verify(festivalRepository).findFestivalByIdWithManager(any());
         verify(festivalRepository).deleteById(any()); //행위 검증
-        verify(s3Service).deleteS3File(any());
-        verifyNoMoreInteractions(festivalRepository,s3Service);
+        verify(fileService).deleteByDomainId(any(), any());
+        verifyNoMoreInteractions(festivalRepository,fileService);
     }
 
     @Test
@@ -384,12 +386,12 @@ class FestivalServiceTest {
 
     @Test
     @DisplayName("관리자가 축제를 삭제하는 경우")
-    void deleteFestivalForAdmin() {
+    void deleteFestivalForAdmin() throws Exception {
         //given
         Long festivalId = 1L;
         Festival festival = createFestival();
-        given(festivalRepository.findFestivalById(any()))
-                .willReturn(Optional.of(festival));
+        setFestivalId(festival, festivalId);
+        given(festivalRepository.findFestivalById(any())).willReturn(Optional.of(festival));
 
         //when
         festivalService.deleteFestivalForAdmin(festivalId);
@@ -420,7 +422,7 @@ class FestivalServiceTest {
         updatedImages.add(new FileUploadRequest(99L, "https://www.festapick.updateimage.com"));
         updatedImages.add(new FileUploadRequest(99L, "https://www.festapick.updateimage2.com"));
         return new FestivalUpdateRequestDto("updated_title", 32, "updated_주소1", "상세주소",
-                new FileUploadRequest(1L,"updated_imageUrl"), updatedImages, testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"), "homepage", "overview");
+                new FileUploadRequest(1L,"imageUrl"), updatedImages, testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"), "homepage", "overview");
 
     }
 
