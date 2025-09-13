@@ -58,28 +58,6 @@ class FestivalRepositoryTest {
     }
 
     @Test
-    @DisplayName("ContentId를 통해 축제를 가져오기")
-    void findFestivalByContentId() throws Exception {
-
-        //given
-        String contentId = "FESTAPICK_999";
-        Festival festival = createFestival(contentId , "카테캠축제", 1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250821"));
-        festivalRepository.save(festival);
-
-        //when
-        Optional<Festival> foundOne = festivalRepository.findFestivalByContentId(contentId);
-
-        //then
-        assertThat(foundOne).isNotEmpty();
-        Festival actual = foundOne.get();
-        assertAll(
-                () -> assertThat(actual.getContentId()).isEqualTo(contentId),
-                () -> assertThat(actual.getTitle()).isEqualTo("카테캠축제"),
-                () -> assertThat(actual.getState()).isEqualTo(FestivalState.APPROVED)
-        );
-    }
-
-    @Test
     @DisplayName("Approved 축제 모두 조회")
     void findAllByStateApproved() {
 

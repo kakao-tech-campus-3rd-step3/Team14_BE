@@ -45,7 +45,7 @@ public class FestivalUserController {
     }
 
     //해당 지역에서 현재 참여할 수 있는 축제
-    @GetMapping("/area/{areaCode}/current")
+    @GetMapping("/area/{areaCode}")
     public ResponseEntity<Page<FestivalListResponse>> getCurrentFestivalByArea(
             @PathVariable int areaCode,
             @RequestParam(defaultValue = "0") int page,
@@ -63,7 +63,15 @@ public class FestivalUserController {
         return ResponseEntity.ok(responseDto);
     }
 
-    //TODO : 내가 등록한 축제 조회 + my 붙이기
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponseDto<List<FestivalListResponse>>> getMyFestivals(
+            @AuthenticationPrincipal String identifier
+    ){
+        List<FestivalListResponse> myFestivals = festivalService.findMyFestivals(identifier);
+        ApiResponseDto<List<FestivalListResponse>> responseDto = new ApiResponseDto<>(myFestivals);
+        return ResponseEntity.ok(responseDto);
+    }
 
     //자신이 올린 축제에 대해서만 수정 가능
     @PatchMapping("/{festivalId}")

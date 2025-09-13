@@ -21,7 +21,6 @@ import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.UserEntity;
@@ -128,7 +127,7 @@ class FestivalUserControllerTest {
         festivalRepository.save(festival3);
 
         //when-then
-        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/area/{areaCode}/current", areaCode))
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/area/{areaCode}", areaCode))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 

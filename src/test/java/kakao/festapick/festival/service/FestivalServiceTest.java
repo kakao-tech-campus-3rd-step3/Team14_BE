@@ -14,7 +14,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import kakao.festapick.config.DefaultImageConfig;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -30,7 +29,6 @@ import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
-import kakao.festapick.global.DefaultImageProperties;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
@@ -48,7 +46,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ContextConfiguration;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalServiceTest {
@@ -180,40 +177,6 @@ class FestivalServiceTest {
                 () -> assertThat(Id).isEqualTo(festivalId)
         );
         verify(festivalRepository).save(any());
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
-    @DisplayName("ContentId로 축제 조회 - 존재하는 경우에는 false를 반환")
-    void checkExistenceByContentId() {
-
-        //given
-        Festival festival = createFestival();
-        given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.of(festival));
-
-        //when
-        boolean result = festivalService.existFestivalByContentId(festival.getContentId());
-
-        //then
-        assertThat(result).isEqualTo(false);
-        verify(festivalRepository).findFestivalByContentId(any());
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
-    @DisplayName("ContentId로 축제 조회 - 존재하지 않는 경우에는 true를 반환")
-    void checkNoExistenceFestivalByContentId() {
-
-        //given
-        String testContentId = "testContentId";
-        given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.empty());
-
-        //when
-        boolean result = festivalService.existFestivalByContentId(testContentId);
-
-        //then
-        assertThat(result).isEqualTo(true);
-        verify(festivalRepository).findFestivalByContentId(any());
         verifyNoMoreInteractions(festivalRepository);
     }
 

@@ -15,7 +15,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +28,6 @@ import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.wish.domain.Wish;
 import lombok.Getter;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 @Entity
