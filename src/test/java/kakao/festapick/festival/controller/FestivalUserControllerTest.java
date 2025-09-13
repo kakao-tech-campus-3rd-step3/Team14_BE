@@ -232,7 +232,7 @@ class FestivalUserControllerTest {
         String overview = "The overview is a section for writing a description of the festival, and it must contain at least 50 characters.";
         return new FestivalCustomRequestDto(
                 title, areaCode, "addr1", "addr2",
-                new FileUploadRequest(1L,"imageUrl"), null, startDate, endDate, "homePage", overview
+                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), startDate, endDate, "homePage", overview
         );
     }
 

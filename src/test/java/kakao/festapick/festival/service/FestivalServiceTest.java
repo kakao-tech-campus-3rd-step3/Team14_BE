@@ -75,7 +75,7 @@ class FestivalServiceTest {
 
     @Test
     @DisplayName("사용자 축제 등록 성공")
-    void addCustomizedFestival() throws NoSuchFieldException, IllegalAccessException {
+    void addCustomizedFestival() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestUser();
@@ -404,10 +404,18 @@ class FestivalServiceTest {
     private FestivalCustomRequestDto createCustomRequestDto() {
         return new FestivalCustomRequestDto(
                 "축제title", 32, "주소1", "상세주소",
-                new FileUploadRequest(1L,"imageUrl"), null, testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
+                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
                 "homepageUrl", "축제에 대한 개요");
 
     }
+
+//    private FestivalCustomRequestDto createCustomRequeswith() {
+//        return new FestivalCustomRequestDto(
+//                "축제title", 32, "주소1", "상세주소",
+//                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
+//                "homepageUrl", "축제에 대한 개요");
+//
+//    }
 
     private FestivalRequestDto createRequestDto() {
         return new FestivalRequestDto(

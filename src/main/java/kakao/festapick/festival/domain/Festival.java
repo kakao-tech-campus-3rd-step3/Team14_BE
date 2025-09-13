@@ -94,7 +94,7 @@ public class Festival {
         this.areaCode = festivalCustomRequestDto.areaCode();
         this.addr1 = festivalCustomRequestDto.addr1();
         this.addr2 = festivalCustomRequestDto.addr2();
-        this.posterInfo = resolveImage(festivalCustomRequestDto.posterInfo().presignedUrl());
+        this.posterInfo = festivalCustomRequestDto.posterInfo().presignedUrl(); //포스터 등록 필수
         this.startDate = festivalCustomRequestDto.startDate();
         this.endDate = festivalCustomRequestDto.endDate();
         this.overView = festivalCustomRequestDto.overView();
