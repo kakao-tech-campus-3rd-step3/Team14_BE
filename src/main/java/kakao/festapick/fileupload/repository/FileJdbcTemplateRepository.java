@@ -1,4 +1,4 @@
-package kakao.festapick.festival.repository;
+package kakao.festapick.fileupload.repository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

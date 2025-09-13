@@ -10,7 +10,7 @@ import java.util.Map;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalJdbcTemplateRepository;
-import kakao.festapick.festival.repository.FileJdbcTemplateRepository;
+import kakao.festapick.fileupload.repository.FileJdbcTemplateRepository;
 import kakao.festapick.festival.tourapi.TourApiMaxRows;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.festival.tourapi.TourImagesResponse;
