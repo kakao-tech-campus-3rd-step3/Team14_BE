@@ -183,6 +183,7 @@ public class FestivalService {
 
         //포스터의 경우에는 필수 등록임
         files.add(new FileEntity(posterInfo.presignedUrl(), FileType.IMAGE, DomainType.FESTIVAL, id));
+        temporalFileIds.add(posterInfo.id());
 
         //관련 이미지의 경우 필수 사항 x
         if (imageInfos != null) {
