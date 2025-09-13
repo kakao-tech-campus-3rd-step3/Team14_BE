@@ -430,6 +430,14 @@ class FestivalServiceTest {
 
     }
 
+//    private FestivalCustomRequestDto createCustomRequeswith() {
+//        return new FestivalCustomRequestDto(
+//                "축제title", 32, "주소1", "상세주소",
+//                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
+//                "homepageUrl", "축제에 대한 개요");
+//
+//    }
+
     private FestivalRequestDto createRequestDto() {
         return new FestivalRequestDto(
                 "contentId","축제title", 32, "주소1", "상세주소",
