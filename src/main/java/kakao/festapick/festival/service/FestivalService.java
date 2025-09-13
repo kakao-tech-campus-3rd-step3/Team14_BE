@@ -1,10 +1,8 @@
 package kakao.festapick.festival.service;
 
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
@@ -51,7 +49,6 @@ public class FestivalService {
     private final FileService fileService;
 
     //CREATE
-    //TODO: create - customized Festival (How to upload an image)
     @Transactional
     public Long addCustomizedFestival(FestivalCustomRequestDto requestDto, String identifier) {
         UserEntity user = userRepository.findByIdentifier(identifier)
@@ -72,13 +69,6 @@ public class FestivalService {
         return savedFestival.getId();
     }
 
-    //READ
-    //contentId를 통한 축제 조회(to get Overview)
-    public boolean existFestivalByContentId(String contentId) {
-        Optional<Festival> festival = festivalRepository.findFestivalByContentId(contentId);
-        return festival.isEmpty();
-    }
-
     //Id를 통한 축제 조회
     public FestivalDetailResponseDto findOneById(Long festivalId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
@@ -88,6 +78,24 @@ public class FestivalService {
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();
         return new FestivalDetailResponseDto(festival, images);
+    }
+
+    //내가 등록한 축제를 조회
+    public List<FestivalListResponse> findMyFestivals(String identifier){
+        UserEntity user = userRepository.findByIdentifier(identifier)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        return festivalRepository.findFestivalByManagerId(user.getId())
+                .stream()
+                .map(festival -> new FestivalListResponse(
+                        festival.getId(),
+                        festival.getTitle(),
+                        festival.getAddr1(),
+                        festival.getAddr2(),
+                        festival.getPosterInfo(),
+                        festival.getStartDate(),
+                        festival.getEndDate())
+                )
+                .toList();
     }
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
@@ -109,7 +117,7 @@ public class FestivalService {
     @Transactional
     public FestivalDetailResponseDto updateFestival(String identifier, Long id,
             FestivalUpdateRequestDto requestDto) {
-        Festival festival = getMyFestival(identifier, id);
+        Festival festival = checkMyFestival(identifier, id);
         String oldImageUrl = festival.getPosterInfo();
 
         festival.updateFestival(requestDto);
@@ -135,7 +143,7 @@ public class FestivalService {
     //DELETE
     @Transactional
     public void removeOne(String identifier, Long id) {
-        Festival festival = getMyFestival(identifier, id);
+        Festival festival = checkMyFestival(identifier, id);
         festivalRepository.deleteById(festival.getId());
 
         s3Service.deleteS3File(festival.getPosterInfo()); // s3 파일 삭제는 항상 마지막에 호출
@@ -152,7 +160,8 @@ public class FestivalService {
         s3Service.deleteS3File(festival.getPosterInfo());
     }
 
-    private Festival getMyFestival(String identifier, Long id) {
+    //수정 권한을 확인하기 위한 메서드
+    private Festival checkMyFestival(String identifier, Long id) {
         Festival festival = festivalRepository.findFestivalByIdWithManager(id)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         UserEntity manager = festival.getManager();
