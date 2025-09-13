@@ -50,10 +50,10 @@ class FestivalRepositoryTest {
         Festival festival3 = createFestival("FESTAPICK_003","정컴인축제",  1, testUtil.toLocalDate("20250814"), testUtil.toLocalDate("20250817"));
         festivalRepository.save(festival3);
 
-        Festival festival4 = creatCustomFestival("의생공축제",  2, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
+        Festival festival4 = createCustomFestival("의생공축제",  2, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
         festivalRepository.save(festival4);
 
-        Festival festival5 = creatCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
+        Festival festival5 = createCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
         festivalRepository.save(festival5);
     }
 
@@ -136,7 +136,7 @@ class FestivalRepositoryTest {
         String identifier = "KAKAO-141036";
         UserEntity user = testUtil.createTestUser(identifier);
         userRepository.save(user);
-        Festival festival = creatCustomFestival("축제1", 2, testUtil.toLocalDate("20250815"), testUtil.toLocalDate("20250820"), user);
+        Festival festival = createCustomFestival("축제1", 2, testUtil.toLocalDate("20250815"), testUtil.toLocalDate("20250820"), user);
         festivalRepository.save(festival);
 
         //when
@@ -150,6 +150,29 @@ class FestivalRepositoryTest {
                 () -> assertThat(actual.getId()).isEqualTo(festival.getId()),
                 () -> assertThat(actual.getTitle()).isEqualTo(festival.getTitle()),
                 () -> assertThat(actual.getManager()).isEqualTo(user)
+        );
+    }
+
+    @Test
+    void findFestivalByManagerId(){
+
+        //given
+        UserEntity user = testUtil.createTestUser("KAKAO_98765");
+        userRepository.save(user);
+
+        Festival festival1 = createCustomFestival("정컴인 축제", 32, testUtil.toLocalDate("20250902"), testUtil.toLocalDate("20250910"), user);
+        Festival festival2 = createCustomFestival("카테캠 축제", 1, testUtil.toLocalDate("20251010"), testUtil.toLocalDate("20251014"), user);
+
+        festivalRepository.save(festival1);
+        festivalRepository.save(festival2);
+
+        //when
+        List<Festival> myFestivals = festivalRepository.findFestivalByManagerId(user.getId());
+
+        //then
+        assertAll(
+                () -> assertThat(myFestivals.size()).isEqualTo(2),
+                () -> assertThat(myFestivals.getFirst().getManager()).isEqualTo(user)
         );
     }
 
@@ -171,7 +194,7 @@ class FestivalRepositoryTest {
         );
     }
 
-    private Festival creatCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
+    private Festival createCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
         return new Festival(customFestivalRequest(title, areaCode, startDate, endDate), user);
     }
 

@@ -151,36 +151,6 @@ class FestivalServiceTest {
     }
 
     @Test
-    @DisplayName("TourAPI로부터 가져온 축제 정보를 저장")
-    void addFestival() throws NoSuchFieldException, IllegalAccessException {
-
-        //given
-        FestivalRequestDto requestDto = createRequestDto();
-
-        String overView = "overView of test Festival";
-        String homepage = "<a href\"https://www.festapick.com\">www.festapick.com</a>";
-
-        TourDetailResponse tourDetailResponse = createTourDetails(overView, homepage);
-
-        Festival festival = createFestival();
-        Long festivalId = 1L;
-        setFestivalId(festival, festivalId);
-
-        given(festivalRepository.save(any())).willReturn(festival);
-
-        //when
-        Long Id = festivalService.addFestival(requestDto, tourDetailResponse);
-
-        //then
-        assertAll(
-                () -> assertThat(Id).isNotNull(),
-                () -> assertThat(Id).isEqualTo(festivalId)
-        );
-        verify(festivalRepository).save(any());
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
     @DisplayName("Id를 통해 축제의 정보를 검색(상세조회)")
     void findOneById() {
 
@@ -195,7 +165,8 @@ class FestivalServiceTest {
         assertAll(
                 () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(response.contentId()).isEqualTo(festival.getContentId()),
-                () -> assertThat(response.overView()).isEqualTo(festival.getOverView())
+                () -> assertThat(response.overView()).isEqualTo(festival.getOverView()),
+                () -> assertThat(response.images()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
         );
 
         verify(festivalRepository).findFestivalById(any());
@@ -244,6 +215,34 @@ class FestivalServiceTest {
 
         verify(festivalRepository).findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any());
         verifyNoMoreInteractions(festivalRepository);
+    }
+
+    @Test
+    @DisplayName("자신이 등록한 축제를 조회")
+    void findMyFestivals(){
+
+        //given
+        String identifier = "KAKAO_987654";
+        UserEntity user = testUtil.createTestManager(identifier);
+
+        Festival customFestival1 = createCustomFestival(createCustomRequestDto(), user);
+        Festival customFestival2 = createCustomFestival(createCustomRequestDto(), user);
+        List<Festival> festivals = new ArrayList<>();
+        festivals.add(customFestival1);
+        festivals.add(customFestival2);
+
+        given(userRepository.findByIdentifier(any())).willReturn(Optional.of(user));
+        given(festivalRepository.findFestivalByManagerId(any())).willReturn(festivals);
+
+        //when
+        List<FestivalListResponse> result = festivalService.findMyFestivals(identifier);
+
+        //when
+        assertThat(result.size()).isEqualTo(2);
+
+        verify(userRepository).findByIdentifier(any());
+        verify(festivalRepository).findFestivalByManagerId(any());
+        verifyNoMoreInteractions(userRepository, festivalRepository);
     }
 
     @Test
@@ -409,14 +408,6 @@ class FestivalServiceTest {
 
     }
 
-//    private FestivalCustomRequestDto createCustomRequeswith() {
-//        return new FestivalCustomRequestDto(
-//                "축제title", 32, "주소1", "상세주소",
-//                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
-//                "homepageUrl", "축제에 대한 개요");
-//
-//    }
-
     private FestivalRequestDto createRequestDto() {
         return new FestivalRequestDto(
                 "contentId","축제title", 32, "주소1", "상세주소",
@@ -439,21 +430,6 @@ class FestivalServiceTest {
 
     private Festival createCustomFestival(FestivalCustomRequestDto requestDto, UserEntity user){
         return new Festival(requestDto, user);
-    }
-
-    //reflection을 사용하여 id값 강제 설정
-    private TourDetailResponse createTourDetails(String overview, String homePage) throws NoSuchFieldException, IllegalAccessException {
-        TourDetailResponse detailResponse = new TourDetailResponse();
-
-        Field overviewField = TourDetailResponse.class.getDeclaredField("overview");
-        overviewField.setAccessible(true);
-        overviewField.set(detailResponse, overview);
-
-        Field homepageField = TourDetailResponse.class.getDeclaredField("homepage");
-        homepageField.setAccessible(true);
-        homepageField.set(detailResponse, homePage);
-
-        return detailResponse;
     }
 
     private List<Festival> getFestivals(){
