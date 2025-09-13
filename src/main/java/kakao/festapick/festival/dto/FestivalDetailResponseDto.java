@@ -16,7 +16,7 @@ public record FestivalDetailResponseDto(
         LocalDate endDate,
         String overView,
         String homePage,
-        List<String> images
+        List<String> imageInfos
 ) {
     public FestivalDetailResponseDto(Festival festival){
         this(

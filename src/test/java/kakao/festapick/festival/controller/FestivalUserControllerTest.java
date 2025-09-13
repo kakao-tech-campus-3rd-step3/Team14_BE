@@ -9,9 +9,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import kakao.festapick.dto.ApiResponseDto;
@@ -69,10 +71,10 @@ class FestivalUserControllerTest {
         Festival festival3 = createFestival("FESTAPICK_003","정컴인축제",  1, testUtil.toLocalDate("20250814"), testUtil.toLocalDate("20250817"));
         festivalRepository.save(festival3);
 
-        Festival festival4 = creatCustomFestival("의생공축제",  1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
+        Festival festival4 = createCustomFestival("의생공축제",  1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
         festivalRepository.save(festival4);
 
-        Festival festival5 = creatCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
+        Festival festival5 = createCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
         festivalRepository.save(festival5);
     }
 
@@ -155,7 +157,7 @@ class FestivalUserControllerTest {
                 () -> assertThat(content.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(content.overView()).isNotNull(),
                 () -> assertThat(content.addr2()).isNotNull(),
-                () -> assertThat(content.images()).isInstanceOf(List.class)
+                () -> assertThat(content.imageInfos()).isInstanceOf(List.class)
         );
     }
 
@@ -168,10 +170,10 @@ class FestivalUserControllerTest {
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival1 = creatCustomFestival("정컴축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
+        Festival festival1 = createCustomFestival("정컴축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
         festivalRepository.save(festival1);
 
-        Festival festival2 = creatCustomFestival("카테캠축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
+        Festival festival2 = createCustomFestival("카테캠축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
         festivalRepository.save(festival2);
 
         //when
@@ -189,16 +191,17 @@ class FestivalUserControllerTest {
     }
 
     @Test
+    @DisplayName("축제의 정보를 수정 - 포스터를 변경")
     @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void updateFestivalInfo() throws Exception {
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
+        Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
-        FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3");
+        FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3", "카테캠 포스터", null);
         String updateRequest = objectMapper.writeValueAsString(updateInfo);
 
         //when-then
@@ -213,9 +216,48 @@ class FestivalUserControllerTest {
 
         assertAll(
                 () -> assertThat(content.id()).isEqualTo(saved.getId()),
-                () -> assertThat(content.title()).isEqualTo("카테캠 축제 시즌 3")
+                () -> assertThat(content.title()).isEqualTo("카테캠 축제 시즌 3"),
+                () -> assertThat(content.posterInfo()).isEqualTo("카테캠 포스터")
         );
     }
+
+    @Test
+    @DisplayName("내가 등록한 축제의 이미지 정보를 변경")
+    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
+    void updatePoster() throws Exception {
+
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO_123456");
+        userRepository.save(user);
+
+        Festival festival = createCustomFestival("정컴축제", 15, testUtil.toLocalDate("20250801"), testUtil.toLocalDate("20250810"), user);
+        Festival saved = festivalRepository.save(festival);
+
+        List<FileUploadRequest> images = new ArrayList<>();
+        images.add(new FileUploadRequest(99L, "https://festapick.firstimage.com"));
+        images.add(new FileUploadRequest(9999L,"https://festapick.newimage.com"));
+
+        FestivalUpdateRequestDto festivalUpdateRequestDto = createUpdateInfo("카테캠 축제", "카테캠 포스터", images);
+        String updateRequest = objectMapper.writeValueAsString(festivalUpdateRequestDto);
+
+        //when-then
+        MvcResult mvcResult = mockMvc.perform(patch("/api/festivals/{festivalId}", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateRequest))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andReturn();
+
+        ApiResponseDto<FestivalDetailResponseDto> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        FestivalDetailResponseDto content = response.content();
+
+        assertAll(
+                () -> assertThat(content.imageInfos().size()).isEqualTo(2),
+                () -> assertThat(content.imageInfos().contains("https://festapick.newimage.com")),
+                () -> assertThat(content.imageInfos().contains("https://festapick.firstimage.com"))
+        );
+    }
+
+
 
     @Test
     @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
@@ -224,7 +266,7 @@ class FestivalUserControllerTest {
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
+        Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
         //when-then
@@ -265,14 +307,14 @@ class FestivalUserControllerTest {
         );
     }
 
-    private Festival creatCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
+    private Festival createCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
         return new Festival(customFestivalRequest(title, areaCode, startDate, endDate), user);
     }
 
-    private FestivalUpdateRequestDto createUpdateInfo(String title){
+    private FestivalUpdateRequestDto createUpdateInfo(String title, String posterInfo, List<FileUploadRequest> imageInfos){
         String overview = "The Kakao Tech Campus Festival was held at Pusan National University, and PNU Dev Bros won first place.";
-        return new FestivalUpdateRequestDto(    title, 1,
-                "update_addr1", "update_addr2", new FileUploadRequest(1L,"update_imageUrl"), null,
+        return new FestivalUpdateRequestDto(title, 1,
+                "update_addr1", "update_addr2", new FileUploadRequest(1L,posterInfo), imageInfos,
                 LocalDate.now(), LocalDate.now(), "homePage", overview);
     }
 
