@@ -53,14 +53,14 @@
         <div class="info">
             <span class="label">축제 이미지:</span>
             <div class="images">
-                <th:block th:if="${festival.images != null and !festival.images.isEmpty()}">
+                <th:block th:if="${festival.imageInfos != null and !festival.imageInfos.isEmpty()}">
                     <div class="image-grid">
-                        <div th:each="img : ${festival.images}" class="image-cell">
+                        <div th:each="img : ${festival.imageInfos}" class="image-cell">
                             <img th:src="${img}" alt="Festival Image">
                         </div>
                     </div>
                 </th:block>
-                <th:block th:if="${festival.images == null or festival.images.isEmpty()}">
+                <th:block th:if="${festival.imageInfos == null or festival.imageInfos.isEmpty()}">
                     <span class="muted">등록된 이미지가 없습니다</span>
                 </th:block>
             </div>
