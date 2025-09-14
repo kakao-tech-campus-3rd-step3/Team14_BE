@@ -99,6 +99,7 @@ class FestivalServiceTest {
 
         verify(userRepository).findByIdentifier(any());
         verify(festivalRepository).save(any());
+        verify(temporalFileRepository).deleteById(any());
         verify(temporalFileRepository).deleteByIds(any());
         verifyNoMoreInteractions(userRepository, qFestivalRepository, s3Service, temporalFileRepository);
     }
