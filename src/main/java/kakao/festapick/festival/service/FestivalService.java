@@ -161,12 +161,13 @@ public class FestivalService {
 
         saveFiles(uploadFiles, festival.getId());
         fileService.deleteAllByFileEntity(deleteFileEntities);
-        s3Service.deleteFiles(deleteImgUrl.stream().toList()); // s3에서 삭제
 
         List<String> festivalImgs = fileService.findByDomainIdAndDomainType(festival.getId(), DomainType.FESTIVAL)
                 .stream()
                 .map(FileEntity::getUrl)
                 .toList();
+
+        s3Service.deleteFiles(deleteImgUrl.stream().toList()); // s3에서 삭제
         return new FestivalDetailResponseDto(festival, festivalImgs);
     }
 

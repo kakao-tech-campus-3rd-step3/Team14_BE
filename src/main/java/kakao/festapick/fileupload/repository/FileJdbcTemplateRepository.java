@@ -18,10 +18,10 @@ public class FileJdbcTemplateRepository {
 
     public void insertFestivalImages(List<FileEntity> fileEntities) {
         String upsertQuery =
-                "insert into fileentity(url, filetype, domaintype, domainid, createddate)"
+                "insert into fileentity(url, fileType, domainType, domainId, createdDate)"
                         + "values (?, ?, ?, ?, ?)"
                         + "on duplicate key update "
-                        + "url = ?, createddate =?";
+                        + "createdDate =?";
 
         jdbcTemplate.batchUpdate(upsertQuery, new BatchPreparedStatementSetter() {
             @Override
@@ -33,8 +33,7 @@ public class FileJdbcTemplateRepository {
                 ps.setLong(4, fileEntity.getDomainId());
                 ps.setObject(5, LocalDateTime.now());
 
-                ps.setString(6, fileEntity.getUrl());
-                ps.setObject(7, LocalDateTime.now());
+                ps.setObject(6, LocalDateTime.now());
             }
 
             @Override
