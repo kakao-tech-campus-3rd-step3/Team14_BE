@@ -14,7 +14,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
     List<Festival> findAllByState(FestivalState state);
 
-    @Query("select f from Festival f where f.areaCode = ?1 and ?2 <= f.endDate and f.state = ?3")
+    @Query("select f from Festival f where f.areaCode = :areaCode and :today <= f.endDate and f.state = :state")
     Page<Festival> findFestivalByAreaCodeAndDate(int areaCode, LocalDate today, FestivalState state, Pageable pageable);
 
     Optional<Festival> findFestivalById(Long id);

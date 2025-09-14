@@ -70,16 +70,16 @@ public class FestivalJdbcTemplateRepository {
     public void updatePosters(Map<String, String> posters) {
         String updateQuery = "update festival "
                 + "set posterInfo = ?"
-                + "where contentid =?";
+                + "where contentId =?";
+
+        List<Map.Entry<String, String>> posterList = posters.entrySet().stream().toList();
 
         jdbcTemplate.batchUpdate(updateQuery, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                String contentId = posters.keySet().stream().toList().get(i);
-                String posterUrl = posters.values().stream().toList().get(i);
-
-                ps.setString(1, posterUrl);
-                ps.setString(2, contentId);
+                Map.Entry<String, String> posterInfo = posterList.get(i);
+                ps.setString(1, posterInfo.getValue());
+                ps.setString(2, posterInfo.getKey());
             }
 
             @Override
@@ -91,7 +91,7 @@ public class FestivalJdbcTemplateRepository {
     }
 
     public List<FestivalIdDto> getFestivalIds(List<String> contentIds) {
-        String selectQuery = "select f.contentid, f.id from festival f where contentid in (:contentIds)";
+        String selectQuery = "select f.contentId, f.id from festival f where contentId in (:contentIds)";
         SqlParameterSource params = new MapSqlParameterSource("contentIds", contentIds);
         return namedParameterJdbcTemplate.query(selectQuery,
                 params,
