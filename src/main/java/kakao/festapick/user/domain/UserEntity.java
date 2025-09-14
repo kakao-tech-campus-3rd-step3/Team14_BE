@@ -25,7 +25,7 @@ import java.util.List;
 @Getter
 public class UserEntity {
 
-    private static String defaultImage = "123";
+    private static String defaultImage;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
