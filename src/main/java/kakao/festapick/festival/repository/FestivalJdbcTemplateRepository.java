@@ -5,13 +5,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.FestivalIdDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,15 +85,6 @@ public class FestivalJdbcTemplateRepository {
             }
         });
 
-    }
-
-    public List<FestivalIdDto> getFestivalIds(List<String> contentIds) {
-        String selectQuery = "select f.contentId, f.id from festival f where contentId in (:contentIds)";
-        SqlParameterSource params = new MapSqlParameterSource("contentIds", contentIds);
-        return namedParameterJdbcTemplate.query(selectQuery,
-                params,
-                (rs, rowNum) -> new FestivalIdDto(rs.getString("contentId"), rs.getLong("id"))
-        );
     }
 
 }

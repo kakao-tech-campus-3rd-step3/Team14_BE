@@ -9,6 +9,7 @@ import java.util.Map;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalJdbcTemplateRepository;
+import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.tourapi.TourApiMaxRows;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.festival.tourapi.TourImagesResponse;
@@ -38,6 +39,8 @@ public class TourInfoScheduler {
 
     private final FestivalJdbcTemplateRepository festivalJdbcTemplateRepository;
 
+    private final FestivalRepository festivalRepository;
+
     private final FileJdbcTemplateRepository fileJdbcTemplateRepository;
 
     private final RestClient tourApiClient;
@@ -47,7 +50,7 @@ public class TourInfoScheduler {
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
-            maxRows = 25; //for test
+            maxRows = 15; //for test
             log.info("가져올 축제 정보 수 : {}", maxRows);
             TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
@@ -67,9 +70,9 @@ public class TourInfoScheduler {
         Map<String, String> posters = new HashMap<>();
 
         //이미지 저장을 위해서는 축제의 id가 필요함
-        festivalJdbcTemplateRepository.getFestivalIds(
-                        festivals.stream().map(a -> a.getContentId()).toList())
-                .forEach(info -> idMap.put(info.contentId(), info.id()));
+        festivalRepository.findFestivalsByContentIds(
+                festivals.stream().map(festival -> festival.getContentId()).toList())
+                .forEach(festival -> idMap.put(festival.getContentId(), festival.getId()));
 
         //이미지 저장 및 대표 이미지를 포스터로 변경
         idMap.keySet()
