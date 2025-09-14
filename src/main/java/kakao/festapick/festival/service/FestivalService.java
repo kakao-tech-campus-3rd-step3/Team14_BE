@@ -56,6 +56,8 @@ public class FestivalService {
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
+        
+        temporalFileRepository.deleteById(requestDto.posterInfo().id());
 
         //관련 이미지 업로드(포스터의 경우에는 festival 도메인에서만 관리)
         if(requestDto.imageInfos() != null){
