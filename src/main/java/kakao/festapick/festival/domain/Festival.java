@@ -133,6 +133,26 @@ public class Festival {
         this.homePage = requestDto.homePage();
     }
 
+    public Festival(String title, int areaCode,
+                    String addr1, String addr2,
+                    String posterInfo, LocalDate startDate,
+                    LocalDate endDate, String overView,
+                    String homePage, FestivalState state,
+                    UserEntity manager, String contentId) {
+        this.title = title;
+        this.areaCode = areaCode;
+        this.addr1 = addr1;
+        this.addr2 = addr2;
+        this.posterInfo = posterInfo;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.overView = overView;
+        this.homePage = homePage;
+        this.state = state;
+        this.manager = manager;
+        this.contentId = contentId;
+    }
+
     //admin만 축제 권한 변경
     public void updateState(FestivalState festivalState){
         this.state = festivalState;

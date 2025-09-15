@@ -1,12 +1,14 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
@@ -14,6 +16,7 @@ import kakao.festapick.user.dto.UserResponseDtoForAdmin;
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.repository.QUserRepository;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FestivalRepository festivalRepository;
+    private final WishRepository wishRepository;
+    private final ReviewRepository reviewRepository;
     private final CookieComponent cookieComponent;
     private final QUserRepository qUserRepository;
     private final S3Service s3Service;
@@ -39,6 +45,10 @@ public class UserService {
     public void withDraw(String identifier, HttpServletResponse response) {
 
         UserEntity findUser = findByIdentifier(identifier);
+
+        festivalRepository.deleteByManagerId(findUser.getId());
+        wishRepository.deleteByUserId(findUser.getId());
+        reviewRepository.deleteByUserId(findUser.getId());
 
         userRepository.deleteByIdentifier(identifier);
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());

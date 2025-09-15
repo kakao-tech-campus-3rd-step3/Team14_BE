@@ -5,6 +5,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.user.domain.SocialType;
@@ -25,6 +28,10 @@ public class TestUtil {
 
     public UserEntity createTestManager(String identifier){
         return new UserEntity(identifier, "example@gmail.com", "exampleName", UserRoleType.FESTIVAL_MANAGER, SocialType.GOOGLE);
+    }
+
+    public Festival createTestFestival(UserEntity userEntity) {
+        return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, userEntity, null);
     }
 
     public LocalDate toLocalDate(String date){
