@@ -2,6 +2,7 @@ package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
@@ -9,6 +10,7 @@ import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.review.repository.ReviewRepository;
+import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
@@ -28,29 +30,25 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final FestivalRepository festivalRepository;
+    private final UserLowService userLowService;
+    private final FestivalService festivalService;
     private final WishRepository wishRepository;
-    private final ReviewRepository reviewRepository;
+    private final ReviewService reviewService;
     private final CookieComponent cookieComponent;
     private final QUserRepository qUserRepository;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
 
-    public UserEntity findByIdentifier(String identifier) {
-        return userRepository.findByIdentifier(identifier)
-                .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
-    }
 
     public void withDraw(String identifier, HttpServletResponse response) {
 
-        UserEntity findUser = findByIdentifier(identifier);
+        UserEntity findUser = userLowService.findByIdentifier(identifier);
 
-        festivalRepository.deleteByManagerId(findUser.getId());
         wishRepository.deleteByUserId(findUser.getId());
-        reviewRepository.deleteByUserId(findUser.getId());
+        reviewService.deleteReviewByUserId(findUser.getId());
+        festivalService.deleteFestivalByManagerId(findUser.getId());
 
-        userRepository.deleteByIdentifier(identifier);
+        userLowService.deleteByIdentifier(identifier);
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
 
         s3Service.deleteS3File(findUser.getProfileImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
@@ -62,14 +60,13 @@ public class UserService {
     }
 
     public void changeUserRole(Long id, UserRoleType role) {
-        UserEntity findUser = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        UserEntity findUser = userLowService.findById(id);
+
         findUser.changeUserRole(role);
     }
 
     public void changeProfileImage(String identifier, FileUploadRequest fileUploadRequest) {
-        UserEntity findUser = userRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        UserEntity findUser = userLowService.findByIdentifier(identifier);
 
         String oldProfileImageUrl = findUser.getProfileImageUrl();
 
@@ -80,17 +77,15 @@ public class UserService {
     }
 
     public UserResponseDto findMyInfo(String identifier) {
-        UserEntity findUser = userRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        UserEntity findUser = userLowService.findByIdentifier(identifier);
 
         return new UserResponseDto(findUser);
     }
 
     public void deleteUser(Long id) {
-        UserEntity findUser = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        UserEntity findUser = userLowService.findById(id);
 
-        userRepository.deleteById(findUser.getId());
+        userLowService.deleteById(findUser.getId());
 
         s3Service.deleteS3File(findUser.getProfileImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
     }

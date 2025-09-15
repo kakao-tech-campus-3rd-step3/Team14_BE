@@ -2,6 +2,8 @@ package kakao.festapick.review.repository;
 
 import java.util.List;
 import java.util.Optional;
+
+import com.querydsl.core.Fetchable;
 import kakao.festapick.review.domain.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,14 +33,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query(value = "delete from Review r where r.user.identifier= :identifier and r.id= :reviewId")
     int deleteByUserIdentifierAndId(String identifier, Long reviewId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from Review r where r.user.id = :userId")
     void deleteByUserId(Long userId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from Review r where r.festival.id = :festivalId")
     void deleteByFestivalId(Long festivalId);
 
     @Query("select r from Review r where r.festival.id = :festivalId")
     List<Review> findByFestivalId(Long festivalId);
+
+    @Query("select r from Review r where r.user.id = :userId")
+    List<Review> findByUserId(Long userId);
 }
