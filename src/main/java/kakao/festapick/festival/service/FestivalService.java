@@ -25,6 +25,7 @@ import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
+import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -62,6 +63,9 @@ public class FestivalService {
 
         //관련 이미지 업로드(포스터의 경우에는 festival 도메인에서만 관리)
         if(requestDto.imageInfos() != null){
+            //이미지에 대한 중복 체크(url : unique 속성)
+            List<String> imageUrls = requestDto.imageInfos().stream().map(FileUploadRequest::presignedUrl).toList();
+            fileService.checkUniqueURL(imageUrls);
             saveFiles(requestDto.imageInfos(), savedFestival.getId());
         }
 
@@ -132,9 +136,10 @@ public class FestivalService {
         Set<String> uploadImgUrl = new HashSet<>(requestImgUrl);
         uploadImgUrl.removeAll(registeredImgUrl);
 
-        List<FileUploadRequest> requestFiles = new ArrayList<>(
-                Optional.ofNullable(requestDto.imageInfos()).orElse(List.of())
-        );
+        //이미지에 대한 중복 체크(url : unique 속성)
+        fileService.checkUniqueURL(uploadImgUrl.stream().toList());
+
+        List<FileUploadRequest> requestFiles = new ArrayList<>(Optional.ofNullable(requestDto.imageInfos()).orElse(List.of()));
 
         List<FileUploadRequest> uploadFiles = requestFiles.stream()
                 .filter(fileEntity -> uploadImgUrl.contains(fileEntity.presignedUrl()))
