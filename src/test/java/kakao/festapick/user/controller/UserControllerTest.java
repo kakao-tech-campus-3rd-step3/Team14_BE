@@ -9,8 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
 import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
 import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -19,6 +25,7 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +50,12 @@ class UserControllerTest {
     @Autowired
     private TemporalFileRepository temporalFileRepository;
 
+    @Autowired
+    private FestivalRepository festivalRepository;
+
+    @Autowired
+    private EntityManager em;
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -59,13 +72,24 @@ class UserControllerTest {
         // given
         UserEntity userEntity = saveUserEntity();
 
+        for (int i=0; i<3; i++) {
+            festivalRepository.save(testUtil.createTestFestival(userEntity));
+        }
+
+        flushAndClear();
+
         // when & then
         mockMvc.perform(delete("/api/users"))
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
+        List<Festival> festivals = festivalRepository.findFestivalByManagerId(userEntity.getId());
 
-        assertThat(findUser.isPresent()).isEqualTo(false);
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(festivals.size()).isEqualTo(0);
+            softly.assertThat(findUser.isPresent()).isEqualTo(false);
+        });
+
     }
 
     @Test
@@ -123,6 +147,12 @@ class UserControllerTest {
 
         return userRepository.save(testUtil.createTestUser(identifier));
     }
+
+    private void flushAndClear() {
+        em.flush();
+        em.clear();
+    }
+
 
 
 

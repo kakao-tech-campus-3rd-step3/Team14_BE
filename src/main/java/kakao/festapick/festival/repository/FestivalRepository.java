@@ -8,6 +8,7 @@ import kakao.festapick.festival.domain.FestivalState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface FestivalRepository extends JpaRepository<Festival, Long> {
@@ -24,7 +25,13 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
     Page<Festival> findFestivalByManagerId(Long managerId, Pageable pageable);
 
+    List<Festival> findFestivalByManagerId(Long managerId);
+
     @Query("select f from Festival f where f.contentId in :contentIds")
     List<Festival> findFestivalsByContentIds(List<String> contentIds);
+
+    @Modifying
+    @Query("delete from Festival f where f.manager.id = :userId")
+    void deleteByManagerId(Long userId);
 
 }
