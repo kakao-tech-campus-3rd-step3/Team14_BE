@@ -65,12 +65,13 @@ public class FestivalUserController {
 
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponseDto<List<FestivalListResponse>>> getMyFestivals(
-            @AuthenticationPrincipal String identifier
+    public ResponseEntity<Page<FestivalListResponse>> getMyFestivals(
+            @AuthenticationPrincipal String identifier,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
     ){
-        List<FestivalListResponse> myFestivals = festivalService.findMyFestivals(identifier);
-        ApiResponseDto<List<FestivalListResponse>> responseDto = new ApiResponseDto<>(myFestivals);
-        return ResponseEntity.ok(responseDto);
+        Page<FestivalListResponse> myFestivals = festivalService.findMyFestivals(identifier, PageRequest.of(page, size));
+        return ResponseEntity.ok(myFestivals);
     }
 
     //자신이 올린 축제에 대해서만 수정 가능

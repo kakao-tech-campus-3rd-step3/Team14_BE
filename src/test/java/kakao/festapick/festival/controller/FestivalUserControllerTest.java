@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
@@ -20,7 +19,6 @@ import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
-import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -181,12 +179,12 @@ class FestivalUserControllerTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
-        ApiResponseDto<List<FestivalListResponse>> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
-        List<FestivalListResponse> content = response.content();
+        String response = mvcResult.getResponse().getContentAsString();
+        List<Map<String, String>> festivals = read(response, "$.content");
 
         assertAll(
-                () -> assertThat(content.size()).isEqualTo(2),
-                () -> assertThat(content.stream().anyMatch(info -> info.title().equals("카테캠축제")))
+                () -> assertThat(festivals.size()).isEqualTo(2),
+                () -> assertThat(festivals.stream().anyMatch(info -> info.get("title").equals("카테캠축제")))
         );
     }
 

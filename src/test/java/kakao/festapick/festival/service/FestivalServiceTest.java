@@ -233,17 +233,21 @@ class FestivalServiceTest {
         festivals.add(customFestival1);
         festivals.add(customFestival2);
 
+        Pageable pageable = PageRequest.of(0,2);
+        Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
+
         given(userRepository.findByIdentifier(any())).willReturn(Optional.of(user));
-        given(festivalRepository.findFestivalByManagerId(any())).willReturn(festivals);
+        given(festivalRepository.findFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
 
         //when
-        List<FestivalListResponse> result = festivalService.findMyFestivals(identifier);
+        Page<FestivalListResponse> result = festivalService.findMyFestivals(identifier, pageable);
 
-        //when
-        assertThat(result.size()).isEqualTo(2);
+        //total
+        assertThat(result.getContent().size()).isEqualTo(2);
+        assertThat(result.getTotalElements()).isEqualTo(10);
 
         verify(userRepository).findByIdentifier(any());
-        verify(festivalRepository).findFestivalByManagerId(any());
+        verify(festivalRepository).findFestivalByManagerId(any(), any());
         verifyNoMoreInteractions(userRepository, festivalRepository);
     }
 
