@@ -44,9 +44,7 @@ public class UserService {
 
         UserEntity findUser = userLowService.findByIdentifier(identifier);
 
-        wishRepository.deleteByUserId(findUser.getId());
-        reviewService.deleteReviewByUserId(findUser.getId());
-        festivalService.deleteFestivalByManagerId(findUser.getId());
+        deleteRelatedEntity(findUser);
 
         userLowService.deleteByIdentifier(identifier);
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
@@ -85,9 +83,17 @@ public class UserService {
     public void deleteUser(Long id) {
         UserEntity findUser = userLowService.findById(id);
 
+        deleteRelatedEntity(findUser);
+
         userLowService.deleteById(findUser.getId());
 
         s3Service.deleteS3File(findUser.getProfileImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
+    }
+
+    private void deleteRelatedEntity(UserEntity findUser) {
+        wishRepository.deleteByUserId(findUser.getId());
+        reviewService.deleteReviewByUserId(findUser.getId());
+        festivalService.deleteFestivalByManagerId(findUser.getId());
     }
 
 
