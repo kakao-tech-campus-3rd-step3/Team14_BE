@@ -50,7 +50,6 @@ public class TourInfoScheduler {
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
-            maxRows = 15; //for test
             log.info("가져올 축제 정보 수 : {}", maxRows);
             TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
