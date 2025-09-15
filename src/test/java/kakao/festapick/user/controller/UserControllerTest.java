@@ -54,10 +54,6 @@ class UserControllerTest {
     private FestivalRepository festivalRepository;
 
     @Autowired
-    private EntityManager em;
-
-
-    @Autowired
     private ObjectMapper objectMapper;
 
     private static final String identifier = "GOOGLE_1234";
@@ -75,8 +71,6 @@ class UserControllerTest {
         for (int i=0; i<3; i++) {
             festivalRepository.save(testUtil.createTestFestival(userEntity));
         }
-
-        flushAndClear();
 
         // when & then
         mockMvc.perform(delete("/api/users"))
@@ -147,13 +141,5 @@ class UserControllerTest {
 
         return userRepository.save(testUtil.createTestUser(identifier));
     }
-
-    private void flushAndClear() {
-        em.flush();
-        em.clear();
-    }
-
-
-
 
 }

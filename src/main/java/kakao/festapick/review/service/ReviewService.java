@@ -18,6 +18,7 @@ import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,17 +36,17 @@ import java.util.stream.Stream;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final UserService userService;
     private final FestivalRepository festivalRepository;
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
     private final S3Service s3Service;
+    private final UserLowService userLowService;
 
 
     public Long createReview(Long festivalId, ReviewRequestDto requestDto, String identifier) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        UserEntity user = userService.findByIdentifier(identifier);
+        UserEntity user = userLowService.findByIdentifier(identifier);
 
         if (reviewRepository.existsByUserIdAndFestivalId(user.getId(), festivalId)) {
             throw new DuplicateEntityException(ExceptionCode.REVIEW_DUPLICATE);
@@ -177,6 +178,16 @@ public class ReviewService {
                 .stream().map(Review::getId).toList();
 
         reviewRepository.deleteByFestivalId(festivalId);
+
+        fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+    }
+
+    public void deleteReviewByUserId(Long userId) {
+
+        List<Long> reviewIds = reviewRepository.findByUserId(userId)
+                .stream().map(Review::getId).toList();
+
+        reviewRepository.deleteByUserId(userId);
 
         fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }

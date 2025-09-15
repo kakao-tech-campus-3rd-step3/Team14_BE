@@ -30,7 +30,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Query("select f from Festival f where f.contentId in :contentIds")
     List<Festival> findFestivalsByContentIds(List<String> contentIds);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from Festival f where f.manager.id = :userId")
     void deleteByManagerId(Long userId);
 

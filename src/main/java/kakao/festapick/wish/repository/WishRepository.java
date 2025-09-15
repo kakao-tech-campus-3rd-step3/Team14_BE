@@ -21,11 +21,11 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
 
     Optional<Wish> findByUserIdentifierAndId(String identifier, Long wishId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from Wish w where w.user.id = :userId")
     void deleteByUserId(Long userId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from Wish w where w.festival.id = :festivalId")
     void deleteByFestivalId(Long festivalId);
 

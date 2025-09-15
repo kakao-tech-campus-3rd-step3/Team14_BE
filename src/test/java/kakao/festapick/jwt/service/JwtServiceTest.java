@@ -22,6 +22,7 @@ import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.user.service.UserService;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +45,7 @@ class JwtServiceTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
-    private UserService userService;
+    private UserLowService userLowService;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -65,7 +66,7 @@ class JwtServiceTest {
         String refreshToken = UUID.randomUUID().toString();
         UserEntity userEntity = testUtil.createTestUser();
 
-        given(userService.findByIdentifier(any()))
+        given(userLowService.findByIdentifier(any()))
                 .willReturn(userEntity);
 
         given(tokenEncoder.encode(any()))
@@ -86,7 +87,7 @@ class JwtServiceTest {
                 }
         );
 
-        verify(userService).findByIdentifier(any());
+        verify(userLowService).findByIdentifier(any());
         verify(refreshTokenRepository).deleteByUser(any());
         verify(tokenEncoder).encode(any());
         verify(refreshTokenRepository).save(any());
@@ -127,7 +128,7 @@ class JwtServiceTest {
                 .willReturn(true);
 
 
-        given(userService.findByIdentifier(any()))
+        given(userLowService.findByIdentifier(any()))
                 .willReturn(userEntity);
 
         given(refreshTokenRepository.save(any()))
@@ -147,13 +148,13 @@ class JwtServiceTest {
                     softly.assertThat(response.getHeader("Set-Cookie")).isEqualTo(setCookieHeader);
                 }
         );
-        verify(userService).findByIdentifier(any());
+        verify(userLowService).findByIdentifier(any());
         verify(refreshTokenRepository).deleteByUser(any());
         verify(refreshTokenRepository).save(any());
         verify(jwtUtil).getClaims(any());
         verify(jwtUtil).validateToken(any(), any());
         verify(jwtUtil, times(2)).createJWT(any(), any(), any());
-        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userLowService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
     @Test
@@ -169,7 +170,7 @@ class JwtServiceTest {
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessage(ExceptionCode.COOKIE_NOT_EXIST.getErrorMessage());
-        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userLowService, jwtUtil, refreshTokenRepository, cookieComponent);
 
     }
 
@@ -187,7 +188,7 @@ class JwtServiceTest {
         assertThatThrownBy(()->jwtService.exchangeToken(request,response))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessage(ExceptionCode.REFRESH_TOKEN_NOT_EXIST.getErrorMessage());
-        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userLowService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
     @Test
@@ -208,7 +209,7 @@ class JwtServiceTest {
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessage(ExceptionCode.INVALID_REFRESH_TOKEN.getErrorMessage());
         verify(jwtUtil).validateToken(any(), any());
-        verifyNoMoreInteractions(userService, jwtUtil, refreshTokenRepository, cookieComponent);
+        verifyNoMoreInteractions(userLowService, jwtUtil, refreshTokenRepository, cookieComponent);
     }
 
 }

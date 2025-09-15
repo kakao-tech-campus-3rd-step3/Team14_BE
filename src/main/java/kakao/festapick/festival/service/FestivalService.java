@@ -29,6 +29,7 @@ import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
@@ -205,6 +206,16 @@ public class FestivalService {
         festivalRepository.deleteById(festival.getId());
 
         fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
+    }
+
+    @Transactional
+    public void deleteFestivalByManagerId(Long id) {
+        List<Long> festivalIds = festivalRepository.findFestivalByManagerId(id)
+                .stream().map(Festival::getId).toList();
+
+        festivalRepository.deleteByManagerId(id);
+
+        fileService.deleteByDomainIds(festivalIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
     //수정 권한을 확인하기 위한 메서드

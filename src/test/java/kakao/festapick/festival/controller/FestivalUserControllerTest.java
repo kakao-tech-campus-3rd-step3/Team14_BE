@@ -63,7 +63,6 @@ class FestivalUserControllerTest {
 
     @Autowired private TestUtil testUtil;
 
-    @Autowired private EntityManager em;
 
     @BeforeEach
     void initTestDB() throws Exception {
@@ -286,9 +285,6 @@ class FestivalUserControllerTest {
             wishRepository.save(new Wish(testUser, saved));
         }
 
-        flushAndClear();
-
-
         //when-then
         mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId()))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
@@ -347,10 +343,6 @@ class FestivalUserControllerTest {
                 LocalDate.now(), LocalDate.now(), "homePage", overview);
     }
 
-    private void flushAndClear() {
-        em.flush();
-        em.clear();
-    }
 
 
 }
