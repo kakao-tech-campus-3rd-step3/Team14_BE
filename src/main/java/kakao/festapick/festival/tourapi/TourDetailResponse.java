@@ -7,6 +7,7 @@ import kakao.festapick.festival.tourapi.response.TourApiResponse;
 import kakao.festapick.festival.tourapi.response.TourApiResponse.FestivalInfo;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.URL;
 
 @Slf4j
 @Getter
