@@ -94,7 +94,7 @@ public class FestivalUserController {
             @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId
     ){
-        festivalService.removeOne(identifier, festivalId);
+        festivalService.deleteFestivalForManager(identifier, festivalId);
         return ResponseEntity.noContent().build();
     }
 

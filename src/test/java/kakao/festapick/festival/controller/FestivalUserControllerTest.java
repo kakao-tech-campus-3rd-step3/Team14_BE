@@ -2,6 +2,7 @@ package kakao.festapick.festival.controller;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -15,6 +16,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
@@ -27,6 +31,9 @@ import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
+import kakao.festapick.wish.domain.Wish;
+import kakao.festapick.wish.repository.WishRepository;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,9 +57,13 @@ class FestivalUserControllerTest {
     @Autowired private FestivalRepository festivalRepository;
     @Autowired private UserRepository userRepository;
 
+    @Autowired private WishRepository wishRepository;
+
     @Autowired private ObjectMapper objectMapper;
 
     @Autowired private TestUtil testUtil;
+
+    @Autowired private EntityManager em;
 
     @BeforeEach
     void initTestDB() throws Exception {
@@ -258,18 +269,38 @@ class FestivalUserControllerTest {
 
 
     @Test
+    @DisplayName("축제 삭제 성공")
     @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
-    void removeFestival() throws Exception {
+    void removeFestivalSuccess() throws Exception {
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
+
         userRepository.save(user);
 
         Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
+        for (int i=0; i<10; i++) {
+            UserEntity testUser = testUtil.createTestUser("KAKAO_" + i);
+            userRepository.save(testUser);
+            wishRepository.save(new Wish(testUser, saved));
+        }
+
+        flushAndClear();
+
+
         //when-then
         mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId()))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
+
+        boolean isEmpty = festivalRepository.findFestivalById(saved.getId()).isEmpty();
+        List<Wish> wishes = wishRepository.findByFestivalId(saved.getId());
+
+
+        assertSoftly(softly -> {
+            softly.assertThat(isEmpty).isTrue();
+            softly.assertThat(wishes).isEmpty();
+        });
     }
 
     @Test
@@ -315,5 +346,11 @@ class FestivalUserControllerTest {
                 "update_addr1", "update_addr2", new FileUploadRequest(1L,posterInfo), imageInfos,
                 LocalDate.now(), LocalDate.now(), "homePage", overview);
     }
+
+    private void flushAndClear() {
+        em.flush();
+        em.clear();
+    }
+
 
 }

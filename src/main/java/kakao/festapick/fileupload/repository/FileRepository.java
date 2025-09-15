@@ -18,7 +18,11 @@ public interface FileRepository extends JpaRepository<FileEntity, Long> { ;
 
     @Modifying
     @Query("delete from FileEntity f where f.domainId = :domainId and f.domainType = :domainType ")
-    void deleteByDomainAndDomainType(Long domainId, DomainType domainType);
+    void deleteByDomainIdAndDomainType(Long domainId, DomainType domainType);
+
+    @Modifying
+    @Query("delete from FileEntity f where f.domainId in (:domainIds) and f.domainType = :domainType")
+    void deleteByDomainIdsAndDomainType(List<Long> domainIds, DomainType domainType);
 
     @Query("select f from FileEntity f where f.url in :urls")
     List<FileEntity> findByUrls(List<String> urls);

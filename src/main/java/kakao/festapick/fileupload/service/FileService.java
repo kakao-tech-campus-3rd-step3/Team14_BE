@@ -43,9 +43,21 @@ public class FileService {
                 .stream()
                 .map(FileEntity::getUrl).toList();
 
-        fileRepository.deleteByDomainAndDomainType(domainId,domainType);
+        fileRepository.deleteByDomainIdAndDomainType(domainId,domainType);
 
         s3Service.deleteFiles(urls); // s3 파일 삭제는 항상 마지막에 호출
+    }
+
+    public void deleteByDomainIds(List<Long> domainIds, DomainType domainType) {
+
+        List<String> urls = fileRepository.findByDomainIdsAndDomainType(domainIds, domainType)
+                .stream()
+                .map(FileEntity::getUrl).toList();
+
+        fileRepository.deleteByDomainIdsAndDomainType(domainIds, domainType);
+
+        s3Service.deleteFiles(urls); // s3 파일 삭제는 항상 마지막에 호출
+
     }
 
     public void checkUniqueURL(List<String> imagesUrl){

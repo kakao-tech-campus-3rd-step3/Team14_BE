@@ -78,12 +78,6 @@ public class Festival {
     @JoinColumn(name = "manager_id")
     private UserEntity manager;
 
-    @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Wish>  wishes = new ArrayList<>();
-
-    @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews = new ArrayList<>();
-
     protected Festival() { }
 
     //TODO: contentId 규칙 만들기
