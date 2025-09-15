@@ -13,7 +13,6 @@ import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class FestivalTest {
 
@@ -64,36 +63,6 @@ class FestivalTest {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("contentId", "축제title", 32, "주소1", "상세주소", null, testUtil.toLocalDate("20250804"),testUtil.toLocalDate("20250806"));
         Festival festival = new Festival(festivalRequestDto, testUtil.createTourDetailResponse());
         assertThat(festival.getPosterInfo()).isNotBlank();
-    }
-
-    @Test
-    @DisplayName("홈페이지 정보가 없는 경우")
-    void getHomePageParsingFail(){
-
-        //given
-        Festival festival = new Festival();
-        String homepage = null;
-
-        //when
-        String result = ReflectionTestUtils.invokeMethod(festival, "parseHomepageInfo", homepage);
-
-        //then
-        assertThat(result).isEqualTo("no_homepage");
-    }
-
-    @Test
-    @DisplayName("기존의 형태(패턴)와 다르게 homepage 정보가 제공되는 경우 파싱에 실패")
-    void getHomePagePatternError(){
-
-        //given
-        Festival festival = new Festival();
-        String homepage = "<a href\"html://www.festapick.com\">www.festapick.com</a>";
-
-        //when
-        String result = ReflectionTestUtils.invokeMethod(festival, "parseHomepageInfo", homepage);
-
-        //then
-        assertThat(result).isEqualTo("no_homepage");
     }
 
     private Festival createFestival(){

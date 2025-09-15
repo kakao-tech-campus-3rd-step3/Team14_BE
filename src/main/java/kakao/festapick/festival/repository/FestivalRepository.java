@@ -22,7 +22,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Query("select f from Festival f left join fetch f.manager where f.id= :id")
     Optional<Festival> findFestivalByIdWithManager(Long id);
 
-    List<Festival> findFestivalByManagerId(Long managerId);
+    Page<Festival> findFestivalByManagerId(Long managerId, Pageable pageable);
 
     @Query("select f from Festival f where f.contentId in :contentIds")
     List<Festival> findFestivalsByContentIds(List<String> contentIds);

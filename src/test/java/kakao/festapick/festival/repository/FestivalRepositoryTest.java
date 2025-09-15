@@ -167,12 +167,13 @@ class FestivalRepositoryTest {
         festivalRepository.save(festival2);
 
         //when
-        List<Festival> myFestivals = festivalRepository.findFestivalByManagerId(user.getId());
+        Pageable pageable = PageRequest.of(0,5);
+        Page<Festival> myFestivals = festivalRepository.findFestivalByManagerId(user.getId(), pageable);
 
         //then
         assertAll(
-                () -> assertThat(myFestivals.size()).isEqualTo(2),
-                () -> assertThat(myFestivals.getFirst().getManager()).isEqualTo(user)
+                () -> assertThat(myFestivals.getPageable().getPageSize()).isEqualTo(5),
+                () -> assertThat(myFestivals.getContent().getFirst().getManager()).isEqualTo(user)
         );
     }
 

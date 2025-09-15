@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kakao.festapick.festival.domain.Festival;
@@ -79,21 +80,11 @@ public class FestivalService {
     }
 
     //내가 등록한 축제를 조회
-    public List<FestivalListResponse> findMyFestivals(String identifier){
+    public Page<FestivalListResponse> findMyFestivals(String identifier, Pageable pageable){
         UserEntity user = userRepository.findByIdentifier(identifier)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
-        return festivalRepository.findFestivalByManagerId(user.getId())
-                .stream()
-                .map(festival -> new FestivalListResponse(
-                        festival.getId(),
-                        festival.getTitle(),
-                        festival.getAddr1(),
-                        festival.getAddr2(),
-                        festival.getPosterInfo(),
-                        festival.getStartDate(),
-                        festival.getEndDate())
-                )
-                .toList();
+        return festivalRepository.findFestivalByManagerId(user.getId(), pageable)
+                .map(FestivalListResponse::new);
     }
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
@@ -124,10 +115,11 @@ public class FestivalService {
                 .collect(Collectors.toSet());
 
         // 요청에 존재하는 파일들
-        Set<String> requestImgUrl = new HashSet<>();
-        if(requestDto.imageInfos() != null){
-            requestDto.imageInfos().forEach(file -> requestImgUrl.add(file.presignedUrl()));
-        }
+        Set<String> requestImgUrl = Optional.ofNullable(requestDto.imageInfos())
+                .orElse(List.of())
+                .stream()
+                .map(fileUploadRequest -> fileUploadRequest.presignedUrl())
+                .collect(Collectors.toSet());
 
         //삭제 : 기존 이미지 - 요청 이미지
         Set<String> deleteImgUrl = new HashSet<>(registeredImgUrl);
@@ -140,10 +132,9 @@ public class FestivalService {
         Set<String> uploadImgUrl = new HashSet<>(requestImgUrl);
         uploadImgUrl.removeAll(registeredImgUrl);
 
-        List<FileUploadRequest> requestFiles = new ArrayList<>();
-        if(requestDto.imageInfos() != null){
-            requestFiles.addAll(requestDto.imageInfos());
-        }
+        List<FileUploadRequest> requestFiles = new ArrayList<>(
+                Optional.ofNullable(requestDto.imageInfos()).orElse(List.of())
+        );
 
         List<FileUploadRequest> uploadFiles = requestFiles.stream()
                 .filter(fileEntity -> uploadImgUrl.contains(fileEntity.presignedUrl()))
