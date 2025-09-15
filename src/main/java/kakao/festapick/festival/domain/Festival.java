@@ -115,7 +115,7 @@ public class Festival {
         this.startDate = festivalRequestDto.startDate();
         this.endDate = festivalRequestDto.endDate();
         this.overView = detailResponse.getOverview();
-        this.homePage = parseHomepageInfo(detailResponse.getHomepage());
+        this.homePage = detailResponse.getHomepage();
         this.state = FestivalState.APPROVED;
     }
 
@@ -148,20 +148,6 @@ public class Festival {
 
     private void checkStartAndEndDate(LocalDate startDate, LocalDate endDate) {
         if (endDate.isBefore(startDate)) throw new BadRequestException(ExceptionCode.FESTIVAL_BAD_DATE);
-    }
-
-    private String parseHomepageInfo(String homePage){
-        try{
-            List<String> parsedResult = Arrays.asList(homePage.split("\""));
-            return parsedResult.stream()
-                    .filter(url -> url.startsWith("http") || url.startsWith("www."))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("홈페이지의 주소를 찾을 수 없습니다."));
-        } catch (NullPointerException | IllegalArgumentException e) {
-            log.error("홈페이지 정보를 찾을 수 없습니다.");
-            log.error("homePage = {}", homePage);
-        }
-        return "no_homepage";
     }
 
 }
