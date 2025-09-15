@@ -3,6 +3,8 @@ package kakao.festapick.fileupload.service;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.repository.FileRepository;
+import kakao.festapick.global.exception.BadRequestException;
+import kakao.festapick.global.exception.ExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,12 @@ public class FileService {
         fileRepository.deleteByDomainAndDomainType(domainId,domainType);
 
         s3Service.deleteFiles(urls); // s3 파일 삭제는 항상 마지막에 호출
+    }
+
+    public void checkUniqueURL(List<String> imagesUrl){
+        if(!fileRepository.findByUrls(imagesUrl).isEmpty()){
+            throw new BadRequestException(ExceptionCode.FESTIVAL_BAD_IMAGE);
+        }
     }
 
 }
