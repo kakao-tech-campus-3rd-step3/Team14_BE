@@ -29,8 +29,11 @@ import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.review.repository.ReviewRepository;
+import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,6 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class FestivalService {
 
     private final FestivalRepository festivalRepository;
+    private final WishRepository wishRepository;
+    private final ReviewService reviewService;
     private final UserRepository userRepository;
     private final QFestivalRepository qFestivalRepository;
     private final S3Service s3Service;
@@ -179,8 +184,11 @@ public class FestivalService {
 
     //DELETE
     @Transactional
-    public void removeOne(String identifier, Long id) {
+    public void deleteFestivalForManager(String identifier, Long id) {
         Festival festival = checkMyFestival(identifier, id);
+
+        deleteRelatedEntity(festival.getId()); // 연관된 엔티티 벌크 쿼리로 모두 삭제
+
         festivalRepository.deleteById(festival.getId());
 
         //축제 삭제 시 관련 이미지를 모두 삭제
@@ -191,6 +199,9 @@ public class FestivalService {
     public void deleteFestivalForAdmin(Long id) {
         Festival festival = festivalRepository.findFestivalById(id)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+
+        deleteRelatedEntity(festival.getId()); // 연관된 엔티티 벌크 쿼리로 모두 삭제
+
         festivalRepository.deleteById(festival.getId());
 
         fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
@@ -226,6 +237,11 @@ public class FestivalService {
             fileService.saveAll(files);
         }
         temporalFileRepository.deleteByIds(temporalFileIds);
+    }
+
+    private void deleteRelatedEntity(Long festivalId) {
+        wishRepository.deleteByFestivalId(festivalId);
+        reviewService.deleteReviewByFestivalId(festivalId);
     }
 
 }

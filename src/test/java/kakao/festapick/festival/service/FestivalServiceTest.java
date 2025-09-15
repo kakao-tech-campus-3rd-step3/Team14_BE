@@ -34,9 +34,12 @@ import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.review.repository.ReviewRepository;
+import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
+import kakao.festapick.wish.repository.WishRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,6 +71,12 @@ class FestivalServiceTest {
 
     @Mock
     private FileService fileService;
+
+    @Mock
+    private WishRepository wishRepository;
+
+    @Mock
+    private ReviewService reviewService;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -357,13 +366,15 @@ class FestivalServiceTest {
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
 
         //when
-        festivalService.removeOne(user.getIdentifier(), any());
+        festivalService.deleteFestivalForManager(user.getIdentifier(), any());
 
         //then
         verify(festivalRepository).findFestivalByIdWithManager(any());
         verify(festivalRepository).deleteById(any()); //행위 검증
         verify(fileService).deleteByDomainId(any(), any());
-        verifyNoMoreInteractions(festivalRepository,fileService);
+        verify(reviewService).deleteReviewByFestivalId(festival.getId());
+        verify(wishRepository).deleteByFestivalId(festival.getId());
+        verifyNoMoreInteractions(festivalRepository,fileService,reviewService,wishRepository);
     }
 
     @Test
@@ -380,13 +391,13 @@ class FestivalServiceTest {
 
         //when
         ForbiddenException e = assertThrows(
-                ForbiddenException.class, () -> festivalService.removeOne(identifierUser2, any())
+                ForbiddenException.class, () -> festivalService.deleteFestivalForManager(identifierUser2, any())
         );
 
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
         verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService);
     }
 
     @Test
@@ -396,15 +407,19 @@ class FestivalServiceTest {
         Long festivalId = 1L;
         Festival festival = createFestival();
         setFestivalId(festival, festivalId);
+
         given(festivalRepository.findFestivalById(any())).willReturn(Optional.of(festival));
 
         //when
         festivalService.deleteFestivalForAdmin(festivalId);
 
+
         //then: 행위만을 검증
         verify(festivalRepository).deleteById(festivalId);
         verify(festivalRepository).findFestivalById(festivalId);
-        verifyNoMoreInteractions(festivalRepository);
+        verify(wishRepository).deleteByFestivalId(festivalId);
+        verify(reviewService).deleteReviewByFestivalId(festivalId);
+        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {
