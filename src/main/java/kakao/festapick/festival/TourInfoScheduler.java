@@ -21,6 +21,7 @@ import kakao.festapick.fileupload.repository.FileJdbcTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +47,7 @@ public class TourInfoScheduler {
     private final RestClient tourApiClient;
 
     @GetMapping("/update") // 테스트용 - 개발 완료시 삭제할 것
-    @Scheduled(cron = "0 10 3 * * *")
+    @Scheduled(cron = "0 50 11 * * *")
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
@@ -104,6 +105,7 @@ public class TourInfoScheduler {
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", numOfRows)
                         .build())
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(TourInfoResponse.class);
         return response;
@@ -118,6 +120,7 @@ public class TourInfoScheduler {
                         .queryParam("serviceKey", tourApiKey)
                         .queryParam("_type", "json")
                         .build())
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(TourDetailResponse.class);
         return response.getBody();
@@ -132,11 +135,11 @@ public class TourInfoScheduler {
                         .queryParam("serviceKey", tourApiKey)
                         .queryParam("_type", "json")
                         .build())
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(TourImagesResponse.class);
         return response.getBody();
     }
-
 
     private int getMaxColumns() {
         ResponseEntity<TourApiMaxRows> response = tourApiClient.get()
@@ -148,6 +151,7 @@ public class TourInfoScheduler {
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", 1)
                         .build())
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(TourApiMaxRows.class);
         return (response.getBody() != null) ? response.getBody().getMaxColumns() : 0;
