@@ -47,7 +47,7 @@ public class TourInfoScheduler {
     private final RestClient tourApiClient;
 
     @GetMapping("/update") // 테스트용 - 개발 완료시 삭제할 것
-    @Scheduled(cron = "0 50 11 * * *")
+    @Scheduled(cron = "0 40 14 * * *")
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
