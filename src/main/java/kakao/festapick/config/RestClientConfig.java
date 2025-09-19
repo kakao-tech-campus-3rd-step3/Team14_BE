@@ -30,9 +30,9 @@ public class RestClientConfig {
 
         return builder.requestFactory(requestFactory).uriBuilderFactory(uriBuilderFactory)
                 .defaultStatusHandler(HttpStatusCode::is4xxClientError,
-                        (req, res) -> log.error("restClient에서 발생한 400 오류(클라이언트 에러)"))
+                        (req, res) -> log.error("4xxClientError"))
                 .defaultStatusHandler(HttpStatusCode::is5xxServerError,
-                        (req, res) -> log.error("restClient에서 발생한 500 오류(서버 에러)")).build();
+                        (req, res) -> log.error("is5xxServerError")).build();
 
     }
 
