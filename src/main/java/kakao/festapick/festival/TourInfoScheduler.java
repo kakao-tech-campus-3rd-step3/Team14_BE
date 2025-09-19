@@ -53,6 +53,7 @@ public class TourInfoScheduler {
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
+            maxRows = 45;
             log.info("가져올 축제 정보 수 : {}", maxRows);
             TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
@@ -61,19 +62,18 @@ public class TourInfoScheduler {
                     .toList();
             festivalJdbcTemplateRepository.upsertFestivalInfo(festivals);
             log.info("축제 정보 저장 완료");
-            saveImages(festivals);
+            saveImages(festivals.stream().map(festival -> festival.getContentId()).toList());
         }
     }
 
-    private void saveImages(List<Festival> festivals) {
+    private void saveImages(List<String> contentIds) {
         //새로운 이미지 저장하기
         Map<String, Long> idMap = new HashMap<>();
         List<FileEntity> files = new ArrayList<>();
         Map<String, String> posters = new HashMap<>();
 
         //이미지 저장을 위해서는 축제의 id가 필요함
-        festivalRepository.findFestivalsByContentIds(
-                festivals.stream().map(festival -> festival.getContentId()).toList())
+        festivalRepository.findFestivalsByContentIds(contentIds)
                 .forEach(festival -> idMap.put(festival.getContentId(), festival.getId()));
 
         //이미지 저장 및 대표 이미지를 포스터로 변경
