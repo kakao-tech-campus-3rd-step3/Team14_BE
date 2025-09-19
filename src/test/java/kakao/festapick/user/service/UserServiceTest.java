@@ -1,5 +1,12 @@
 package kakao.festapick.user.service;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.util.Optional;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
@@ -15,15 +22,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.annotation.Import;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -32,7 +30,7 @@ public class UserServiceTest {
     private UserService userService;
 
     @Mock
-    private UserRepository userRepository;
+    private UserLowService userLowService;
 
     @Mock
     private CookieComponent cookieComponent;
@@ -51,17 +49,17 @@ public class UserServiceTest {
         UserEntity userEntity = new UserEntity("GOOGLE-1234",
                 "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE);
 
-        given(userRepository.findByIdentifier(any()))
-                .willReturn(Optional.of(userEntity));
+        given(userLowService.findByIdentifier(any()))
+                .willReturn(userEntity);
 
         // when
         userService.changeProfileImage(userEntity.getIdentifier(), new FileUploadRequest(1L,"updateImageUrl"));
 
         // then
-        verify(userRepository).findByIdentifier(any());
+        verify(userLowService).findByIdentifier(any());
         verify(s3Service).deleteS3File(any());
         verify(temporalFileRepository).deleteById(any());
-        verifyNoMoreInteractions(userRepository,s3Service, temporalFileRepository,cookieComponent);
+        verifyNoMoreInteractions(userLowService,s3Service, temporalFileRepository,cookieComponent);
 
     }
 
@@ -71,15 +69,15 @@ public class UserServiceTest {
 
         // given
 
-        given(userRepository.findByIdentifier(any()))
-                .willReturn(Optional.empty());
+        given(userLowService.findByIdentifier(any()))
+                .willThrow(NotFoundEntityException.class);
 
         // when & then
         assertThatThrownBy(()->
                 userService.changeProfileImage("GOOGLE-1234", new FileUploadRequest(1L,"updateImageUrl"))
         ).isInstanceOf(NotFoundEntityException.class);
-        verify(userRepository).findByIdentifier(any());
-        verifyNoMoreInteractions(userRepository,s3Service, temporalFileRepository,cookieComponent);
+        verify(userLowService).findByIdentifier(any());
+        verifyNoMoreInteractions(userLowService,s3Service, temporalFileRepository,cookieComponent);
 
     }
 }

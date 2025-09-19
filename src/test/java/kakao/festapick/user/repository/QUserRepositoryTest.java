@@ -1,9 +1,10 @@
 package kakao.festapick.user.repository;
 
-import kakao.festapick.user.dto.UserSearchCond;
-import kakao.festapick.user.domain.SocialType;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
+import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

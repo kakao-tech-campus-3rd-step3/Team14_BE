@@ -69,6 +69,8 @@ public class S3Service {
     }
 
     public void deleteS3File(String fileUrl) {
+        if(fileUrl.startsWith("http://tong.visitkorea")) return;
+
         String path = extractFileName(fileUrl);
         if (path.startsWith("defaultImage")) return;
 

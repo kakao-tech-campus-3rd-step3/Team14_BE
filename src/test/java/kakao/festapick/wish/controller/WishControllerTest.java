@@ -7,16 +7,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.mockuser.WithCustomMockUser;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
@@ -66,13 +62,13 @@ public class WishControllerTest {
                 festival.getId());
         assertThat(find).isPresent();
         Wish actual = find.get();
+
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),
-                () -> AssertionsForClassTypes.assertThat(actual.getFestival())
-                        .isEqualTo(festival),
-                () -> AssertionsForClassTypes.assertThat(actual.getUser())
-                        .isEqualTo(userEntity)
+                () -> AssertionsForClassTypes.assertThat(actual.getFestival()).isEqualTo(festival),
+                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(userEntity)
         );
+
     }
 
     @Test
@@ -106,22 +102,19 @@ public class WishControllerTest {
         mockMvc.perform(delete(String.format("/api/wishes/%s", target.getId())))
                 .andExpect(status().isNoContent());
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(identifier,
-                festival.getId());
+        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(identifier, festival.getId());
         assertThat(find).isEmpty();
     }
 
     private UserEntity saveUserEntity() {
-
         return userRepository.save(testUtil.createTestUser(identifier));
     }
 
-    private Festival saveFestival() {
+    private Festival saveFestival() throws Exception {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 11, "test area1", "test area2", "http://asd.example.com/test.jpg",
                 testUtil.toLocalDate("20250823"), testUtil.toLocalDate("20251231"));
-        Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
-                "testtesttest");
+        Festival festival = new Festival(festivalRequestDto, testUtil.createTourDetailResponse());
 
         return festivalRepository.save(festival);
     }

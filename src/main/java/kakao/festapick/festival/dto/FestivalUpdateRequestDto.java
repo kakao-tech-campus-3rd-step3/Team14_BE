@@ -3,6 +3,7 @@ package kakao.festapick.festival.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.List;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import org.hibernate.validator.constraints.Length;
 
@@ -18,7 +19,10 @@ public record FestivalUpdateRequestDto(
 
         String addr2,
 
-        FileUploadRequest imageInfo,
+        @NotNull
+        FileUploadRequest posterInfo,
+
+        List<FileUploadRequest> imageInfos,
 
         @NotNull
         LocalDate startDate,

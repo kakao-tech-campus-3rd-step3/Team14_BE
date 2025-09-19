@@ -4,18 +4,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.time.LocalDate;
-
-import kakao.festapick.festival.dto.FestivalCustomRequestDto;
+import kakao.festapick.config.DefaultImageConfig;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.user.domain.SocialType;
-import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
+import kakao.festapick.global.DefaultImageProperties;
+import kakao.festapick.util.TestUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class FestivalTest {
+
+    private final TestUtil testUtil = new TestUtil();
+
+    @BeforeEach
+    void setUp() {
+        DefaultImageProperties props = new DefaultImageProperties();
+        props.setFestival("festival_default.png");
+        props.setProfile("profile_default.png");
+        new DefaultImageConfig(props).init();
+    }
 
     @Test
     void updateFestival() {
@@ -50,14 +59,10 @@ class FestivalTest {
 
     @Test
     @DisplayName("이미지 url이 빈값일때, 기본 이미지 반환")
-    void returnDefaultImage() {
-        FestivalCustomRequestDto festivalCustomRequestDto = new FestivalCustomRequestDto("축제title", 32, "주소1", "상세주소",
-                new FileUploadRequest(1L,""), LocalDate.of(2025, 8, 24), LocalDate.of(2025, 8, 25), "hompage", "overivew");
-
-        Festival festival = new Festival(festivalCustomRequestDto, new UserEntity("GOOGLE-1234",
-                "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE));
-
-        assertThat(festival.getImageUrl()).isNotBlank();
+    void returnDefaultImage() throws Exception {
+        FestivalRequestDto festivalRequestDto = new FestivalRequestDto("contentId", "축제title", 32, "주소1", "상세주소", null, testUtil.toLocalDate("20250804"),testUtil.toLocalDate("20250806"));
+        Festival festival = new Festival(festivalRequestDto, testUtil.createTourDetailResponse());
+        assertThat(festival.getPosterInfo()).isNotBlank();
     }
 
     private Festival createFestival(){
@@ -67,7 +72,7 @@ class FestivalTest {
     private FestivalUpdateRequestDto createUpdateInfo(){
         return new FestivalUpdateRequestDto("update_title",
                 1, "update_addr1", "update_addr2",
-                new FileUploadRequest(1L,"update_imageUrl"), LocalDate.now(), LocalDate.now(), "hompage", "overview");
+                new FileUploadRequest(1L,"update_imageUrl"), null, LocalDate.now(), LocalDate.now(), "hompage", "overview");
     }
 
 }

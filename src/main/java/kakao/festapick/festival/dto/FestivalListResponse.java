@@ -8,7 +8,7 @@ public record FestivalListResponse(
         String title,
         String addr1,
         String addr2,
-        String imageUrl,
+        String posterInfo,
         LocalDate startDate,
         LocalDate endDate
 ) {
@@ -19,7 +19,7 @@ public record FestivalListResponse(
                 festival.getTitle(),
                 festival.getAddr1(),
                 festival.getAddr2(),
-                festival.getImageUrl(),
+                festival.getPosterInfo(),
                 festival.getStartDate(),
                 festival.getEndDate()
         );

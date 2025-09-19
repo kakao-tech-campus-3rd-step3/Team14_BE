@@ -13,6 +13,7 @@ import kakao.festapick.jwt.domain.RefreshToken;
 import kakao.festapick.jwt.repository.RefreshTokenRepository;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -29,14 +30,14 @@ import java.util.Arrays;
 public class JwtService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final UserService userService;
+    private final UserLowService userLowService;
     private final JwtUtil jwtUtil;
     private final CookieComponent cookieComponent;
     private final HmacUtil tokenEncoder;
 
     public RefreshToken saveRefreshToken(String identifier, String refreshToken) {
 
-        UserEntity findUser = userService.findByIdentifier(identifier);
+        UserEntity findUser = userLowService.findByIdentifier(identifier);
 
         String encodedRefreshToken = tokenEncoder.encode(refreshToken);
 
@@ -83,7 +84,7 @@ public class JwtService {
     }
 
     public void deleteRefreshTokenByIdentifier(String identifier) {
-        UserEntity findUser = userService.findByIdentifier(identifier);
+        UserEntity findUser = userLowService.findByIdentifier(identifier);
         refreshTokenRepository.deleteByUser(findUser);
     }
 

@@ -12,6 +12,7 @@ import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,7 +31,7 @@ import java.util.List;
 public class JwtFilterForAdminPage extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserService userService;
+    private final UserLowService userLowService;
     private final CookieComponent cookieComponent;
 
     @Override
@@ -72,7 +73,7 @@ public class JwtFilterForAdminPage extends OncePerRequestFilter {
         String identifier = claims.get("identifier").toString();
 
         try {
-            UserEntity findUser = userService.findByIdentifier(identifier);
+            UserEntity findUser = userLowService.findByIdentifier(identifier);
             List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+findUser.getRoleType().name()));
             Authentication auth = new UsernamePasswordAuthenticationToken(identifier, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);

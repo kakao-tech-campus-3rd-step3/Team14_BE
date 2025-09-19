@@ -1,21 +1,19 @@
 package kakao.festapick.review.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.*;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
@@ -30,13 +28,9 @@ import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
-import org.assertj.core.api.AssertionsForClassTypes;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +93,6 @@ public class ReviewControllerTest {
 
         int idx = header.lastIndexOf("/");
         Long savedReviewId = Long.valueOf(header.substring(idx + 1));
-
 
         Optional<Review> find = reviewRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
                 savedReviewId);
@@ -252,12 +245,11 @@ public class ReviewControllerTest {
         return userRepository.save(testUtil.createTestUser(identifier));
     }
 
-    private Festival saveFestival() {
+    private Festival saveFestival() throws Exception {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 11, "test area1", "test area2", "http://asd.example.com/test.jpg", testUtil.toLocalDate("20250823"),
                 testUtil.toLocalDate("20251231"));
-        Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
-                "testtesttest");
+        Festival festival = new Festival(festivalRequestDto, testUtil.createTourDetailResponse());
 
         return festivalRepository.save(festival);
     }

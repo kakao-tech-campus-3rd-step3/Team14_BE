@@ -18,6 +18,7 @@ import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,17 +36,17 @@ import java.util.stream.Stream;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final UserService userService;
     private final FestivalRepository festivalRepository;
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
     private final S3Service s3Service;
+    private final UserLowService userLowService;
 
 
     public Long createReview(Long festivalId, ReviewRequestDto requestDto, String identifier) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        UserEntity user = userService.findByIdentifier(identifier);
+        UserEntity user = userLowService.findByIdentifier(identifier);
 
         if (reviewRepository.existsByUserIdAndFestivalId(user.getId(), festivalId)) {
             throw new DuplicateEntityException(ExceptionCode.REVIEW_DUPLICATE);
@@ -54,7 +55,7 @@ public class ReviewService {
         Review newReview = new Review(user, festival, requestDto.content(), requestDto.score());
         Review saved = reviewRepository.save(newReview);
 
-        saveFiles(requestDto.imageInfos(), requestDto.videoInfo(), saved);
+        saveFiles(requestDto.imageInfos(), requestDto.videoInfo(), saved.getId());
 
         return saved.getId();
     }
@@ -156,7 +157,7 @@ public class ReviewService {
         }
 
 
-        saveFiles(newImages, newVideo, review);   // 새로운 파일만 저장
+        saveFiles(newImages, newVideo, review.getId());   // 새로운 파일만 저장
         fileService.deleteAllByFileEntity(oldFiles); // 오래된 파일은 삭제
         s3Service.deleteFiles(oldFiles.stream().map(FileEntity::getUrl).toList()); // s3 파일 삭제는 항상 마지막에 호출
     }
@@ -168,21 +169,43 @@ public class ReviewService {
             throw new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND);
         }
 
-        fileService.deleteByDomainId(reviewId, DomainType.REVIEW);
+        fileService.deleteByDomainId(reviewId, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
-    private void saveFiles(List<FileUploadRequest> imageInfos, FileUploadRequest videoInfo, Review saved) {
+    public void deleteReviewByFestivalId(Long festivalId) {
+
+        List<Long> reviewIds = reviewRepository.findByFestivalId(festivalId)
+                .stream().map(Review::getId).toList();
+
+        reviewRepository.deleteByFestivalId(festivalId);
+
+        fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+    }
+
+    public void deleteReviewByUserId(Long userId) {
+
+        List<Long> reviewIds = reviewRepository.findByUserId(userId)
+                .stream().map(Review::getId).toList();
+
+        reviewRepository.deleteByUserId(userId);
+
+        fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+    }
+
+
+    //review의 id만 넘기는건 어떤지?
+    private void saveFiles(List<FileUploadRequest> imageInfos, FileUploadRequest videoInfo, Long id) {
         List<FileEntity> files = new ArrayList<>();
         List<Long> temporalFileIds = new ArrayList<>();
 
         if(imageInfos != null)
             imageInfos.forEach(imageInfo ->{
-                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.REVIEW, saved.getId()));
+                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.REVIEW, id));
                 temporalFileIds.add(imageInfo.id());
             });
 
         if (videoInfo != null){
-            files.add(new FileEntity(videoInfo.presignedUrl(), FileType.VIDEO, DomainType.REVIEW, saved.getId()));
+            files.add(new FileEntity(videoInfo.presignedUrl(), FileType.VIDEO, DomainType.REVIEW, id));
             temporalFileIds.add(videoInfo.id());
         }
 

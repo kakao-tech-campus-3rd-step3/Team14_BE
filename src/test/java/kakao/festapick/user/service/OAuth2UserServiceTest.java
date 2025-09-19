@@ -1,31 +1,26 @@
 package kakao.festapick.user.service;
 
 
-import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.fileupload.repository.TemporalFileRepository;
-import kakao.festapick.fileupload.service.S3Service;
-import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.user.domain.SocialType;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.verify;
+import static org.mockito.BDDMockito.verifyNoMoreInteractions;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.GoogleOAuth2Rep;
 import kakao.festapick.user.repository.UserRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.SoftAssertions.*;
-import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OAuth2UserServiceTest {

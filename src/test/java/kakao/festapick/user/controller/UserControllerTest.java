@@ -1,19 +1,31 @@
 package kakao.festapick.user.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
+import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
 import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.mockuser.WithCustomMockUser;
-import kakao.festapick.review.dto.ReviewResponseDto;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +34,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.SoftAssertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -45,6 +50,8 @@ class UserControllerTest {
     @Autowired
     private TemporalFileRepository temporalFileRepository;
 
+    @Autowired
+    private FestivalRepository festivalRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -61,13 +68,22 @@ class UserControllerTest {
         // given
         UserEntity userEntity = saveUserEntity();
 
+        for (int i=0; i<3; i++) {
+            festivalRepository.save(testUtil.createTestFestival(userEntity));
+        }
+
         // when & then
         mockMvc.perform(delete("/api/users"))
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
+        List<Festival> festivals = festivalRepository.findFestivalByManagerId(userEntity.getId());
 
-        assertThat(findUser.isPresent()).isEqualTo(false);
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(festivals.size()).isEqualTo(0);
+            softly.assertThat(findUser.isPresent()).isEqualTo(false);
+        });
+
     }
 
     @Test
@@ -125,7 +141,5 @@ class UserControllerTest {
 
         return userRepository.save(testUtil.createTestUser(identifier));
     }
-
-
 
 }

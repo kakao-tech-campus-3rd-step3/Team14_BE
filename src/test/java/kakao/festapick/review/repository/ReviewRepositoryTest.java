@@ -3,16 +3,12 @@ package kakao.festapick.review.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.review.domain.Review;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -52,16 +48,14 @@ public class ReviewRepositoryTest {
         return userRepository.save(testUtil.createTestUser(identifier));
     }
 
-    private Festival saveFestival() {
+    private Festival saveFestival() throws Exception {
 
-        String overView = "test overview";
-        String homepage = "http://asd.test.com";
-        return festivalRepository.save(new Festival(requestDto, overView, homepage));
+        return festivalRepository.save(new Festival(requestDto, testUtil.createTourDetailResponse()));
     }
 
     @Test
     @DisplayName("리뷰 등록 성공 테스트")
-    void createReviewSuccess() {
+    void createReviewSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -80,7 +74,7 @@ public class ReviewRepositoryTest {
 
     @Test
     @DisplayName("리뷰 아이디로 리뷰 찾기 성공 테스트")
-    void findReviewByIdSuccess() {
+    void findReviewByIdSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -106,7 +100,7 @@ public class ReviewRepositoryTest {
 
     @Test
     @DisplayName("축제 아이디로 내 리뷰 존재 확인 테스트")
-    void findReviewByFestivalIdSuccess() {
+    void findReviewByFestivalIdSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -120,7 +114,7 @@ public class ReviewRepositoryTest {
 
     @Test
     @DisplayName("내 리뷰 리스트 조회 성공 테스트")
-    void findMyReviewSuccess() {
+    void findMyReviewSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
@@ -144,7 +138,7 @@ public class ReviewRepositoryTest {
 
     @Test
     @DisplayName("특정 축제의 리뷰 리스트 조회 성공 테스트")
-    void findFestivalReviewSuccess() {
+    void findFestivalReviewSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
 
