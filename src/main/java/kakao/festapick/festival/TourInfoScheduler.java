@@ -14,6 +14,7 @@ import kakao.festapick.festival.tourapi.TourApiMaxRows;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.festival.tourapi.TourImagesResponse;
 import kakao.festapick.festival.tourapi.TourInfoResponse;
+import kakao.festapick.festival.tourapi.response.TourApiResponse.FestivalInfo;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -53,7 +54,6 @@ public class TourInfoScheduler {
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
-            maxRows = 45;
             log.info("가져올 축제 정보 수 : {}", maxRows);
             TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
@@ -77,19 +77,21 @@ public class TourInfoScheduler {
                 .forEach(festival -> idMap.put(festival.getContentId(), festival.getId()));
 
         //이미지 저장 및 대표 이미지를 포스터로 변경
-        idMap.keySet()
+        List<TourImagesResponse> tourImagesResponseList = idMap.keySet()
                 .stream().map(contentId -> getDetailImages(contentId))
                 .filter(imagesResponse -> imagesResponse.getNumOfRows() > 0)
-                .forEach(imagesResponse -> imagesResponse.getImageInfos()
-                        .forEach(imageInfo -> {
-                            if(imageInfo.imgname().contains("포스터")){
-                                posters.put(imageInfo.contentid(), imageInfo.originimgurl());
-                            }
-                            else{
-                                files.add(new FileEntity(imageInfo.originimgurl(), FileType.IMAGE, DomainType.FESTIVAL, idMap.get(imageInfo.contentid())));
-                            }
-                        }
-                ));
+                .toList();
+
+        for (TourImagesResponse tourImagesResponse : tourImagesResponseList) {
+            for (FestivalInfo imageInfo : tourImagesResponse.getImageInfos()) {
+                if(imageInfo.imgname().contains("포스터")){
+                    posters.put(imageInfo.contentid(), imageInfo.originimgurl());
+                }
+                else{
+                    files.add(new FileEntity(imageInfo.originimgurl(), FileType.IMAGE, DomainType.FESTIVAL, idMap.get(imageInfo.contentid())));
+                }
+            }
+        }
 
         fileJdbcTemplateRepository.insertFestivalImages(files); // 축제 관련 이미지 저장하기
         festivalJdbcTemplateRepository.updatePosters(posters); // 대표 이미지를 poster로 upsert
