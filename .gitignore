@@ -41,3 +41,5 @@ out/
 src/main/resources/application-prod.properties
 
 src/test/resources/application-prod.properties
+
+.DS_Store
