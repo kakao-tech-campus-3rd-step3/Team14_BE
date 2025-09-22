@@ -57,28 +57,30 @@ public class TourInfoScheduler {
             log.info("가져올 축제 정보 수 : {}", maxRows);
             TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
-            List<Festival> festivals = festivalList.stream()
+            List<Festival> festivals = festivalList.parallelStream()
                     .map(requestDto -> new Festival(requestDto, getDetails(requestDto.contentId())))
                     .toList();
             festivalJdbcTemplateRepository.upsertFestivalInfo(festivals);
             log.info("축제 정보 저장 완료");
-            saveImages(festivals.stream().map(festival -> festival.getContentId()).toList());
+
+            //이미지 저장을 위해서는 축제의 id가 필요함
+            Map<String, Long> idMap = new HashMap<>();
+            List<String> contentIds = festivals.stream().map(festival -> festival.getContentId()).toList();
+            festivalRepository.findFestivalsByContentIds(contentIds)
+                    .forEach(festival -> idMap.put(festival.getContentId(), festival.getId()));
+
+            saveImages(idMap);
         }
     }
 
-    private void saveImages(List<String> contentIds) {
+    private void saveImages(Map<String, Long> idMap) {
         //새로운 이미지 저장하기
-        Map<String, Long> idMap = new HashMap<>();
         List<FileEntity> files = new ArrayList<>();
         Map<String, String> posters = new HashMap<>();
 
-        //이미지 저장을 위해서는 축제의 id가 필요함
-        festivalRepository.findFestivalsByContentIds(contentIds)
-                .forEach(festival -> idMap.put(festival.getContentId(), festival.getId()));
-
         //이미지 저장 및 대표 이미지를 포스터로 변경
         List<TourImagesResponse> tourImagesResponseList = idMap.keySet()
-                .stream().map(contentId -> getDetailImages(contentId))
+                .parallelStream().map(contentId -> getDetailImages(contentId))
                 .filter(imagesResponse -> imagesResponse.getNumOfRows() > 0)
                 .toList();
 
