@@ -18,8 +18,8 @@ public class FileJdbcTemplateRepository {
 
     public void insertFestivalImages(List<FileEntity> fileEntities) {
         String upsertQuery =
-                "insert into FileEntity(url, fileType, domainType, domainId, createdDate)"
-                        + "values (?, ?, ?, ?, ?)"
+                "insert into FileEntity(url, fileType, domainType, domainId, createdDate) "
+                        + "values (?, ?, ?, ?, ?) "
                         + "on duplicate key update "
                         + "createdDate =?";
 

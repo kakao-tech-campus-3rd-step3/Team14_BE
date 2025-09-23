@@ -23,8 +23,8 @@ public class FestivalJdbcTemplateRepository {
 
     public void upsertFestivalInfo(List<Festival> festivalList) {
         String upsertQuery =
-                "insert into Festival(contentId, title, areaCode, addr1, addr2, posterInfo, startDate, endDate, overView, homePage, state)"
-                        + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "insert into Festival(contentId, title, areaCode, addr1, addr2, posterInfo, startDate, endDate, overView, homePage, state) "
+                        + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                         + "on duplicate key update "
                         + "title = ?, areaCode = ?, addr1 = ?, addr2 = ?, posterInfo = ?, startDate = ?, endDate = ?, overView = ?, homePage = ?, state = ?";
 
@@ -66,7 +66,7 @@ public class FestivalJdbcTemplateRepository {
 
     public void updatePosters(Map<String, String> posters) {
         String updateQuery = "update Festival "
-                + "set posterInfo = ?"
+                + "set posterInfo = ? "
                 + "where contentId =?";
 
         List<Map.Entry<String, String>> posterList = posters.entrySet().stream().toList();

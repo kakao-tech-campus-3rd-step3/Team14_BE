@@ -43,7 +43,7 @@ public class FileService {
                 .stream()
                 .map(FileEntity::getUrl).toList();
 
-        fileRepository.deleteByDomainIdAndDomainType(domainId,domainType);
+        fileRepository.deleteByDomainIdAndDomainType(domainId, domainType);
 
         s3Service.deleteFiles(urls); // s3 파일 삭제는 항상 마지막에 호출
     }
