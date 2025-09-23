@@ -46,6 +46,10 @@ public class TestUtil {
         return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, userEntity, null);
     }
 
+    public Festival createTestFestival(UserEntity userEntity) {
+        return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, userEntity, null);
+    }
+
     public LocalDate toLocalDate(String date){
         return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }

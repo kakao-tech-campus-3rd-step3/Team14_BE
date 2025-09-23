@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Entity
 @Getter
+@Slf4j
 @Table(indexes = @Index(name = "idx_festival_area_state_startdate_id", columnList= "areaCode, state, startDate, id"))
 public class Festival {
 
