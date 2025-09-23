@@ -20,10 +20,10 @@ import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
-import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
@@ -62,11 +62,11 @@ class UserControllerTest {
 
     @Test
     @DisplayName("회원 탈퇴 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void withDrawSuccess() throws Exception {
 
         // given
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         for (int i=0; i<3; i++) {
             festivalRepository.save(testUtil.createTestFestival(userEntity));
@@ -88,11 +88,11 @@ class UserControllerTest {
 
     @Test
     @DisplayName("본인 정보 조회 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void getMyInfoSuccess() throws Exception {
 
         // given
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         // when
         String response = mockMvc.perform(get("/api/users/my"))
@@ -113,11 +113,11 @@ class UserControllerTest {
 
     @Test
     @DisplayName("프로필 이미지 업데이트 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void changeProfileImageSuccess() throws Exception {
 
         // given
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
 
         TemporalFile saved = temporalFileRepository.save(new TemporalFile("http://updateImageUrl"));

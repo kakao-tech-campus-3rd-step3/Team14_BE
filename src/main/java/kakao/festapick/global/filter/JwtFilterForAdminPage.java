@@ -74,8 +74,9 @@ public class JwtFilterForAdminPage extends OncePerRequestFilter {
 
         try {
             UserEntity findUser = userLowService.findByIdentifier(identifier);
+            Long userId = findUser.getId();
             List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+findUser.getRoleType().name()));
-            Authentication auth = new UsernamePasswordAuthenticationToken(identifier, null, authorities);
+            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
             filterChain.doFilter(request, response);
         } catch (NotFoundEntityException ex) {

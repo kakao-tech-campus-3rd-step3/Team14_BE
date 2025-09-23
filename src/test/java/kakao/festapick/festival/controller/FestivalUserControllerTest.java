@@ -16,9 +16,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import jakarta.persistence.EntityManager;
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
@@ -27,13 +24,12 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.repository.WishRepository;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,12 +59,14 @@ class FestivalUserControllerTest {
 
     @Autowired private TestUtil testUtil;
 
+    private  UserEntity testManager;
+
 
     @BeforeEach
     void initTestDB() throws Exception {
         String identifier = "KAKAO_141036";
-        UserEntity user = testUtil.createTestManager(identifier);
-        userRepository.save(user);
+        testManager = testUtil.createTestManager(identifier);
+        userRepository.save(testManager);
 
         Festival festival1 = createFestival("FESTAPICK_001" , "부산대축제", 1, testUtil.toLocalDate("20250810"), testUtil.toLocalDate("20250820"));
         festivalRepository.save(festival1);
@@ -79,17 +77,18 @@ class FestivalUserControllerTest {
         Festival festival3 = createFestival("FESTAPICK_003","정컴인축제",  1, testUtil.toLocalDate("20250814"), testUtil.toLocalDate("20250817"));
         festivalRepository.save(festival3);
 
-        Festival festival4 = createCustomFestival("의생공축제",  1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
+        Festival festival4 = createCustomFestival("의생공축제",  1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), testManager);
         festivalRepository.save(festival4);
 
-        Festival festival5 = createCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
+        Festival festival5 = createCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), testManager);
         festivalRepository.save(festival5);
     }
 
     @Test
-    @WithCustomMockUser(identifier = "KAKAO_141036", role = "ROLE_FESTIVAL_MANAGER")
     @DisplayName("축제 등록 - FESTIVAL_MANAGER")
     void addFestival() throws Exception {
+
+        TestSecurityContextHolderInjection.inject(testManager.getId(), testManager.getRoleType());
 
         //given
         FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, testUtil.toLocalDate("20250804"), testUtil.toLocalDate("20250806"));
@@ -105,9 +104,12 @@ class FestivalUserControllerTest {
 
 
     @Test
-    @WithMockUser
     @DisplayName("축제 등록 실패 - USER")
     void addFestivalFail() throws Exception {
+
+        UserEntity user = testUtil.createTestUser();
+        userRepository.save(user);
+        TestSecurityContextHolderInjection.inject(user.getId(), user.getRoleType());
 
         //given
         FestivalCustomRequestDto requestDto = customFestivalRequest("title", 1, testUtil.toLocalDate("20250804"), testUtil.toLocalDate("20250806"));
@@ -171,12 +173,13 @@ class FestivalUserControllerTest {
 
     @Test
     @DisplayName("내가 등록한 축제를 조회")
-    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void getMyFestivals() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
+
+        TestSecurityContextHolderInjection.inject(user.getId(), user.getRoleType());
 
         Festival festival1 = createCustomFestival("정컴축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
         festivalRepository.save(festival1);
@@ -200,11 +203,11 @@ class FestivalUserControllerTest {
 
     @Test
     @DisplayName("축제의 정보를 수정 - 포스터를 변경")
-    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void updateFestivalInfo() throws Exception {
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
+        TestSecurityContextHolderInjection.inject(user.getId(), user.getRoleType());
 
         Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
@@ -231,12 +234,12 @@ class FestivalUserControllerTest {
 
     @Test
     @DisplayName("내가 등록한 축제의 이미지 정보를 변경")
-    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void updatePoster() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
+        TestSecurityContextHolderInjection.inject(user.getId(), user.getRoleType());
 
         Festival festival = createCustomFestival("정컴축제", 15, testUtil.toLocalDate("20250801"), testUtil.toLocalDate("20250810"), user);
         Festival saved = festivalRepository.save(festival);
@@ -269,12 +272,11 @@ class FestivalUserControllerTest {
 
     @Test
     @DisplayName("축제 삭제 성공")
-    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void removeFestivalSuccess() throws Exception {
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
-
         userRepository.save(user);
+        TestSecurityContextHolderInjection.inject(user.getId(), user.getRoleType());
 
         Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
@@ -300,10 +302,11 @@ class FestivalUserControllerTest {
     }
 
     @Test
-    @WithMockUser
     @DisplayName("User가 축제를 삭제하려고 하는 경우 - 삭제 실패")
     void removeFestivalFail() throws Exception {
         //given
+        UserEntity user = userRepository.save(testUtil.createTestUser());
+        TestSecurityContextHolderInjection.inject(user.getId(), user.getRoleType());
         Festival festival = createFestival("FESTAPICK_999", "카테캠축제", 1, testUtil.toLocalDate("20250901"), testUtil.toLocalDate("20250903"));
         Festival saved = festivalRepository.save(festival);
 
