@@ -2,6 +2,7 @@ package kakao.festapick.festival.controller;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,9 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
@@ -24,11 +28,12 @@ import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.mockuser.WithCustomMockUser;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
+import kakao.festapick.wish.domain.Wish;
+import kakao.festapick.wish.repository.WishRepository;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,12 +57,15 @@ class FestivalUserControllerTest {
     @Autowired private FestivalRepository festivalRepository;
     @Autowired private UserRepository userRepository;
 
+    @Autowired private WishRepository wishRepository;
+
     @Autowired private ObjectMapper objectMapper;
 
     @Autowired private TestUtil testUtil;
 
+
     @BeforeEach
-    void initTestDB(){
+    void initTestDB() throws Exception {
         String identifier = "KAKAO_141036";
         UserEntity user = testUtil.createTestManager(identifier);
         userRepository.save(user);
@@ -71,10 +79,10 @@ class FestivalUserControllerTest {
         Festival festival3 = createFestival("FESTAPICK_003","정컴인축제",  1, testUtil.toLocalDate("20250814"), testUtil.toLocalDate("20250817"));
         festivalRepository.save(festival3);
 
-        Festival festival4 = creatCustomFestival("의생공축제",  1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
+        Festival festival4 = createCustomFestival("의생공축제",  1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
         festivalRepository.save(festival4);
 
-        Festival festival5 = creatCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
+        Festival festival5 = createCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
         festivalRepository.save(festival5);
     }
 
@@ -115,7 +123,7 @@ class FestivalUserControllerTest {
 
 
     @Test
-    @DisplayName("현재 특정 지역에서 진행중인 모든 축제를 조회")
+    @DisplayName("현재 특정 지역에서 참여할 수 있는 모든 축제를 조회")
     void getCurrentFestivalByArea() throws Exception {
         //given
         int areaCode = 1; //1번 지역에 3개의 축제가 열리지만 승인된건 2개뿐임,,
@@ -130,7 +138,7 @@ class FestivalUserControllerTest {
         festivalRepository.save(festival3);
 
         //when-then
-        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/area/{areaCode}/current", areaCode))
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/area/{areaCode}", areaCode))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
@@ -156,23 +164,52 @@ class FestivalUserControllerTest {
         assertAll(
                 () -> assertThat(content.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(content.overView()).isNotNull(),
-                () -> assertThat(content.addr2()).isNotNull()
+                () -> assertThat(content.addr2()).isNotNull(),
+                () -> assertThat(content.imageInfos()).isInstanceOf(List.class)
         );
-
     }
 
     @Test
+    @DisplayName("내가 등록한 축제를 조회")
+    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
+    void getMyFestivals() throws Exception {
+
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO_123456");
+        userRepository.save(user);
+
+        Festival festival1 = createCustomFestival("정컴축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
+        festivalRepository.save(festival1);
+
+        Festival festival2 = createCustomFestival("카테캠축제", 12, testUtil.toLocalDate("20250605"), testUtil.toLocalDate("20250624"), user);
+        festivalRepository.save(festival2);
+
+        //when
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/my"))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andReturn();
+
+        String response = mvcResult.getResponse().getContentAsString();
+        List<Map<String, String>> festivals = read(response, "$.content");
+
+        assertAll(
+                () -> assertThat(festivals.size()).isEqualTo(2),
+                () -> assertThat(festivals.stream().anyMatch(info -> info.get("title").equals("카테캠축제")))
+        );
+    }
+
+    @Test
+    @DisplayName("축제의 정보를 수정 - 포스터를 변경")
     @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
     void updateFestivalInfo() throws Exception {
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"),
-                testUtil.toLocalDate("20250805"), user);
+        Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
-        FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3");
+        FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3", "카테캠 포스터", null);
         String updateRequest = objectMapper.writeValueAsString(updateInfo);
 
         //when-then
@@ -187,23 +224,79 @@ class FestivalUserControllerTest {
 
         assertAll(
                 () -> assertThat(content.id()).isEqualTo(saved.getId()),
-                () -> assertThat(content.title()).isEqualTo("카테캠 축제 시즌 3")
+                () -> assertThat(content.title()).isEqualTo("카테캠 축제 시즌 3"),
+                () -> assertThat(content.posterInfo()).isEqualTo("카테캠 포스터")
         );
     }
 
     @Test
+    @DisplayName("내가 등록한 축제의 이미지 정보를 변경")
     @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
-    void removeFestival() throws Exception {
+    void updatePoster() throws Exception {
+
         //given
         UserEntity user = testUtil.createTestManager("KAKAO_123456");
         userRepository.save(user);
 
-        Festival festival = creatCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
+        Festival festival = createCustomFestival("정컴축제", 15, testUtil.toLocalDate("20250801"), testUtil.toLocalDate("20250810"), user);
         Festival saved = festivalRepository.save(festival);
+
+        List<FileUploadRequest> images = new ArrayList<>();
+        images.add(new FileUploadRequest(99L, "https://festapick.firstimage.com"));
+        images.add(new FileUploadRequest(9999L,"https://festapick.newimage.com"));
+
+        FestivalUpdateRequestDto festivalUpdateRequestDto = createUpdateInfo("카테캠 축제", "카테캠 포스터", images);
+        String updateRequest = objectMapper.writeValueAsString(festivalUpdateRequestDto);
+
+        //when-then
+        MvcResult mvcResult = mockMvc.perform(patch("/api/festivals/{festivalId}", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateRequest))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andReturn();
+
+        ApiResponseDto<FestivalDetailResponseDto> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        FestivalDetailResponseDto content = response.content();
+
+        assertAll(
+                () -> assertThat(content.imageInfos().size()).isEqualTo(2),
+                () -> assertThat(content.imageInfos().contains("https://festapick.newimage.com")),
+                () -> assertThat(content.imageInfos().contains("https://festapick.firstimage.com"))
+        );
+    }
+
+
+
+    @Test
+    @DisplayName("축제 삭제 성공")
+    @WithCustomMockUser(identifier = "KAKAO_123456", role = "ROLE_FESTIVAL_MANAGER")
+    void removeFestivalSuccess() throws Exception {
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO_123456");
+
+        userRepository.save(user);
+
+        Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
+        Festival saved = festivalRepository.save(festival);
+
+        for (int i=0; i<10; i++) {
+            UserEntity testUser = testUtil.createTestUser("KAKAO_" + i);
+            userRepository.save(testUser);
+            wishRepository.save(new Wish(testUser, saved));
+        }
 
         //when-then
         mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId()))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
+
+        boolean isEmpty = festivalRepository.findFestivalById(saved.getId()).isEmpty();
+        List<Wish> wishes = wishRepository.findByFestivalId(saved.getId());
+
+
+        assertSoftly(softly -> {
+            softly.assertThat(isEmpty).isTrue();
+            softly.assertThat(wishes).isEmpty();
+        });
     }
 
     @Test
@@ -226,27 +319,30 @@ class FestivalUserControllerTest {
         );
     }
 
-    private Festival createFestival(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){
-        return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), "overview", "homePage");
+    private Festival createFestival(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate)
+            throws Exception {
+        return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), testUtil.createTourDetailResponse());
     }
 
     private FestivalCustomRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
         String overview = "The overview is a section for writing a description of the festival, and it must contain at least 50 characters.";
         return new FestivalCustomRequestDto(
                 title, areaCode, "addr1", "addr2",
-                new FileUploadRequest(1L,"imageUrl"), startDate, endDate, "homePage", overview
+                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), startDate, endDate, "homePage", overview
         );
     }
 
-    private Festival creatCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
+    private Festival createCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
         return new Festival(customFestivalRequest(title, areaCode, startDate, endDate), user);
     }
 
-    private FestivalUpdateRequestDto createUpdateInfo(String title){
+    private FestivalUpdateRequestDto createUpdateInfo(String title, String posterInfo, List<FileUploadRequest> imageInfos){
         String overview = "The Kakao Tech Campus Festival was held at Pusan National University, and PNU Dev Bros won first place.";
-        return new FestivalUpdateRequestDto(    title, 1,
-                "update_addr1", "update_addr2", new FileUploadRequest(1L,"update_imageUrl"),
+        return new FestivalUpdateRequestDto(title, 1,
+                "update_addr1", "update_addr2", new FileUploadRequest(1L,posterInfo), imageInfos,
                 LocalDate.now(), LocalDate.now(), "homePage", overview);
     }
+
+
 
 }

@@ -1,85 +1,108 @@
 package kakao.festapick.festival;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
-import kakao.festapick.festival.service.FestivalService;
+import kakao.festapick.festival.repository.FestivalJdbcTemplateRepository;
+import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.tourapi.TourApiMaxRows;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.festival.tourapi.TourImagesResponse;
 import kakao.festapick.festival.tourapi.TourInfoResponse;
+import kakao.festapick.festival.tourapi.response.TourApiResponse.FestivalInfo;
+import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.domain.FileType;
+import kakao.festapick.fileupload.repository.FileJdbcTemplateRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/festivals")
+@RequiredArgsConstructor
+@RequestMapping("/api/festivals") // 나중에 제거하기
 public class TourInfoScheduler {
 
     @Value("${tour.api.secret.key}")
     private String tourApiKey;
 
-    private final RestClient restClient;
+    private final FestivalJdbcTemplateRepository festivalJdbcTemplateRepository;
 
-    private final FestivalService festivalService;
+    private final FestivalRepository festivalRepository;
 
-    public TourInfoScheduler(
-            RestClient.Builder builder,
-            FestivalService festivalService,
-            @Value("${tour.api.baseUrl}") String baseUrl
-    ) {
+    private final FileJdbcTemplateRepository fileJdbcTemplateRepository;
 
-        //TODO: make Config for RestClient
-        DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(baseUrl);
-        uriBuilderFactory.setEncodingMode(EncodingMode.NONE);
+    private final RestClient tourApiClient;
 
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofSeconds(5));
-        requestFactory.setReadTimeout(Duration.ofSeconds(5));
-
-        this.restClient = builder
-                .requestFactory(requestFactory)
-                .uriBuilderFactory(uriBuilderFactory)
-                .defaultStatusHandler(HttpStatusCode::is4xxClientError,
-                        (req, res) -> log.error("restclient에서 발생한 400 오류(클라이언트 에러)")
-                )
-                .defaultStatusHandler(
-                        HttpStatusCode::is5xxServerError,
-                        (req, res) -> log.error("restClient에서 발생한 500 오류(서버 에러)")
-                )
-                .build();
-        this.festivalService = festivalService;
-    }
-
-    @GetMapping("/update") // 테스트용 - 개발 완료시 삭제할 것
-    @Scheduled(cron = "0 10 3 * * *")
+    @GetMapping("/update") //// 테스트용 - 개발 완료시 삭제할 것
+    @Transactional
+    @Scheduled(cron = "0 15 17 * * *")
     public void fetchFestivals() {
         int maxRows = getMaxColumns();
-        System.out.println("maxRows = " + maxRows);
         if (maxRows > 0) {
+            log.info("가져올 축제 정보 수 : {}", maxRows);
             TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
-            festivalList.stream()
-                    .filter(requestDto -> festivalService.existFestivalByContentId(
-                            requestDto.contentId()))
-                    .forEach(requestDto -> festivalService.addFestival(requestDto,
-                            getDetails(requestDto.contentId())));
+            List<Festival> festivals = festivalList.parallelStream()
+                    .map(requestDto -> new Festival(requestDto, getDetails(requestDto.contentId())))
+                    .toList();
+            festivalJdbcTemplateRepository.upsertFestivalInfo(festivals);
+            log.info("축제 정보 저장 완료");
+
+            //이미지 저장을 위해서는 축제의 id가 필요함
+            Map<String, Long> idMap = new HashMap<>();
+            List<String> contentIds = festivals.stream().map(festival -> festival.getContentId()).toList();
+            festivalRepository.findFestivalsByContentIds(contentIds)
+                    .forEach(festival -> idMap.put(festival.getContentId(), festival.getId()));
+
+            saveImages(idMap);
         }
     }
 
+    private void saveImages(Map<String, Long> idMap) {
+        //새로운 이미지 저장하기
+        List<FileEntity> files = new ArrayList<>();
+        Map<String, String> posters = new HashMap<>();
+
+        //이미지 저장 및 대표 이미지를 포스터로 변경
+        List<TourImagesResponse> tourImagesResponseList = idMap.keySet()
+                .parallelStream().map(contentId -> getDetailImages(contentId))
+                .filter(imagesResponse -> imagesResponse.getNumOfRows() > 0)
+                .toList();
+
+        for (TourImagesResponse tourImagesResponse : tourImagesResponseList) {
+            for (FestivalInfo imageInfo : tourImagesResponse.getImageInfos()) {
+                if(imageInfo.imgname().contains("포스터")){
+                    posters.put(imageInfo.contentid(), imageInfo.originimgurl());
+                }
+                else{
+                    files.add(new FileEntity(imageInfo.originimgurl(), FileType.IMAGE, DomainType.FESTIVAL, idMap.get(imageInfo.contentid())));
+                }
+            }
+        }
+
+        fileJdbcTemplateRepository.insertFestivalImages(files); // 축제 관련 이미지 저장하기
+        festivalJdbcTemplateRepository.updatePosters(posters); // 대표 이미지를 poster로 upsert
+        log.info("축제 관련 사진 저장완료");
+    }
+
+
     private ResponseEntity<TourInfoResponse> getFestivals(int numOfRows) {
-        ResponseEntity<TourInfoResponse> response = restClient.get()
+        ResponseEntity<TourInfoResponse> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
@@ -88,13 +111,14 @@ public class TourInfoScheduler {
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", numOfRows)
                         .build())
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(TourInfoResponse.class);
         return response;
     }
 
     private TourDetailResponse getDetails(String contentId) {
-        ResponseEntity<TourDetailResponse> response = restClient.get()
+        ResponseEntity<TourDetailResponse> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/detailCommon2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
@@ -102,13 +126,29 @@ public class TourInfoScheduler {
                         .queryParam("serviceKey", tourApiKey)
                         .queryParam("_type", "json")
                         .build())
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(TourDetailResponse.class);
         return response.getBody();
     }
 
+    private TourImagesResponse getDetailImages(String contentId) {
+        ResponseEntity<TourImagesResponse> response = tourApiClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/detailImage2")
+                        .queryParam("MobileOS", "ETC")
+                        .queryParam("MobileApp", "FestaPick")
+                        .queryParam("contentId", contentId)
+                        .queryParam("serviceKey", tourApiKey)
+                        .queryParam("_type", "json")
+                        .build())
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .toEntity(TourImagesResponse.class);
+        return response.getBody();
+    }
+
     private int getMaxColumns() {
-        ResponseEntity<TourApiMaxRows> response = restClient.get()
+        ResponseEntity<TourApiMaxRows> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
@@ -117,11 +157,11 @@ public class TourInfoScheduler {
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", 1)
                         .build())
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(TourApiMaxRows.class);
         return (response.getBody() != null) ? response.getBody().getMaxColumns() : 0;
     }
-
 
     private String getDate() {
         LocalDate now = LocalDate.now();

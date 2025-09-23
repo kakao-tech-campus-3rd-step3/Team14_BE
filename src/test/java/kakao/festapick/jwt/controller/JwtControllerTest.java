@@ -1,14 +1,18 @@
 package kakao.festapick.jwt.controller;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import jakarta.servlet.http.Cookie;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.service.JwtService;
+import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.mockuser.WithCustomMockUser;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
@@ -18,10 +22,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc

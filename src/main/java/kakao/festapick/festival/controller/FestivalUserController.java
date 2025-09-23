@@ -44,8 +44,8 @@ public class FestivalUserController {
         return ResponseEntity.created(URI.create("/api/festivals/" + festivalId)).build();
     }
 
-    //해당 지역에서 현재 열리고 있는 축제
-    @GetMapping("/area/{areaCode}/current")
+    //해당 지역에서 현재 참여할 수 있는 축제
+    @GetMapping("/area/{areaCode}")
     public ResponseEntity<Page<FestivalListResponse>> getCurrentFestivalByArea(
             @PathVariable int areaCode,
             @RequestParam(defaultValue = "0") int page,
@@ -63,6 +63,17 @@ public class FestivalUserController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<FestivalListResponse>> getMyFestivals(
+            @AuthenticationPrincipal String identifier,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ){
+        Page<FestivalListResponse> myFestivals = festivalService.findMyFestivals(identifier, PageRequest.of(page, size));
+        return ResponseEntity.ok(myFestivals);
+    }
+
     //자신이 올린 축제에 대해서만 수정 가능
     @PatchMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
@@ -71,7 +82,7 @@ public class FestivalUserController {
             @PathVariable Long festivalId,
             @RequestBody @Valid FestivalUpdateRequestDto requestDto
     ){
-        FestivalDetailResponseDto festivalDetail =  festivalService.updateFestival(identifier, festivalId, requestDto);
+        FestivalDetailResponseDto festivalDetail = festivalService.updateFestival(identifier, festivalId, requestDto);
         ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
     }
@@ -83,7 +94,7 @@ public class FestivalUserController {
             @AuthenticationPrincipal String identifier,
             @PathVariable Long festivalId
     ){
-        festivalService.removeOne(identifier, festivalId);
+        festivalService.deleteFestivalForManager(identifier, festivalId);
         return ResponseEntity.noContent().build();
     }
 

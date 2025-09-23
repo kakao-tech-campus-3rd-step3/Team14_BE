@@ -11,6 +11,7 @@ import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.oauth2.handler.SocialSuccessHandler;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final CookieComponent cookieComponent;
     private final OAuth2UserService oAuth2UserService;
-    private final UserService userService;
+    private final UserLowService userLowService;
     @Value("${spring.front.domain}")
     private String frontDomain;
     @Value("${spring.backend.domain}")
@@ -76,9 +77,9 @@ public class SecurityConfig {
         http.sessionManagement(session->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.addFilterBefore(new JwtFilter(jwtUtil,userService), LogoutFilter.class);
+        http.addFilterBefore(new JwtFilter(jwtUtil,userLowService), LogoutFilter.class);
 
-        http.addFilterBefore(new JwtFilterForAdminPage(jwtUtil,userService,cookieComponent), JwtFilter.class);
+        http.addFilterBefore(new JwtFilterForAdminPage(jwtUtil,userLowService,cookieComponent), JwtFilter.class);
 
         http.addFilterAt(new CustomLogoutFilter(jwtUtil, jwtService, cookieComponent), LogoutFilter.class);
         http.addFilterAfter(new CustomLogoutFilterForAdminPage(jwtUtil, cookieComponent),CustomLogoutFilter.class);
@@ -107,6 +108,7 @@ public class SecurityConfig {
             "/api/festivals/**",
             "/api/reviews/**",
             "/login",
+            "/view/**", //view 확인용
             "/management/health_check"
     };
 }

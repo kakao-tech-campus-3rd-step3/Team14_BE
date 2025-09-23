@@ -8,19 +8,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
-import kakao.festapick.user.service.OAuth2UserService;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.user.service.UserService;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
@@ -42,7 +39,7 @@ public class WishServiceTest {
     private WishService wishService;
 
     @Mock
-    private UserService userService;
+    private UserLowService userLowService;
 
     @Mock
     private FestivalRepository festivalRepository;
@@ -61,7 +58,7 @@ public class WishServiceTest {
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(userService.findByIdentifier(any()))
+        given(userLowService.findByIdentifier(any()))
                 .willReturn(user);
         given(wishRepository.findByUserIdentifierAndFestivalId(any(), any()))
                 .willReturn(Optional.empty());
@@ -82,11 +79,11 @@ public class WishServiceTest {
         );
 
         verify(festivalRepository).findFestivalById(any());
-        verify(userService).findByIdentifier(any());
+        verify(userLowService).findByIdentifier(any());
         verify(wishRepository).findByUserIdentifierAndFestivalId(any(), any());
         verify(wishRepository).save(any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(userService);
+        verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }
 
@@ -99,7 +96,7 @@ public class WishServiceTest {
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(userService.findByIdentifier(any()))
+        given(userLowService.findByIdentifier(any()))
                 .willReturn(user);
         given(wishRepository.findByUserIdentifierAndFestivalId(any(), any()))
                 .willReturn(Optional.of(wish));
@@ -109,10 +106,10 @@ public class WishServiceTest {
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_DUPLICATE);
 
         verify(festivalRepository).findFestivalById(any());
-        verify(userService).findByIdentifier(any());
+        verify(userLowService).findByIdentifier(any());
         verify(wishRepository).findByUserIdentifierAndFestivalId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(userService);
+        verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }
 
@@ -131,7 +128,7 @@ public class WishServiceTest {
         verify(wishRepository).findByUserIdentifierAndId(any(), any());
         verify(wishRepository).delete(any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(userService);
+        verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }
 
@@ -151,7 +148,7 @@ public class WishServiceTest {
 
         verify(wishRepository).findByUserIdentifierAndId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(userService);
+        verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }
 
@@ -159,8 +156,7 @@ public class WishServiceTest {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 11, "test area1", "test area2", "http://asd.example.com/test.jpg",
                 testUtil.toLocalDate("20250823"), testUtil.toLocalDate("20251231"));
-        Festival festival = new Festival(festivalRequestDto, "http://asd.example.com",
-                "testtesttest");
+        Festival festival = new Festival(festivalRequestDto, new TourDetailResponse());
 
         Field idField = Festival.class.getDeclaredField("id");
         idField.setAccessible(true);

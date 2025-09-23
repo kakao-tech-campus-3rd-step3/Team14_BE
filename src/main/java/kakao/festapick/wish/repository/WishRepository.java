@@ -1,10 +1,12 @@
 package kakao.festapick.wish.repository;
 
+import java.util.List;
 import java.util.Optional;
 import kakao.festapick.wish.domain.Wish;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -18,4 +20,15 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
     Optional<Wish> findByUserIdentifierAndFestivalId(String identifier, Long festivalId);
 
     Optional<Wish> findByUserIdentifierAndId(String identifier, Long wishId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("delete from Wish w where w.user.id = :userId")
+    void deleteByUserId(Long userId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("delete from Wish w where w.festival.id = :festivalId")
+    void deleteByFestivalId(Long festivalId);
+
+    @Query("select w from Wish w where w.festival.id = :festivalId")
+    List<Wish> findByFestivalId(Long festivalId);
 }

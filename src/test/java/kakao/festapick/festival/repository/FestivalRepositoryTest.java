@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
@@ -12,9 +11,7 @@ import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +36,7 @@ class FestivalRepositoryTest {
     private final TestUtil testUtil = new TestUtil();
 
     @BeforeEach
-    void setFestivalRepository(){
+    void setFestivalRepository() throws Exception {
         String identifier = "GOOGLE-1234";
         UserEntity user = testUtil.createTestUser(identifier);
         userRepository.save(user);
@@ -53,33 +50,11 @@ class FestivalRepositoryTest {
         Festival festival3 = createFestival("FESTAPICK_003","정컴인축제",  1, testUtil.toLocalDate("20250814"), testUtil.toLocalDate("20250817"));
         festivalRepository.save(festival3);
 
-        Festival festival4 = creatCustomFestival("의생공축제",  2, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
+        Festival festival4 = createCustomFestival("의생공축제",  2, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250818"), user);
         festivalRepository.save(festival4);
 
-        Festival festival5 = creatCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
+        Festival festival5 = createCustomFestival("밀양대축제", 3, testUtil.toLocalDate("20250821"), testUtil.toLocalDate("20250823"), user);
         festivalRepository.save(festival5);
-    }
-
-    @Test
-    @DisplayName("ContentId를 통해 축제를 가져오기")
-    void findFestivalByContentId() {
-
-        //given
-        String contentId = "FESTAPICK_999";
-        Festival festival = createFestival(contentId , "카테캠축제", 1, testUtil.toLocalDate("20250817"), testUtil.toLocalDate("20250821"));
-        festivalRepository.save(festival);
-
-        //when
-        Optional<Festival> foundOne = festivalRepository.findFestivalByContentId(contentId);
-
-        //then
-        assertThat(foundOne).isNotEmpty();
-        Festival actual = foundOne.get();
-        assertAll(
-                () -> assertThat(actual.getContentId()).isEqualTo(contentId),
-                () -> assertThat(actual.getTitle()).isEqualTo("카테캠축제"),
-                () -> assertThat(actual.getState()).isEqualTo(FestivalState.APPROVED)
-        );
     }
 
     @Test
@@ -111,7 +86,7 @@ class FestivalRepositoryTest {
     }
 
     @Test
-    void findFestivalByAreaCodeAndDate() {
+    void findFestivalByAreaCodeAndDate() throws Exception {
 
         //given
         int areaCode = 1;
@@ -136,7 +111,7 @@ class FestivalRepositoryTest {
     }
 
     @Test
-    void findFestivalById() {
+    void findFestivalById() throws Exception {
         //given
         Festival festival = createFestival("축제1", "주소1", 1, testUtil.toLocalDate("20250815"), testUtil.toLocalDate("20250820"));
         Festival savedFestival = festivalRepository.save(festival);
@@ -161,7 +136,7 @@ class FestivalRepositoryTest {
         String identifier = "KAKAO-141036";
         UserEntity user = testUtil.createTestUser(identifier);
         userRepository.save(user);
-        Festival festival = creatCustomFestival("축제1", 2, testUtil.toLocalDate("20250815"), testUtil.toLocalDate("20250820"), user);
+        Festival festival = createCustomFestival("축제1", 2, testUtil.toLocalDate("20250815"), testUtil.toLocalDate("20250820"), user);
         festivalRepository.save(festival);
 
         //when
@@ -179,11 +154,27 @@ class FestivalRepositoryTest {
     }
 
     @Test
-    void findFestivalByTitleContainingAndState() {
-    }
+    void findFestivalByManagerId(){
 
-    @Test
-    void findFestivalByAreaCodeAndState() {
+        //given
+        UserEntity user = testUtil.createTestUser("KAKAO_98765");
+        userRepository.save(user);
+
+        Festival festival1 = createCustomFestival("정컴인 축제", 32, testUtil.toLocalDate("20250902"), testUtil.toLocalDate("20250910"), user);
+        Festival festival2 = createCustomFestival("카테캠 축제", 1, testUtil.toLocalDate("20251010"), testUtil.toLocalDate("20251014"), user);
+
+        festivalRepository.save(festival1);
+        festivalRepository.save(festival2);
+
+        //when
+        Pageable pageable = PageRequest.of(0,5);
+        Page<Festival> myFestivals = festivalRepository.findFestivalByManagerId(user.getId(), pageable);
+
+        //then
+        assertAll(
+                () -> assertThat(myFestivals.getPageable().getPageSize()).isEqualTo(5),
+                () -> assertThat(myFestivals.getContent().getFirst().getManager()).isEqualTo(user)
+        );
     }
 
     private FestivalRequestDto FestivalRequest(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){
@@ -193,18 +184,18 @@ class FestivalRepositoryTest {
         );
     }
 
-    private Festival createFestival(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){
-        return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), "overview", "homePage");
+    private Festival createFestival(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate) throws Exception {
+        return new Festival(FestivalRequest(contentId, title, areaCode, startDate, endDate), testUtil.createTourDetailResponse());
     }
 
     private FestivalCustomRequestDto customFestivalRequest(String title, int areaCode, LocalDate startDate, LocalDate endDate){
         return new FestivalCustomRequestDto(
                  title, areaCode, "addr1", "addr2",
-                new FileUploadRequest(1L, "imageUrl"), startDate, endDate, "homePage", "overView"
+                new FileUploadRequest(1L, "imageUrl"), null, startDate, endDate, "homePage", "overView"
         );
     }
 
-    private Festival creatCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
+    private Festival createCustomFestival(String title, int areaCode, LocalDate startDate, LocalDate endDate, UserEntity user){
         return new Festival(customFestivalRequest(title, areaCode, startDate, endDate), user);
     }
 

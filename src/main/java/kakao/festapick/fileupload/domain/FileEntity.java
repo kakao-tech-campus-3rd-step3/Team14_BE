@@ -8,12 +8,14 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
 @Table(indexes = @Index(name = "idx_domainId_domainType", columnList = "domainId, domainType"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class FileEntity {
 
     @Id
@@ -21,7 +23,7 @@ public class FileEntity {
     @Column(name = "file_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String url;
 
     @Column(nullable = false)

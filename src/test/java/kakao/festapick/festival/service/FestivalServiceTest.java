@@ -1,18 +1,17 @@
 package kakao.festapick.festival.service;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,17 +28,18 @@ import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
+import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.user.domain.SocialType;
+import kakao.festapick.review.repository.ReviewRepository;
+import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
-import org.assertj.core.api.Assertions;
+import kakao.festapick.wish.repository.WishRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +50,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalServiceTest {
@@ -70,6 +69,15 @@ class FestivalServiceTest {
     @Mock
     private TemporalFileRepository temporalFileRepository;
 
+    @Mock
+    private FileService fileService;
+
+    @Mock
+    private WishRepository wishRepository;
+
+    @Mock
+    private ReviewService reviewService;
+
     @InjectMocks
     private FestivalService festivalService;
 
@@ -77,7 +85,7 @@ class FestivalServiceTest {
 
     @Test
     @DisplayName("사용자 축제 등록 성공")
-    void addCustomizedFestival() throws NoSuchFieldException, IllegalAccessException {
+    void addCustomizedFestival() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestUser();
@@ -101,6 +109,7 @@ class FestivalServiceTest {
         verify(userRepository).findByIdentifier(any());
         verify(festivalRepository).save(any());
         verify(temporalFileRepository).deleteById(any());
+        verify(temporalFileRepository).deleteByIds(any());
         verifyNoMoreInteractions(userRepository, qFestivalRepository, s3Service, temporalFileRepository);
     }
 
@@ -135,7 +144,7 @@ class FestivalServiceTest {
         FestivalCustomRequestDto requestDto =
                 new FestivalCustomRequestDto(
                         "축제title", 32, "주소1", "상세주소",
-                        new FileUploadRequest(1L,"imageUrl"), testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
+                        new FileUploadRequest(1L,"imageUrl"), null, testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
                         "homepageUrl", "축제에 대한 개요");
 
         given(userRepository.findByIdentifier(any()))
@@ -149,70 +158,6 @@ class FestivalServiceTest {
 
         verify(userRepository).findByIdentifier(any());
         verifyNoMoreInteractions(userRepository);
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
-    @DisplayName("TourAPI로부터 가져온 축제 정보를 저장")
-    void addFestival() throws NoSuchFieldException, IllegalAccessException {
-
-        //given
-        FestivalRequestDto requestDto = createRequestDto();
-
-        String overView = "overView of test Festival";
-        String homepage = "<a href\"https://www.festapick.com\">www.festapick.com</a>";
-
-        TourDetailResponse tourDetailResponse = createTourDetails(overView, homepage);
-
-        Festival festival = createFestival();
-        Long festivalId = 1L;
-        setFestivalId(festival, festivalId);
-
-        given(festivalRepository.save(any())).willReturn(festival);
-
-        //when
-        Long Id = festivalService.addFestival(requestDto, tourDetailResponse);
-
-        //then
-        assertAll(
-                () -> assertThat(Id).isNotNull(),
-                () -> assertThat(Id).isEqualTo(festivalId)
-        );
-        verify(festivalRepository).save(any());
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
-    @DisplayName("ContentId로 축제 조회 - 존재하는 경우에는 false를 반환")
-    void checkExistenceByContentId() {
-
-        //given
-        Festival festival = createFestival();
-        given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.of(festival));
-
-        //when
-        boolean result = festivalService.existFestivalByContentId(festival.getContentId());
-
-        //then
-        assertThat(result).isEqualTo(false);
-        verify(festivalRepository).findFestivalByContentId(any());
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
-    @DisplayName("ContentId로 축제 조회 - 존재하지 않는 경우에는 true를 반환")
-    void checkNoExistenceFestivalByContentId() {
-
-        //given
-        String testContentId = "testContentId";
-        given(festivalRepository.findFestivalByContentId(any())).willReturn(Optional.empty());
-
-        //when
-        boolean result = festivalService.existFestivalByContentId(testContentId);
-
-        //then
-        assertThat(result).isEqualTo(true);
-        verify(festivalRepository).findFestivalByContentId(any());
         verifyNoMoreInteractions(festivalRepository);
     }
 
@@ -231,7 +176,8 @@ class FestivalServiceTest {
         assertAll(
                 () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(response.contentId()).isEqualTo(festival.getContentId()),
-                () -> assertThat(response.overView()).isEqualTo(festival.getOverView())
+                () -> assertThat(response.overView()).isEqualTo(festival.getOverView()),
+                () -> assertThat(response.imageInfos()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
         );
 
         verify(festivalRepository).findFestivalById(any());
@@ -283,6 +229,38 @@ class FestivalServiceTest {
     }
 
     @Test
+    @DisplayName("자신이 등록한 축제를 조회")
+    void findMyFestivals(){
+
+        //given
+        String identifier = "KAKAO_987654";
+        UserEntity user = testUtil.createTestManager(identifier);
+
+        Festival customFestival1 = createCustomFestival(createCustomRequestDto(), user);
+        Festival customFestival2 = createCustomFestival(createCustomRequestDto(), user);
+        List<Festival> festivals = new ArrayList<>();
+        festivals.add(customFestival1);
+        festivals.add(customFestival2);
+
+        Pageable pageable = PageRequest.of(0,2);
+        Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
+
+        given(userRepository.findByIdentifier(any())).willReturn(Optional.of(user));
+        given(festivalRepository.findFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
+
+        //when
+        Page<FestivalListResponse> result = festivalService.findMyFestivals(identifier, pageable);
+
+        //total
+        assertThat(result.getContent().size()).isEqualTo(2);
+        assertThat(result.getTotalElements()).isEqualTo(10);
+
+        verify(userRepository).findByIdentifier(any());
+        verify(festivalRepository).findFestivalByManagerId(any(), any());
+        verifyNoMoreInteractions(userRepository, festivalRepository);
+    }
+
+    @Test
     void findAllWithPage() {
 
         //given
@@ -308,7 +286,7 @@ class FestivalServiceTest {
     }
 
     @Test
-    @DisplayName("자신이 등록한 축제를 변경 - 변경 성공")
+    @DisplayName("자신이 등록한 축제를 변경 - 변경 성공(포스터 변경 x)")
     void updateFestival() {
         //given
         UserEntity user = testUtil.createTestUser();
@@ -327,8 +305,9 @@ class FestivalServiceTest {
                 () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
         verify(festivalRepository).findFestivalByIdWithManager(any());
-        verify(temporalFileRepository).deleteById(any());
-        verify(s3Service).deleteS3File(any());
+        verify(temporalFileRepository).deleteByIds(anyList());
+        verify(s3Service).deleteFiles(any());
+
         verifyNoMoreInteractions(festivalRepository, temporalFileRepository,s3Service);
     }
 
@@ -387,13 +366,15 @@ class FestivalServiceTest {
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
 
         //when
-        festivalService.removeOne(user.getIdentifier(), any());
+        festivalService.deleteFestivalForManager(user.getIdentifier(), any());
 
         //then
         verify(festivalRepository).findFestivalByIdWithManager(any());
         verify(festivalRepository).deleteById(any()); //행위 검증
-        verify(s3Service).deleteS3File(any());
-        verifyNoMoreInteractions(festivalRepository,s3Service);
+        verify(fileService).deleteByDomainId(any(), any());
+        verify(reviewService).deleteReviewByFestivalId(festival.getId());
+        verify(wishRepository).deleteByFestivalId(festival.getId());
+        verifyNoMoreInteractions(festivalRepository,fileService,reviewService,wishRepository);
     }
 
     @Test
@@ -410,65 +391,41 @@ class FestivalServiceTest {
 
         //when
         ForbiddenException e = assertThrows(
-                ForbiddenException.class, () -> festivalService.removeOne(identifierUser2, any())
+                ForbiddenException.class, () -> festivalService.deleteFestivalForManager(identifierUser2, any())
         );
 
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
         verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService);
     }
 
     @Test
     @DisplayName("관리자가 축제를 삭제하는 경우")
-    void deleteFestivalForAdmin() {
+    void deleteFestivalForAdmin() throws Exception {
         //given
         Long festivalId = 1L;
         Festival festival = createFestival();
-        given(festivalRepository.findFestivalById(any()))
-                .willReturn(Optional.of(festival));
+        setFestivalId(festival, festivalId);
+
+        given(festivalRepository.findFestivalById(any())).willReturn(Optional.of(festival));
 
         //when
         festivalService.deleteFestivalForAdmin(festivalId);
 
+
         //then: 행위만을 검증
         verify(festivalRepository).deleteById(festivalId);
         verify(festivalRepository).findFestivalById(festivalId);
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
-    @DisplayName("홈페이지 정보가 없는 경우")
-    void getHomePageParsingFail(){
-
-        //given
-        String homepage = null;
-
-        //when
-        String result = ReflectionTestUtils.invokeMethod(festivalService, "getHomePage", homepage);
-
-        //then
-        assertThat(result).isEqualTo("no_homepage");
-    }
-
-    @Test
-    @DisplayName("기존의 형태(패턴)와 다르게 homepage 정보가 제공되는 경우 파싱에 실패")
-    void getHomePagePatternError(){
-
-        //given
-        String homepage = "<a href\"html://www.festapick.com\">www.festapick.com</a>";
-
-        //when
-        String result = ReflectionTestUtils.invokeMethod(festivalService, "getHomePage", homepage);
-
-        //then
-        assertThat(result).isEqualTo("no_homepage");
+        verify(wishRepository).deleteByFestivalId(festivalId);
+        verify(reviewService).deleteReviewByFestivalId(festivalId);
+        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {
         return new FestivalCustomRequestDto(
                 "축제title", 32, "주소1", "상세주소",
-                new FileUploadRequest(1L,"imageUrl"), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
+                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"),
                 "homepageUrl", "축제에 대한 개요");
 
     }
@@ -481,32 +438,20 @@ class FestivalServiceTest {
     }
 
     private FestivalUpdateRequestDto createUpdateRequestDto() {
+        List<FileUploadRequest> updatedImages = new ArrayList<>();
+        updatedImages.add(new FileUploadRequest(99L, "https://www.festapick.updateimage.com"));
+        updatedImages.add(new FileUploadRequest(99L, "https://www.festapick.updateimage2.com"));
         return new FestivalUpdateRequestDto("updated_title", 32, "updated_주소1", "상세주소",
-                new FileUploadRequest(1L,"updated_imageUrl"), testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"), "homepage", "overview");
+                new FileUploadRequest(1L,"imageUrl"), updatedImages, testUtil.toLocalDate("20250824"), testUtil.toLocalDate("20250825"), "homepage", "overview");
 
     }
 
     private Festival createFestival() {
-        return new Festival(createRequestDto(), "overview", "homepage");
+        return new Festival(createRequestDto(), new TourDetailResponse());
     }
 
     private Festival createCustomFestival(FestivalCustomRequestDto requestDto, UserEntity user){
         return new Festival(requestDto, user);
-    }
-
-    //reflection을 사용하여 id값 강제 설정
-    private TourDetailResponse createTourDetails(String overview, String homePage) throws NoSuchFieldException, IllegalAccessException {
-        TourDetailResponse detailResponse = new TourDetailResponse();
-
-        Field overviewField = TourDetailResponse.class.getDeclaredField("overview");
-        overviewField.setAccessible(true);
-        overviewField.set(detailResponse, overview);
-
-        Field homepageField = TourDetailResponse.class.getDeclaredField("homepage");
-        homepageField.setAccessible(true);
-        homepageField.set(detailResponse, homePage);
-
-        return detailResponse;
     }
 
     private List<Festival> getFestivals(){

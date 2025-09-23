@@ -1,20 +1,34 @@
 package kakao.festapick.festival.domain;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
+import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.wish.domain.Wish;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Entity
 @Getter
@@ -27,6 +41,7 @@ public class Festival {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String contentId;
 
     @Column(nullable = false)
@@ -40,7 +55,7 @@ public class Festival {
     private String addr2;
 
     @Column(nullable = false)
-    private String imageUrl;
+    private String posterInfo;
 
     @Column(nullable = false)
     private LocalDate startDate;
@@ -62,24 +77,17 @@ public class Festival {
     @JoinColumn(name = "manager_id")
     private UserEntity manager;
 
-    @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Wish>  wishes = new ArrayList<>();
-
-    @OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews = new ArrayList<>();
-
-
     protected Festival() { }
 
     //TODO: contentId 규칙 만들기
     public Festival(FestivalCustomRequestDto festivalCustomRequestDto, UserEntity user) {
         checkStartAndEndDate(festivalCustomRequestDto.startDate(), festivalCustomRequestDto.endDate());
-        this.contentId = "tempcontentId";
+        this.contentId = null;
         this.title = festivalCustomRequestDto.title();
         this.areaCode = festivalCustomRequestDto.areaCode();
         this.addr1 = festivalCustomRequestDto.addr1();
         this.addr2 = festivalCustomRequestDto.addr2();
-        this.imageUrl = resolveImage(festivalCustomRequestDto.imageInfo().presignedUrl());
+        this.posterInfo = festivalCustomRequestDto.posterInfo().presignedUrl(); //포스터 등록 필수
         this.startDate = festivalCustomRequestDto.startDate();
         this.endDate = festivalCustomRequestDto.endDate();
         this.overView = festivalCustomRequestDto.overView();
@@ -88,18 +96,19 @@ public class Festival {
         this.manager = user;
     }
 
-    public Festival(FestivalRequestDto festivalRequestDto, String overView, String homePage) {
+    //tourAPI 호출
+    public Festival(FestivalRequestDto festivalRequestDto, TourDetailResponse detailResponse) {
         checkStartAndEndDate(festivalRequestDto.startDate(), festivalRequestDto.endDate());
         this.contentId = festivalRequestDto.contentId();
         this.title = festivalRequestDto.title();
         this.areaCode = festivalRequestDto.areaCode();
         this.addr1 = festivalRequestDto.addr1();
         this.addr2 = festivalRequestDto.addr2();
-        this.imageUrl = resolveImage(festivalRequestDto.imageUrl());
+        this.posterInfo = resolveImage(festivalRequestDto.posterInfo());
         this.startDate = festivalRequestDto.startDate();
         this.endDate = festivalRequestDto.endDate();
-        this.overView = overView;
-        this.homePage = homePage;
+        this.overView = detailResponse.getOverview();
+        this.homePage = detailResponse.getHomepage();
         this.state = FestivalState.APPROVED;
     }
 
@@ -112,9 +121,29 @@ public class Festival {
         this.addr2 = requestDto.addr2();
         this.startDate = requestDto.startDate();
         this.endDate = requestDto.endDate();
-        this.imageUrl = requestDto.imageInfo().presignedUrl();
+        this.posterInfo = requestDto.posterInfo().presignedUrl();
         this.overView = requestDto.overView();
         this.homePage = requestDto.homePage();
+    }
+
+    public Festival(String title, int areaCode,
+                    String addr1, String addr2,
+                    String posterInfo, LocalDate startDate,
+                    LocalDate endDate, String overView,
+                    String homePage, FestivalState state,
+                    UserEntity manager, String contentId) {
+        this.title = title;
+        this.areaCode = areaCode;
+        this.addr1 = addr1;
+        this.addr2 = addr2;
+        this.posterInfo = posterInfo;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.overView = overView;
+        this.homePage = homePage;
+        this.state = state;
+        this.manager = manager;
+        this.contentId = contentId;
     }
 
     //admin만 축제 권한 변경
