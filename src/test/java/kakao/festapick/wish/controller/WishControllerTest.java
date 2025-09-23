@@ -58,7 +58,7 @@ public class WishControllerTest {
         mockMvc.perform(post(String.format("/api/festivals/%s/wishes", festival.getId())))
                 .andExpect(status().isCreated());
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(identifier,
+        Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(),
                 festival.getId());
         assertThat(find).isPresent();
         Wish actual = find.get();
@@ -104,7 +104,7 @@ public class WishControllerTest {
         mockMvc.perform(delete(String.format("/api/wishes/%s", target.getId())))
                 .andExpect(status().isNoContent());
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(identifier, festival.getId());
+        Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(), festival.getId());
         assertThat(find).isEmpty();
     }
 

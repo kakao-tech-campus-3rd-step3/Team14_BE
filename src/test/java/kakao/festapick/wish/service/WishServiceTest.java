@@ -52,21 +52,21 @@ public class WishServiceTest {
     @Test
     @DisplayName("위시 등록 성공")
     void createWishSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(userLowService.findByIdentifier(any()))
+        given(userLowService.findById(any()))
                 .willReturn(user);
-        given(wishRepository.findByUserIdentifierAndFestivalId(any(), any()))
+        given(wishRepository.findByUserIdAndFestivalId(any(), any()))
                 .willReturn(Optional.empty());
         given(wishRepository.save(any()))
                 .willReturn(wish);
 
         WishResponseDto responseDto = wishService.createWish(festival.getId(),
-                user.getIdentifier());
+                user.getId());
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(responseDto.wishId()).isNotNull(),
@@ -79,8 +79,8 @@ public class WishServiceTest {
         );
 
         verify(festivalRepository).findFestivalById(any());
-        verify(userLowService).findByIdentifier(any());
-        verify(wishRepository).findByUserIdentifierAndFestivalId(any(), any());
+        verify(userLowService).findById(any());
+        verify(wishRepository).findByUserIdAndFestivalId(any(), any());
         verify(wishRepository).save(any());
         verifyNoMoreInteractions(festivalRepository);
         verifyNoMoreInteractions(userLowService);
@@ -90,24 +90,24 @@ public class WishServiceTest {
     @Test
     @DisplayName("중복으로 인한 위시 등록 실패")
     void createWishFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(userLowService.findByIdentifier(any()))
+        given(userLowService.findById(any()))
                 .willReturn(user);
-        given(wishRepository.findByUserIdentifierAndFestivalId(any(), any()))
+        given(wishRepository.findByUserIdAndFestivalId(any(), any()))
                 .willReturn(Optional.of(wish));
 
         DuplicateEntityException e = Assertions.assertThrows(DuplicateEntityException.class,
-                () -> wishService.createWish(festival.getId(), user.getIdentifier()));
+                () -> wishService.createWish(festival.getId(), user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_DUPLICATE);
 
         verify(festivalRepository).findFestivalById(any());
-        verify(userLowService).findByIdentifier(any());
-        verify(wishRepository).findByUserIdentifierAndFestivalId(any(), any());
+        verify(userLowService).findById(any());
+        verify(wishRepository).findByUserIdAndFestivalId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
@@ -116,16 +116,16 @@ public class WishServiceTest {
     @Test
     @DisplayName("위시 삭제 성공")
     void deleteWishSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(wishRepository.findByUserIdentifierAndId(any(), any()))
+        given(wishRepository.findByUserIdAndId(any(), any()))
                 .willReturn(Optional.of(wish));
 
-        wishService.removeWish(wish.getId(), user.getIdentifier());
+        wishService.removeWish(wish.getId(), user.getId());
 
-        verify(wishRepository).findByUserIdentifierAndId(any(), any());
+        verify(wishRepository).findByUserIdAndId(any(), any());
         verify(wishRepository).delete(any());
         verifyNoMoreInteractions(festivalRepository);
         verifyNoMoreInteractions(userLowService);
@@ -135,18 +135,18 @@ public class WishServiceTest {
     @Test
     @DisplayName("위시 삭제 실패 (없는 위시 삭제 시도)")
     void deleteWishFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(wishRepository.findByUserIdentifierAndId(any(), any()))
+        given(wishRepository.findByUserIdAndId(any(), any()))
                 .willReturn(Optional.empty());
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> wishService.removeWish(wish.getId(), user.getIdentifier()));
+                () -> wishService.removeWish(wish.getId(), user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_NOT_FOUND);
 
-        verify(wishRepository).findByUserIdentifierAndId(any(), any());
+        verify(wishRepository).findByUserIdAndId(any(), any());
         verifyNoMoreInteractions(festivalRepository);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
