@@ -94,7 +94,7 @@ public class ReviewControllerTest {
         int idx = header.lastIndexOf("/");
         Long savedReviewId = Long.valueOf(header.substring(idx + 1));
 
-        Optional<Review> find = reviewRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
+        Optional<Review> find = reviewRepository.findByUserIdAndId(userEntity.getId(),
                 savedReviewId);
         assertThat(find).isPresent();
         Review actual = find.get();
