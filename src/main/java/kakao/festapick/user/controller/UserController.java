@@ -22,27 +22,27 @@ public class UserController {
     private final UserService userService;
 
     @DeleteMapping
-    public ResponseEntity<Void> withDrawMember(@AuthenticationPrincipal String identifier,
+    public ResponseEntity<Void> withDrawMember(@AuthenticationPrincipal Long userId,
                                                HttpServletResponse response) {
 
-        userService.withDraw(identifier,response);
+        userService.withDraw(userId,response);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PatchMapping("/profileImage") // 프로필 이미지 변경
     public ResponseEntity<Void> changeProfileImage(@Valid @RequestBody FileUploadRequest fileUploadRequest,
-                                                   @AuthenticationPrincipal String identifier) {
+                                                   @AuthenticationPrincipal Long userId) {
 
-        userService.changeProfileImage(identifier, fileUploadRequest);
+        userService.changeProfileImage(userId, fileUploadRequest);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/my") // 본인 정보 조회
-    public ResponseEntity<ApiResponseDto<UserResponseDto>> getMyInfo(@AuthenticationPrincipal String identifier) {
+    public ResponseEntity<ApiResponseDto<UserResponseDto>> getMyInfo(@AuthenticationPrincipal Long userId) {
 
-        UserResponseDto response = userService.findMyInfo(identifier);
+        UserResponseDto response = userService.findMyInfo(userId);
         ApiResponseDto<UserResponseDto> responseDto = new ApiResponseDto<>(response);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

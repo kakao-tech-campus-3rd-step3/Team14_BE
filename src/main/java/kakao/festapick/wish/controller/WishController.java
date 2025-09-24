@@ -32,29 +32,29 @@ public class WishController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/festivals/{festivalId}/wishes")
     public ResponseEntity<ApiResponseDto<WishResponseDto>> createWish(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId) {
-        WishResponseDto response = wishService.createWish(festivalId, identifier);
+        WishResponseDto response = wishService.createWish(festivalId, userId);
         ApiResponseDto<WishResponseDto> responseDto = new ApiResponseDto<>(response);
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
     @GetMapping("/wishes/my")
     public ResponseEntity<Page<WishResponseDto>> getWishes(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0", required = false) int page,
             @Max(value = 1000)
             @RequestParam(defaultValue = "5", required = false) int size
             ) {
-        return new ResponseEntity<>(wishService.getWishes(identifier, PageRequest.of(page, size)),
+        return new ResponseEntity<>(wishService.getWishes(userId, PageRequest.of(page, size)),
                 HttpStatus.OK);
     }
 
     @DeleteMapping("/wishes/{wishId}")
     public ResponseEntity<Void> removeWish(
             @PathVariable Long wishId,
-            @AuthenticationPrincipal String identifier) {
-        wishService.removeWish(wishId, identifier);
+            @AuthenticationPrincipal Long userId) {
+        wishService.removeWish(wishId, userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

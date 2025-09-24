@@ -19,15 +19,31 @@ import org.springframework.stereotype.Component;
 public class TestUtil {
 
     public UserEntity createTestUser() {
-        return new UserEntity(1L, "KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER, SocialType.KAKAO);
+        UserEntity userEntity = new UserEntity("KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER, SocialType.KAKAO);
+        userEntity.changeProfileImage("profileImageUrl");
+        return userEntity;
+    }
+
+    public UserEntity createTestUserWithId() {
+        UserEntity userEntity = new UserEntity(1L,"KAKAO-1234567890", "asd@test.com", "testUser", UserRoleType.USER, SocialType.KAKAO);
+        userEntity.changeProfileImage("profileImageUrl");
+        return userEntity;
     }
 
     public UserEntity createTestUser(String identifier){
-        return new UserEntity(identifier, "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE);
+        UserEntity userEntity = new UserEntity(identifier, "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE);
+        userEntity.changeProfileImage("profileImageUrl");
+        return userEntity;
     }
 
     public UserEntity createTestManager(String identifier){
-        return new UserEntity(identifier, "example@gmail.com", "exampleName", UserRoleType.FESTIVAL_MANAGER, SocialType.GOOGLE);
+        UserEntity userEntity = new UserEntity(identifier, "example@gmail.com", "exampleName", UserRoleType.FESTIVAL_MANAGER, SocialType.GOOGLE);
+        userEntity.changeProfileImage("profileImageUrl");
+        return userEntity;
+    }
+
+    public Festival createTestFestival(UserEntity userEntity) {
+        return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, userEntity, null);
     }
 
     public Festival createTestFestival(UserEntity userEntity) {

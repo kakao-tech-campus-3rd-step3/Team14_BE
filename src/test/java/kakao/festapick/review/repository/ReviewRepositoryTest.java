@@ -82,7 +82,7 @@ public class ReviewRepositoryTest {
 
         Review saved = reviewRepository.save(new Review(userEntity, festival, "testtesttest", 4));
 
-        Optional<Review> find = reviewRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
+        Optional<Review> find = reviewRepository.findByUserIdAndId(userEntity.getId(),
                 saved.getId());
 
         assertThat(find).isPresent();
@@ -122,7 +122,7 @@ public class ReviewRepositoryTest {
 
         Review saved = reviewRepository.save(new Review(userEntity, festival, "testtesttest", 4));
 
-        Page<Review> find = reviewRepository.findByUserIdentifierWithAll(userEntity.getIdentifier(),
+        Page<Review> find = reviewRepository.findByUserIdWithAll(userEntity.getId(),
                 PageRequest.of(0, 1));
 
         Review actual = find.getContent().get(0);

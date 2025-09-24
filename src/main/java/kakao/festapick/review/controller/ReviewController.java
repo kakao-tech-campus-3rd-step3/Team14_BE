@@ -30,11 +30,11 @@ public class ReviewController {
     @PreAuthorize("isAuthenticated()") // 리뷰 작성은 인증 필요
     @PostMapping("/festivals/{festivalId}/reviews")
     public ResponseEntity<Void> createReview(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId,
             @Valid @RequestBody ReviewRequestDto requestDto) {
 
-        Long reviewId = reviewService.createReview(festivalId, requestDto, identifier);
+        Long reviewId = reviewService.createReview(festivalId, requestDto, userId);
 
         return ResponseEntity.created(URI.create("/api/reviews/" + reviewId)).build();
     }
@@ -55,13 +55,13 @@ public class ReviewController {
     @PreAuthorize("isAuthenticated()") // 내 리뷰만 조회는 인증 필요
     @GetMapping("/reviews/my")
     public ResponseEntity<Page<ReviewResponseDto>> getMyReviews(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0", required = false) int page,
             @Max(value = 1000)
             @RequestParam(defaultValue = "5", required = false) int size
     ) {
         return new ResponseEntity<>(
-                reviewService.getMyReviews(identifier, PageRequest.of(page, size)),
+                reviewService.getMyReviews(userId, PageRequest.of(page, size)),
                 HttpStatus.OK);
     }
 
@@ -78,10 +78,10 @@ public class ReviewController {
     @PutMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> updateReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ReviewRequestDto requestDto) {
 
-        reviewService.updateReview(reviewId, requestDto, identifier);
+        reviewService.updateReview(reviewId, requestDto, userId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -90,8 +90,8 @@ public class ReviewController {
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> removeReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal String identifier) {
-        reviewService.removeReview(reviewId, identifier);
+            @AuthenticationPrincipal Long userId) {
+        reviewService.removeReview(reviewId, userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

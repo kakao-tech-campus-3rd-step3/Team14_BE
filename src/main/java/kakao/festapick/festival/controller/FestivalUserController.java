@@ -37,10 +37,10 @@ public class FestivalUserController {
     @PostMapping
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Void> addFestival(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @RequestBody @Valid FestivalCustomRequestDto requestDto
     ) {
-        Long festivalId = festivalService.addCustomizedFestival(requestDto, identifier);
+        Long festivalId = festivalService.addCustomizedFestival(requestDto, userId);
         return ResponseEntity.created(URI.create("/api/festivals/" + festivalId)).build();
     }
 
@@ -66,11 +66,11 @@ public class FestivalUserController {
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<FestivalListResponse>> getMyFestivals(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size
     ){
-        Page<FestivalListResponse> myFestivals = festivalService.findMyFestivals(identifier, PageRequest.of(page, size));
+        Page<FestivalListResponse> myFestivals = festivalService.findMyFestivals(userId, PageRequest.of(page, size));
         return ResponseEntity.ok(myFestivals);
     }
 
@@ -78,11 +78,11 @@ public class FestivalUserController {
     @PatchMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> updateFestivalInfo(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId,
             @RequestBody @Valid FestivalUpdateRequestDto requestDto
     ){
-        FestivalDetailResponseDto festivalDetail = festivalService.updateFestival(identifier, festivalId, requestDto);
+        FestivalDetailResponseDto festivalDetail = festivalService.updateFestival(userId, festivalId, requestDto);
         ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
     }
@@ -91,10 +91,10 @@ public class FestivalUserController {
     @DeleteMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Void> removeFestival(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId
     ){
-        festivalService.deleteFestivalForManager(identifier, festivalId);
+        festivalService.deleteFestivalForManager(userId, festivalId);
         return ResponseEntity.noContent().build();
     }
 

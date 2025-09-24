@@ -9,7 +9,6 @@ import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
-import kakao.festapick.user.service.UserService;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.repository.WishRepository;
@@ -29,12 +28,12 @@ public class WishService {
     private final FestivalRepository festivalRepository;
 
     @Transactional
-    public WishResponseDto createWish(Long festivalId, String identifier) {
+    public WishResponseDto createWish(Long festivalId, Long userId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        UserEntity user = userLowService.findByIdentifier(identifier);
+        UserEntity user = userLowService.findById(userId);
 
-        wishRepository.findByUserIdentifierAndFestivalId(identifier, festivalId)
+        wishRepository.findByUserIdAndFestivalId(userId, festivalId)
                 .ifPresent(w -> {
                     throw new DuplicateEntityException(ExceptionCode.WISH_DUPLICATE);
                 });
@@ -46,8 +45,8 @@ public class WishService {
                 festivalResponseDto.areaCode());
     }
 
-    public Page<WishResponseDto> getWishes(String identifier, Pageable pageable) {
-        Page<Wish> wishes = wishRepository.findByUserIdentifier(identifier, pageable);
+    public Page<WishResponseDto> getWishes(Long userId, Pageable pageable) {
+        Page<Wish> wishes = wishRepository.findByUserIdWithFestivalPage(userId, pageable);
         return wishes.map(wish -> {
             FestivalDetailResponseDto responseDto = new FestivalDetailResponseDto(wish.getFestival());
             return new WishResponseDto(wish.getId() ,responseDto.id(), responseDto.title(),
@@ -57,8 +56,8 @@ public class WishService {
     }
 
     @Transactional
-    public void removeWish(Long wishId, String identifier) {
-        Wish wish = wishRepository.findByUserIdentifierAndId(identifier, wishId)
+    public void removeWish(Long wishId, Long userId) {
+        Wish wish = wishRepository.findByUserIdAndId(userId, wishId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.WISH_NOT_FOUND));
 
         wishRepository.delete(wish);

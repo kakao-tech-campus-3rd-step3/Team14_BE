@@ -77,7 +77,7 @@ public class WishRepositoryTest {
 
         Wish saved = wishRepository.save(new Wish(userEntity, festival));
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
+        Optional<Wish> find = wishRepository.findByUserIdAndId(userEntity.getId(),
                 saved.getId());
 
         assertThat(find).isPresent();
@@ -101,7 +101,7 @@ public class WishRepositoryTest {
 
         wishRepository.save(new Wish(userEntity, festival));
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(userEntity.getIdentifier(),
+        Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(),
                 festival.getId());
 
         assertThat(find).isPresent();
@@ -125,7 +125,7 @@ public class WishRepositoryTest {
 
         wishRepository.save(new Wish(userEntity, festival));
 
-        Page<Wish> find = wishRepository.findByUserIdentifier(userEntity.getIdentifier(),
+        Page<Wish> find = wishRepository.findByUserIdWithFestivalPage(userEntity.getId(),
                 PageRequest.of(0, 1));
 
         Wish actual = find.getContent().get(0);

@@ -11,9 +11,9 @@ import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.repository.WishRepository;
@@ -49,16 +49,16 @@ public class WishControllerTest {
 
     @Test
     @DisplayName("위시 등록 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void createWishSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
         Festival festival = saveFestival();
 
         mockMvc.perform(post(String.format("/api/festivals/%s/wishes", festival.getId())))
                 .andExpect(status().isCreated());
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(identifier,
+        Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(),
                 festival.getId());
         assertThat(find).isPresent();
         Wish actual = find.get();
@@ -73,8 +73,9 @@ public class WishControllerTest {
 
     @Test
     @DisplayName("위시 등록 실패 (없는 축제에 대한 등록)")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void createWishFail() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         mockMvc.perform(post(String.format("/api/festivals/%s/wishes", 999L)))
                 .andExpect(status().isNotFound());
@@ -82,8 +83,9 @@ public class WishControllerTest {
 
     @Test
     @DisplayName("위시 조회 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void getWishesSuccess() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         mockMvc.perform(get("/api/wishes/my"))
                 .andExpect(status().isOk());
@@ -91,10 +93,10 @@ public class WishControllerTest {
 
     @Test
     @DisplayName("위시 삭제 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void removeWishSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
         Festival festival = saveFestival();
 
         Wish target = wishRepository.save(new Wish(userEntity, festival));
@@ -102,7 +104,7 @@ public class WishControllerTest {
         mockMvc.perform(delete(String.format("/api/wishes/%s", target.getId())))
                 .andExpect(status().isNoContent());
 
-        Optional<Wish> find = wishRepository.findByUserIdentifierAndFestivalId(identifier, festival.getId());
+        Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(), festival.getId());
         assertThat(find).isEmpty();
     }
 

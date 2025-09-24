@@ -40,13 +40,13 @@ public class UserService {
     private final TemporalFileRepository temporalFileRepository;
 
 
-    public void withDraw(String identifier, HttpServletResponse response) {
+    public void withDraw(Long userId, HttpServletResponse response) {
 
-        UserEntity findUser = userLowService.findByIdentifier(identifier);
+        UserEntity findUser = userLowService.findById(userId);
 
         deleteRelatedEntity(findUser);
 
-        userLowService.deleteByIdentifier(identifier);
+        userLowService.deleteById(userId);
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
 
         s3Service.deleteS3File(findUser.getProfileImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
@@ -63,8 +63,8 @@ public class UserService {
         findUser.changeUserRole(role);
     }
 
-    public void changeProfileImage(String identifier, FileUploadRequest fileUploadRequest) {
-        UserEntity findUser = userLowService.findByIdentifier(identifier);
+    public void changeProfileImage(Long userId, FileUploadRequest fileUploadRequest) {
+        UserEntity findUser = userLowService.findById(userId);
 
         String oldProfileImageUrl = findUser.getProfileImageUrl();
 
@@ -74,8 +74,8 @@ public class UserService {
         s3Service.deleteS3File(oldProfileImageUrl); // s3 파일 삭제는 항상 마지막에 호출
     }
 
-    public UserResponseDto findMyInfo(String identifier) {
-        UserEntity findUser = userLowService.findByIdentifier(identifier);
+    public UserResponseDto findMyInfo(Long userId) {
+        UserEntity findUser = userLowService.findById(userId);
 
         return new UserResponseDto(findUser);
     }

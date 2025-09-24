@@ -49,14 +49,14 @@ public class UserServiceTest {
         UserEntity userEntity = new UserEntity("GOOGLE-1234",
                 "example@gmail.com", "exampleName", UserRoleType.USER, SocialType.GOOGLE);
 
-        given(userLowService.findByIdentifier(any()))
+        given(userLowService.findById(any()))
                 .willReturn(userEntity);
 
         // when
-        userService.changeProfileImage(userEntity.getIdentifier(), new FileUploadRequest(1L,"updateImageUrl"));
+        userService.changeProfileImage(userEntity.getId(), new FileUploadRequest(1L,"updateImageUrl"));
 
         // then
-        verify(userLowService).findByIdentifier(any());
+        verify(userLowService).findById(any());
         verify(s3Service).deleteS3File(any());
         verify(temporalFileRepository).deleteById(any());
         verifyNoMoreInteractions(userLowService,s3Service, temporalFileRepository,cookieComponent);
@@ -69,14 +69,14 @@ public class UserServiceTest {
 
         // given
 
-        given(userLowService.findByIdentifier(any()))
+        given(userLowService.findById(any()))
                 .willThrow(NotFoundEntityException.class);
 
         // when & then
         assertThatThrownBy(()->
-                userService.changeProfileImage("GOOGLE-1234", new FileUploadRequest(1L,"updateImageUrl"))
+                userService.changeProfileImage(1L, new FileUploadRequest(1L,"updateImageUrl"))
         ).isInstanceOf(NotFoundEntityException.class);
-        verify(userLowService).findByIdentifier(any());
+        verify(userLowService).findById(any());
         verifyNoMoreInteractions(userLowService,s3Service, temporalFileRepository,cookieComponent);
 
     }

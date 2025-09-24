@@ -34,6 +34,7 @@ import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class FestivalService {
     private final FestivalRepository festivalRepository;
     private final WishRepository wishRepository;
     private final ReviewService reviewService;
-    private final UserRepository userRepository;
+    private final UserLowService userLowService;
     private final QFestivalRepository qFestivalRepository;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
@@ -59,9 +60,9 @@ public class FestivalService {
 
     //CREATE
     @Transactional
-    public Long addCustomizedFestival(FestivalCustomRequestDto requestDto, String identifier) {
-        UserEntity user = userRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+    public Long addCustomizedFestival(FestivalCustomRequestDto requestDto, Long userId) {
+        UserEntity user = userLowService.findById(userId);
+
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalRepository.save(festival);
         
@@ -90,10 +91,9 @@ public class FestivalService {
     }
 
     //내가 등록한 축제를 조회
-    public Page<FestivalListResponse> findMyFestivals(String identifier, Pageable pageable){
-        UserEntity user = userRepository.findByIdentifier(identifier)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
-        return festivalRepository.findFestivalByManagerId(user.getId(), pageable)
+    public Page<FestivalListResponse> findMyFestivals(Long userId, Pageable pageable){
+
+        return festivalRepository.findFestivalByManagerId(userId, pageable)
                 .map(FestivalListResponse::new);
     }
 
@@ -114,9 +114,9 @@ public class FestivalService {
     //UPDATE
     //축제 정보를 업데이트(축제 관리자)
     @Transactional
-    public FestivalDetailResponseDto updateFestival(String identifier, Long id, FestivalUpdateRequestDto requestDto) {
+    public FestivalDetailResponseDto updateFestival(Long userId, Long id, FestivalUpdateRequestDto requestDto) {
 
-        Festival festival = checkMyFestival(identifier, id);
+        Festival festival = checkMyFestival(userId, id);
 
         // 기존 이미지 파일들
         List<FileEntity> registeredImages = fileService.findByDomainIdAndDomainType(festival.getId(), DomainType.FESTIVAL);
@@ -185,8 +185,8 @@ public class FestivalService {
 
     //DELETE
     @Transactional
-    public void deleteFestivalForManager(String identifier, Long id) {
-        Festival festival = checkMyFestival(identifier, id);
+    public void deleteFestivalForManager(Long userId, Long id) {
+        Festival festival = checkMyFestival(userId, id);
 
         deleteRelatedEntity(festival.getId()); // 연관된 엔티티 벌크 쿼리로 모두 삭제
 
@@ -219,11 +219,11 @@ public class FestivalService {
     }
 
     //수정 권한을 확인하기 위한 메서드
-    private Festival checkMyFestival(String identifier, Long id) {
+    private Festival checkMyFestival(Long userId, Long id) {
         Festival festival = festivalRepository.findFestivalByIdWithManager(id)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
         UserEntity manager = festival.getManager();
-        if (manager != null && identifier.equals(manager.getIdentifier())) {
+        if (manager != null && userId.equals(manager.getId())) {
             return festival;
         }
         throw new ForbiddenException(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);

@@ -11,9 +11,9 @@ import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.jwt.service.JwtService;
 import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.util.TokenType;
-import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,10 +46,10 @@ class JwtControllerTest {
 
     @Test
     @DisplayName("토큰 교환 성공")
-    @WithCustomMockUser(identifier = identifier, role = "USER_ROLE")
     void exchangeTokenSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), TokenType.REFRESH_TOKEN);
 
@@ -64,8 +64,10 @@ class JwtControllerTest {
 
     @Test
     @DisplayName("토큰 교환 실패 - 쿠키가 존재하지 않음")
-    @WithCustomMockUser(identifier = identifier, role = "USER_ROLE")
     void exchangeTokenFailure() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         mockMvc.perform(post("/api/jwt/exchange"))
                 .andExpect(status().isUnauthorized())
@@ -74,8 +76,10 @@ class JwtControllerTest {
 
     @Test
     @DisplayName("토큰 교환 실패 - 리프래시 토큰이 존재하지 않음")
-    @WithCustomMockUser(identifier = identifier, role = "USER_ROLE")
     void exchangeTokenFailure2() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         Cookie cookie = new Cookie("cookie", null);
 
@@ -87,10 +91,10 @@ class JwtControllerTest {
 
     @Test
     @DisplayName("토큰 교환 실패 - 리프래시 토큰이 만료되었음")
-    @WithCustomMockUser(identifier = identifier, role = "USER_ROLE")
     void exchangeTokenFailure3() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         String refreshToken = jwtUtil.createJWT(userEntity.getIdentifier(), userEntity.getRoleType().name(), TokenType.REFRESH_TOKEN, 0L);
 
