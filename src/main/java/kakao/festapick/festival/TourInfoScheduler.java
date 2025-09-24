@@ -1,5 +1,7 @@
 package kakao.festapick.festival;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -48,17 +50,25 @@ public class TourInfoScheduler {
 
     private final RestClient tourApiClient;
 
+    private final ObjectMapper objectMapper;
+
     @GetMapping("/update") //// 테스트용 - 개발 완료시 삭제할 것
     @Transactional
     @Scheduled(cron = "0 15 17 * * *")
-    public void fetchFestivals() {
+    public void fetchFestivals() throws Exception {
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
             log.info("가져올 축제 정보 수 : {}", maxRows);
-            TourInfoResponse tourApiResponse = getFestivals(maxRows).getBody();
+            TourInfoResponse tourApiResponse = getFestivals(maxRows);
             List<FestivalRequestDto> festivalList = tourApiResponse.getFestivalResponseDtoList();
             List<Festival> festivals = festivalList.parallelStream()
-                    .map(requestDto -> new Festival(requestDto, getDetails(requestDto.contentId())))
+                    .map(requestDto -> {
+                        try {
+                            return new Festival(requestDto, getDetails(requestDto.contentId()));
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
                     .toList();
             festivalJdbcTemplateRepository.upsertFestivalInfo(festivals);
             log.info("축제 정보 저장 완료");
@@ -101,8 +111,8 @@ public class TourInfoScheduler {
     }
 
 
-    private ResponseEntity<TourInfoResponse> getFestivals(int numOfRows) {
-        ResponseEntity<TourInfoResponse> response = tourApiClient.get()
+    private TourInfoResponse getFestivals(int numOfRows) throws Exception {
+        ResponseEntity<String> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
@@ -111,14 +121,22 @@ public class TourInfoScheduler {
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", numOfRows)
                         .build())
-                .accept(MediaType.APPLICATION_JSON)
+                .accept(MediaType.ALL)
                 .retrieve()
-                .toEntity(TourInfoResponse.class);
-        return response;
+                .toEntity(String.class);
+
+        String body = response.getBody();
+        MediaType mediaType = response.getHeaders().getContentType();
+
+        if(mediaType != null && mediaType.includes(MediaType.APPLICATION_JSON)){
+            return objectMapper.readValue(response.getBody(), TourInfoResponse.class);
+        }
+        log.error(body);
+        throw new IllegalStateException("xml");
     }
 
-    private TourDetailResponse getDetails(String contentId) {
-        ResponseEntity<TourDetailResponse> response = tourApiClient.get()
+    private TourDetailResponse getDetails(String contentId) throws Exception {
+        ResponseEntity<String> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/detailCommon2")
                         .queryParam("MobileOS", "ETC")
                         .queryParam("MobileApp", "FestaPick")
@@ -126,10 +144,19 @@ public class TourInfoScheduler {
                         .queryParam("serviceKey", tourApiKey)
                         .queryParam("_type", "json")
                         .build())
-                .accept(MediaType.APPLICATION_JSON)
+                .accept(MediaType.ALL)
                 .retrieve()
-                .toEntity(TourDetailResponse.class);
-        return response.getBody();
+                .toEntity(String.class);
+
+        String body = response.getBody();
+        MediaType mediaType = response.getHeaders().getContentType();
+
+        if(mediaType != null && mediaType.includes(MediaType.APPLICATION_JSON)){
+            return objectMapper.readValue(response.getBody(), TourDetailResponse.class);
+        }
+
+        log.error(body);
+        throw new IllegalStateException("xml");
     }
 
     private TourImagesResponse getDetailImages(String contentId) {
