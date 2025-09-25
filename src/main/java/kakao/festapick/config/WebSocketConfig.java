@@ -2,6 +2,7 @@ package kakao.festapick.config;
 
 import kakao.festapick.chat.interceptor.WebSocketAuthChannelInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -14,6 +15,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    @Value("${spring.front.domain}")
+    private String frontDomain;
+
     private final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor;
 
     @Override
@@ -24,10 +28,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/stomp").setAllowedOriginPatterns("*");
+        registry.addEndpoint("/stomp").setAllowedOriginPatterns(frontDomain);
 
         registry.addEndpoint("/stomp")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(frontDomain)
                 .withSockJS();
     }
 
