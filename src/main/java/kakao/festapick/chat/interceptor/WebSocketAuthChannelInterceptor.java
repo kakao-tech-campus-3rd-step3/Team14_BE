@@ -59,9 +59,4 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
         return message;
     }
-
-    @Override
-    public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-        ChannelInterceptor.super.postSend(message, channel, sent);
-    }
 }
