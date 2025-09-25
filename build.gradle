@@ -61,6 +61,9 @@ dependencies {
 
 	// aws
 	implementation libs.aws.s3
+
+	// XmlMapper
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
 }
 
 tasks.named('test') {
