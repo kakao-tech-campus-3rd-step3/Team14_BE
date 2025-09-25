@@ -37,8 +37,11 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         StompHeaderAccessor headerAccessor = MessageHeaderAccessor
                 .getAccessor(message, StompHeaderAccessor.class);
         if (StompCommand.CONNECT.equals(headerAccessor.getCommand())) {
-            String authorization = Objects.requireNonNull(
-                    headerAccessor.getFirstNativeHeader("Authorization"));
+            String authorization = headerAccessor.getFirstNativeHeader("Authorization");
+            if (authorization == null || !authorization.startsWith("Bearer ")) {
+                throw new AuthenticationException(ExceptionCode.ACCESS_TOKEN_NOT_EXIST);
+            }
+
             String accessToken = authorization.split(" ")[1];
 
             if (!jwtUtil.validateToken(accessToken, TokenType.ACCESS_TOKEN)) {

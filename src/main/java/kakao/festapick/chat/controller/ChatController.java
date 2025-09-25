@@ -1,5 +1,6 @@
 package kakao.festapick.chat.controller;
 
+import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import kakao.festapick.chat.dto.ChatPayload;
@@ -36,7 +37,6 @@ public class ChatController {
 
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
-    private final ChatParticipantService chatParticipantService;
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/api/festivals/{festivalId}/chatRooms")
@@ -47,27 +47,6 @@ public class ChatController {
                 festivalId);
         return new ResponseEntity<>(new ApiResponseDto<>(chatRoomResponseDto.roomId()),
                 HttpStatus.OK);
-    }
-
-    @MessageMapping("/{chatRoomId}/messages")
-    public void sendChat(
-            @DestinationVariable Long chatRoomId,
-            @Payload SendChatRequestDto requestDto,
-            Principal principal
-    ) {
-        Long userId = Long.valueOf(principal.getName());
-        ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
-        chatMessageService.sendChat(chatRoomResponseDto.roomId(), requestDto, userId);
-    }
-
-    @SubscribeMapping("/{chatRoomId}/messages")
-    public void enterChatRoom(
-            @DestinationVariable Long chatRoomId,
-            Principal principal
-    ) {
-        Long userId = Long.valueOf(principal.getName());
-        ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
-        chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
     }
 
     @PreAuthorize("isAuthenticated()")

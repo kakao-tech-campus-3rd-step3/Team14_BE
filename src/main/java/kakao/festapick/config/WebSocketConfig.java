@@ -1,6 +1,7 @@
 package kakao.festapick.config;
 
 import kakao.festapick.chat.interceptor.WebSocketAuthChannelInterceptor;
+import kakao.festapick.global.StompInterceptorExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private String frontDomain;
 
     private final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor;
+    private final StompInterceptorExceptionHandler stompInterceptorExceptionHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -33,6 +35,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/stomp")
                 .setAllowedOriginPatterns(frontDomain)
                 .withSockJS();
+
+        registry.setErrorHandler(stompInterceptorExceptionHandler);
     }
 
     @Override
