@@ -24,22 +24,19 @@ public class ChatRoomService {
 
     public ChatRoomResponseDto getExistChatRoomOrMakeByFestivalId(Long festivalId) {
         Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findByFestivalId(festivalId);
-        ChatRoomResponseDto responseDto;
         if (chatRoomOptional.isEmpty()) {
             Festival festival = festivalRepository.findFestivalById(festivalId)
                     .orElseThrow(
                             () -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
             ChatRoom newChatRoom = new ChatRoom(festival.getTitle() + " 채팅방", festival);
             ChatRoom savedChatRoom = chatRoomRepository.save(newChatRoom);
-            responseDto = new ChatRoomResponseDto(savedChatRoom.getId(),
+            return new ChatRoomResponseDto(savedChatRoom.getId(),
                     savedChatRoom.getRoomName(), savedChatRoom.getFestivalId());
         } else {
             ChatRoom findChatRoom = chatRoomOptional.get();
-            responseDto = new ChatRoomResponseDto(findChatRoom.getId(),
+            return new ChatRoomResponseDto(findChatRoom.getId(),
                     findChatRoom.getRoomName(), findChatRoom.getFestivalId());
         }
-
-        return responseDto;
     }
 
     public ChatRoomResponseDto getChatRoomByRoomId(Long roomId) {
