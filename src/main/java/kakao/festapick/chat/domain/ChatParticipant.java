@@ -5,6 +5,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -16,10 +17,11 @@ import lombok.Getter;
 @Getter
 @Table(uniqueConstraints = {
         @UniqueConstraint(
-                name = "participantUniqueContstraint",
+                name = "participantUniqueConstraint",
                 columnNames = {"user_id", "chatroom_id"}
         )
-})
+},
+        indexes = @Index(name = "idx_chat_participant_user_id_chatroom_id", columnList = "user_id, chatroom_id"))
 public class ChatParticipant {
 
     @Id

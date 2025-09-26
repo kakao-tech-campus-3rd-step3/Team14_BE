@@ -6,13 +6,16 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import kakao.festapick.festival.domain.Festival;
 import lombok.Getter;
 
 @Entity
 @Getter
+@Table(indexes = @Index(name = "idx_chat_room_festival_id", columnList = "festival_id"))
 public class ChatRoom {
 
     @Id

@@ -6,14 +6,17 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
 
 @Entity
 @Getter
+@Table(indexes = @Index(name = "idx_chat_message_chatroom_id_user_id", columnList = "chatroom_id, user_id"))
 public class ChatMessage {
 
     @Id
