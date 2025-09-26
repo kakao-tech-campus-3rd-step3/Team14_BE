@@ -1,25 +1,17 @@
 package kakao.festapick.global;
 
-import kakao.festapick.global.exception.AuthenticationException;
-import kakao.festapick.global.exception.BadRequestException;
-import kakao.festapick.global.exception.DuplicateEntityException;
-import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.global.exception.TourApiException;
+import kakao.festapick.global.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
-
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.UnknownContentTypeException;
 
 @Slf4j
 @RestControllerAdvice

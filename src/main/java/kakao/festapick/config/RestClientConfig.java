@@ -1,7 +1,5 @@
 package kakao.festapick.config;
 
-import java.time.Duration;
-
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ExternalApiException;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.cbor.MappingJackson2CborHttpMessageConverter;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
+
+import java.time.Duration;
 
 @Slf4j
 @Configuration

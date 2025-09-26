@@ -1,22 +1,14 @@
 package kakao.festapick.user.service;
 
-import jakarta.servlet.http.HttpServletResponse;
-import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.fileupload.repository.TemporalFileRepository;
-import kakao.festapick.fileupload.service.S3Service;
-import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.user.dto.UserSearchCond;
-import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
-import kakao.festapick.user.dto.*;
-import kakao.festapick.user.repository.QUserRepository;
+import kakao.festapick.user.dto.CustomOAuth2User;
+import kakao.festapick.user.dto.GoogleOAuth2Rep;
+import kakao.festapick.user.dto.KakaoOAuth2Rep;
+import kakao.festapick.user.dto.OAuth2Response;
 import kakao.festapick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;

@@ -1,21 +1,8 @@
 package kakao.festapick.festival.service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
-import kakao.festapick.festival.dto.FestivalCustomRequestDto;
-import kakao.festapick.festival.dto.FestivalDetailResponseDto;
-import kakao.festapick.festival.dto.FestivalListResponse;
-import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
-import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
-import kakao.festapick.festival.dto.FestivalStateDto;
-import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
+import kakao.festapick.festival.dto.*;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
@@ -25,15 +12,11 @@ import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
-import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.review.domain.Review;
-import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +25,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service

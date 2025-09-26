@@ -1,10 +1,7 @@
 package kakao.festapick.user.domain;
 
 import jakarta.persistence.*;
-import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.jwt.domain.RefreshToken;
-import kakao.festapick.review.domain.Review;
-import kakao.festapick.wish.domain.Wish;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,8 +11,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
