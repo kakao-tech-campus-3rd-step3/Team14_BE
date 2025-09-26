@@ -27,7 +27,10 @@ public enum ExceptionCode {
 
     //BAD_REQUEST
     FESTIVAL_BAD_DATE("축제 시작일은 종료일보다 빨라야합니다."),
-    FESTIVAL_BAD_IMAGE("이미 등록되어 있는 이미지 입니다.");
+    FESTIVAL_BAD_IMAGE("이미 등록되어 있는 이미지 입니다."),
+
+    //INTERNAL_SERVER_ERROR
+    FAST_API_CONNECTION_ERROR("AI 추천 기능 호출 실패");
 
     private final String errorMessage;
 
