@@ -1,15 +1,11 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
-import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -17,7 +13,6 @@ import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.dto.UserResponseDtoForAdmin;
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.repository.QUserRepository;
-import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

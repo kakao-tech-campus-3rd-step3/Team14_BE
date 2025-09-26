@@ -1,7 +1,6 @@
 package kakao.festapick.global.exception;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 public class DuplicateEntityException extends RuntimeException {

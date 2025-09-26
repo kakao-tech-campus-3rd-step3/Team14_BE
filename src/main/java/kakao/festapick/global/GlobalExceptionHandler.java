@@ -1,24 +1,17 @@
 package kakao.festapick.global;
 
-import kakao.festapick.global.exception.AuthenticationException;
-import kakao.festapick.global.exception.BadRequestException;
-import kakao.festapick.global.exception.DuplicateEntityException;
-import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.global.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
-
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.UnknownContentTypeException;
 
 @Slf4j
 @RestControllerAdvice
@@ -44,10 +37,9 @@ public class GlobalExceptionHandler {
         log.error("timeout 발생 : " + e.getMessage());
     }
 
-    @ExceptionHandler(UnknownContentTypeException.class)
-    public void handelRestClientLimitException(UnknownContentTypeException e){
-        log.error("1일 API 호출 횟수 초과");
-        log.error("인증키 만료");
+    @ExceptionHandler(TourApiException.class)
+    public void handelRestClientLimitException(TourApiException e){
+        log.error(e.getErrMsg());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -67,6 +59,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String,String>> handleBadRequestException(BadRequestException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ExternalApiException.class)
+    public ResponseEntity<Map<String,String>> handleExternalApiException(ExternalApiException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
     }
 
 }

@@ -4,9 +4,9 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
+import kakao.festapick.user.dto.UserSearchCond;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static kakao.festapick.user.domain.QUserEntity.*;
+import static kakao.festapick.user.domain.QUserEntity.userEntity;
 
 @Transactional
 @Repository
