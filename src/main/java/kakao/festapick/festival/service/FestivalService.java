@@ -1,5 +1,6 @@
 package kakao.festapick.festival.service;
 
+import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.*;
@@ -44,6 +45,7 @@ public class FestivalService {
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
     private final FileService fileService;
+    private final ChatRoomService chatRoomService;
 
     //CREATE
     @Transactional
@@ -240,6 +242,7 @@ public class FestivalService {
     private void deleteRelatedEntity(Long festivalId) {
         wishRepository.deleteByFestivalId(festivalId);
         reviewService.deleteReviewByFestivalId(festivalId);
+        chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
     }
 
 }
