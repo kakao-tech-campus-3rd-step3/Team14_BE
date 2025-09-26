@@ -1,6 +1,10 @@
 package kakao.festapick.global;
 
-import kakao.festapick.global.exception.*;
+import kakao.festapick.global.exception.AuthenticationException;
+import kakao.festapick.global.exception.BadRequestException;
+import kakao.festapick.global.exception.DuplicateEntityException;
+import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.global.exception.TourApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,10 +45,9 @@ public class GlobalExceptionHandler {
         log.error("timeout 발생 : " + e.getMessage());
     }
 
-    @ExceptionHandler(UnknownContentTypeException.class)
-    public void handelRestClientLimitException(UnknownContentTypeException e){
-        log.error("1일 API 호출 횟수 초과");
-        log.error("인증키 만료");
+    @ExceptionHandler(TourApiException.class)
+    public void handelRestClientLimitException(TourApiException e){
+        log.error(e.getErrMsg());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
