@@ -17,6 +17,7 @@ import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.repository.FileJdbcTemplateRepository;
+import kakao.festapick.global.exception.JsonParsingException;
 import kakao.festapick.global.exception.TourApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class TourInfoScheduler {
     @GetMapping("/update") //// 테스트용 - 개발 완료시 삭제할 것
     @Transactional
     @Scheduled(cron = "0 10 3 * * *")
-    public void fetchFestivals() throws JsonProcessingException {
+    public void fetchFestivals(){
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
             log.info("가져올 축제 정보 수 : {}", maxRows);
@@ -84,7 +85,7 @@ public class TourInfoScheduler {
         }
     }
 
-    private void saveImages(Map<String, Long> idMap) throws JsonProcessingException {
+    private void saveImages(Map<String, Long> idMap){
         //새로운 이미지 저장하기
         List<FileEntity> files = new ArrayList<>();
         Map<String, String> posters = new HashMap<>();
@@ -115,7 +116,7 @@ public class TourInfoScheduler {
     }
 
 
-    private TourInfoResponse getFestivals(int numOfRows) throws JsonProcessingException {
+    private TourInfoResponse getFestivals(int numOfRows){
         ResponseEntity<String> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
@@ -134,13 +135,17 @@ public class TourInfoScheduler {
 
         // 정상적인 응답이 들어온 경우
         if(mediaType != null && mediaType.includes(MediaType.APPLICATION_JSON)){
-            return objectMapper.readValue(body, TourInfoResponse.class);
+            try {
+                return objectMapper.readValue(body, TourInfoResponse.class);
+            } catch (JsonProcessingException e) {
+                throw new JsonParsingException("전체 축제 조회에 대한 Json 파싱 실패");
+            }
         }
 
         throw new TourApiException(getErrorMessage(body));
     }
 
-    private TourDetailResponse getDetails(String contentId) throws JsonProcessingException {
+    private TourDetailResponse getDetails(String contentId){
         ResponseEntity<String> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/detailCommon2")
                         .queryParam("MobileOS", "ETC")
@@ -157,13 +162,17 @@ public class TourInfoScheduler {
         MediaType mediaType = response.getHeaders().getContentType();
 
         if(mediaType != null && mediaType.includes(MediaType.APPLICATION_JSON)){
-            return objectMapper.readValue(body, TourDetailResponse.class);
+            try {
+                return objectMapper.readValue(body, TourDetailResponse.class);
+            } catch (JsonProcessingException e) {
+                throw new JsonParsingException("축제 상세 정보(개요, 홈페이지) 조회에 대한 Json 파싱 실패");
+            }
         }
 
         throw new TourApiException(getErrorMessage(body));
     }
 
-    private TourImagesResponse getDetailImages(String contentId) throws JsonProcessingException {
+    private TourImagesResponse getDetailImages(String contentId){
         ResponseEntity<String> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/detailImage2")
                         .queryParam("MobileOS", "ETC")
@@ -180,13 +189,17 @@ public class TourInfoScheduler {
         MediaType mediaType = response.getHeaders().getContentType();
 
         if(mediaType != null && mediaType.includes(MediaType.APPLICATION_JSON)){
-            return objectMapper.readValue(body, TourImagesResponse.class);
+            try {
+                return objectMapper.readValue(body, TourImagesResponse.class);
+            } catch (JsonProcessingException e) {
+                throw new JsonParsingException("축제 상세 이미지 조회에 대한 Json 파싱 실패");
+            }
         }
 
         throw new TourApiException(getErrorMessage(body));
     }
 
-    private int getMaxColumns() throws JsonProcessingException {
+    private int getMaxColumns(){
         ResponseEntity<String> response = tourApiClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/B551011/KorService2/searchFestival2")
                         .queryParam("MobileOS", "ETC")
@@ -204,18 +217,27 @@ public class TourInfoScheduler {
         MediaType mediaType = response.getHeaders().getContentType();
 
         if(mediaType != null && mediaType.includes(MediaType.APPLICATION_JSON)){
-            TourApiMaxRows tourApiMaxRows = objectMapper.readValue(body, TourApiMaxRows.class);
-            return tourApiMaxRows.getMaxColumns();
+            try {
+                TourApiMaxRows tourApiMaxRows = objectMapper.readValue(body, TourApiMaxRows.class);
+                return tourApiMaxRows.getMaxColumns();
+            } catch (JsonProcessingException e) {
+                throw new JsonParsingException("전체 축제 수 조회에 대한 Json 파싱 실패");
+            }
         }
 
         throw new TourApiException(getErrorMessage(body));
     }
 
     // TourAPI로 부터 오류 응답(XML)이 들어오는 경우
-    private String getErrorMessage(String xml) throws JsonProcessingException {
+    private String getErrorMessage(String xml){
         XmlMapper xmlMapper = new XmlMapper();
-        TourApiExceptionMessage tourApiExceptionMessage = xmlMapper.readValue(xml, TourApiExceptionMessage.class);
-        return tourApiExceptionMessage.getCmmMsgHeader().getReturnAuthMsg();
+        TourApiExceptionMessage tourApiExceptionMessage = null;
+        try {
+            tourApiExceptionMessage = xmlMapper.readValue(xml, TourApiExceptionMessage.class);
+            return tourApiExceptionMessage.getCmmMsgHeader().getReturnAuthMsg();
+        } catch (JsonProcessingException e) {
+            throw new JsonParsingException("TourAPI 오류 응답(XML) 파싱 에러");
+        }
     }
 
     private String getDate() {

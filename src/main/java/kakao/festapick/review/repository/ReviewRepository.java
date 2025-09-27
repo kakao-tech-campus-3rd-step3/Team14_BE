@@ -46,6 +46,4 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("select r from Review r where r.user.id = :userId")
     List<Review> findByUserId(Long userId);
-
-    String user(UserEntity user);
 }

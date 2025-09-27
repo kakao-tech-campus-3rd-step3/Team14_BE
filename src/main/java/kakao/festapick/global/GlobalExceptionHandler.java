@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TourApiException.class)
-    public void handelRestClientLimitException(TourApiException e){
+    public void handelTourApiException(TourApiException e){
         log.error(e.getErrMsg());
     }
 
@@ -64,6 +64,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ExternalApiException.class)
     public ResponseEntity<Map<String,String>> handleExternalApiException(ExternalApiException e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(JsonParsingException.class)
+    public void handelJsonParsingException(JsonParsingException e){
+        log.error(e.getErrMsg());
     }
 
 }
