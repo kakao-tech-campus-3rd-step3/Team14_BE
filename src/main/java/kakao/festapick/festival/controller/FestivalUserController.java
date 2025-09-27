@@ -1,8 +1,6 @@
 package kakao.festapick.festival.controller;
 
 import jakarta.validation.Valid;
-import java.net.URI;
-import java.util.List;
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -15,15 +13,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.List;
 
 
 @RestController
@@ -37,10 +30,10 @@ public class FestivalUserController {
     @PostMapping
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Void> addFestival(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @RequestBody @Valid FestivalCustomRequestDto requestDto
     ) {
-        Long festivalId = festivalService.addCustomizedFestival(requestDto, identifier);
+        Long festivalId = festivalService.addCustomizedFestival(requestDto, userId);
         return ResponseEntity.created(URI.create("/api/festivals/" + festivalId)).build();
     }
 
@@ -66,11 +59,11 @@ public class FestivalUserController {
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<FestivalListResponse>> getMyFestivals(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size
     ){
-        Page<FestivalListResponse> myFestivals = festivalService.findMyFestivals(identifier, PageRequest.of(page, size));
+        Page<FestivalListResponse> myFestivals = festivalService.findMyFestivals(userId, PageRequest.of(page, size));
         return ResponseEntity.ok(myFestivals);
     }
 
@@ -78,11 +71,11 @@ public class FestivalUserController {
     @PatchMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> updateFestivalInfo(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId,
             @RequestBody @Valid FestivalUpdateRequestDto requestDto
     ){
-        FestivalDetailResponseDto festivalDetail = festivalService.updateFestival(identifier, festivalId, requestDto);
+        FestivalDetailResponseDto festivalDetail = festivalService.updateFestival(userId, festivalId, requestDto);
         ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
     }
@@ -91,10 +84,10 @@ public class FestivalUserController {
     @DeleteMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Void> removeFestival(
-            @AuthenticationPrincipal String identifier,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId
     ){
-        festivalService.deleteFestivalForManager(identifier, festivalId);
+        festivalService.deleteFestivalForManager(userId, festivalId);
         return ResponseEntity.noContent().build();
     }
 

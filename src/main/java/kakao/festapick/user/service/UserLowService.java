@@ -20,10 +20,6 @@ public class UserLowService {
                 .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
     }
 
-    public void deleteByIdentifier(String identifier) {
-        userRepository.deleteByIdentifier(identifier);
-    }
-
     public UserEntity findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(()->new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));

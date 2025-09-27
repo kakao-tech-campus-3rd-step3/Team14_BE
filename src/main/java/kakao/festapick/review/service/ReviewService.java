@@ -19,7 +19,6 @@ import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
-import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -43,10 +41,10 @@ public class ReviewService {
     private final UserLowService userLowService;
 
 
-    public Long createReview(Long festivalId, ReviewRequestDto requestDto, String identifier) {
+    public Long createReview(Long festivalId, ReviewRequestDto requestDto, Long userId) {
         Festival festival = festivalRepository.findFestivalById(festivalId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-        UserEntity user = userLowService.findByIdentifier(identifier);
+        UserEntity user = userLowService.findById(userId);
 
         if (reviewRepository.existsByUserIdAndFestivalId(user.getId(), festivalId)) {
             throw new DuplicateEntityException(ExceptionCode.REVIEW_DUPLICATE);
@@ -91,8 +89,8 @@ public class ReviewService {
 
     }
 
-    public Page<ReviewResponseDto> getMyReviews(String identifier, Pageable pageable) {
-        Page<Review> reviews = reviewRepository.findByUserIdentifierWithAll(identifier, pageable);
+    public Page<ReviewResponseDto> getMyReviews(Long userId, Pageable pageable) {
+        Page<Review> reviews = reviewRepository.findByUserIdWithAll(userId, pageable);
 
 
         List<FileEntity> files = findFilesByReview(reviews);
@@ -114,8 +112,8 @@ public class ReviewService {
      * 4. 기존 리뷰에 존재하지 않는 파일이지만 ReviewRequestDto에 존재한다면 추가를 해야한다.
      */
 
-    public void updateReview(Long reviewId, @Valid ReviewRequestDto requestDto, String identifier) {
-        Review review = reviewRepository.findByUserIdentifierAndId(identifier, reviewId)
+    public void updateReview(Long reviewId, @Valid ReviewRequestDto requestDto, Long userId) {
+        Review review = reviewRepository.findByUserIdAndId(userId, reviewId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND));
 
         review.changeContent(requestDto.content());
@@ -163,9 +161,9 @@ public class ReviewService {
     }
 
 
-    public void removeReview(Long reviewId, String identifier) {
+    public void removeReview(Long reviewId, Long userId) {
 
-        if (reviewRepository.deleteByUserIdentifierAndId(identifier, reviewId) == 0) {
+        if (reviewRepository.deleteByUserIdAndId(userId, reviewId) == 0) {
             throw new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND);
         }
 

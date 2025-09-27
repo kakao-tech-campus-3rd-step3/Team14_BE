@@ -1,15 +1,11 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
-import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.component.CookieComponent;
-import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -17,7 +13,6 @@ import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.dto.UserResponseDtoForAdmin;
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.repository.QUserRepository;
-import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,13 +35,13 @@ public class UserService {
     private final TemporalFileRepository temporalFileRepository;
 
 
-    public void withDraw(String identifier, HttpServletResponse response) {
+    public void withDraw(Long userId, HttpServletResponse response) {
 
-        UserEntity findUser = userLowService.findByIdentifier(identifier);
+        UserEntity findUser = userLowService.findById(userId);
 
         deleteRelatedEntity(findUser);
 
-        userLowService.deleteByIdentifier(identifier);
+        userLowService.deleteById(userId);
         response.setHeader("Set-Cookie", cookieComponent.deleteRefreshToken());
 
         s3Service.deleteS3File(findUser.getProfileImageUrl()); // s3 파일 삭제는 항상 마지막에 호출
@@ -63,8 +58,8 @@ public class UserService {
         findUser.changeUserRole(role);
     }
 
-    public void changeProfileImage(String identifier, FileUploadRequest fileUploadRequest) {
-        UserEntity findUser = userLowService.findByIdentifier(identifier);
+    public void changeProfileImage(Long userId, FileUploadRequest fileUploadRequest) {
+        UserEntity findUser = userLowService.findById(userId);
 
         String oldProfileImageUrl = findUser.getProfileImageUrl();
 
@@ -74,8 +69,8 @@ public class UserService {
         s3Service.deleteS3File(oldProfileImageUrl); // s3 파일 삭제는 항상 마지막에 호출
     }
 
-    public UserResponseDto findMyInfo(String identifier) {
-        UserEntity findUser = userLowService.findByIdentifier(identifier);
+    public UserResponseDto findMyInfo(Long userId) {
+        UserEntity findUser = userLowService.findById(userId);
 
         return new UserResponseDto(findUser);
     }

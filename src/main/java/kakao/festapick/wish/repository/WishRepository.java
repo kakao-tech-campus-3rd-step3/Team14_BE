@@ -2,6 +2,8 @@ package kakao.festapick.wish.repository;
 
 import java.util.List;
 import java.util.Optional;
+
+import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.wish.domain.Wish;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,13 +15,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WishRepository extends JpaRepository<Wish, Long> {
 
-    @Query(value = "select w from Wish w join w.user u on u.identifier= :identifier join fetch w.festival f",
-            countQuery = "select count(w) from Wish w join w.user u on u.identifier= :identifier")
-    Page<Wish> findByUserIdentifier(String identifier, Pageable pageable);
+    @Query(value = "select w from Wish w join fetch w.festival f where w.user.id = :userId",
+            countQuery = "select count(w) from Wish w where w.user.id =:userId")
+    Page<Wish> findByUserIdWithFestivalPage(Long userId, Pageable pageable);
 
-    Optional<Wish> findByUserIdentifierAndFestivalId(String identifier, Long festivalId);
+    Optional<Wish> findByUserIdAndFestivalId(Long userId, Long festivalId);
 
-    Optional<Wish> findByUserIdentifierAndId(String identifier, Long wishId);
+    Optional<Wish> findByUserIdAndId(Long userId, Long wishId);
 
     @Modifying(clearAutomatically = true)
     @Query("delete from Wish w where w.user.id = :userId")
@@ -31,4 +33,6 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
 
     @Query("select w from Wish w where w.festival.id = :festivalId")
     List<Wish> findByFestivalId(Long festivalId);
+
+    String user(UserEntity user);
 }

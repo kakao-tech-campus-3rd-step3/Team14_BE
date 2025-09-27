@@ -1,9 +1,5 @@
 package kakao.festapick.review.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-
-import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -21,6 +17,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
@@ -82,7 +83,7 @@ public class ReviewRepositoryTest {
 
         Review saved = reviewRepository.save(new Review(userEntity, festival, "testtesttest", 4));
 
-        Optional<Review> find = reviewRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
+        Optional<Review> find = reviewRepository.findByUserIdAndId(userEntity.getId(),
                 saved.getId());
 
         assertThat(find).isPresent();
@@ -122,7 +123,7 @@ public class ReviewRepositoryTest {
 
         Review saved = reviewRepository.save(new Review(userEntity, festival, "testtesttest", 4));
 
-        Page<Review> find = reviewRepository.findByUserIdentifierWithAll(userEntity.getIdentifier(),
+        Page<Review> find = reviewRepository.findByUserIdWithAll(userEntity.getId(),
                 PageRequest.of(0, 1));
 
         Review actual = find.getContent().get(0);

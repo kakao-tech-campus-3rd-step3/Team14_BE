@@ -1,28 +1,7 @@
 package kakao.festapick.festival.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.FestivalCustomRequestDto;
-import kakao.festapick.festival.dto.FestivalDetailResponseDto;
-import kakao.festapick.festival.dto.FestivalListResponse;
-import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
-import kakao.festapick.festival.dto.FestivalRequestDto;
-import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
-import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
+import kakao.festapick.festival.dto.*;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -34,10 +13,9 @@ import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.repository.WishRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -51,6 +29,20 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 @ExtendWith(MockitoExtension.class)
 class FestivalServiceTest {
 
@@ -58,7 +50,7 @@ class FestivalServiceTest {
     private FestivalRepository festivalRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private UserLowService userLowService;
 
     @Mock
     private QFestivalRepository qFestivalRepository;
@@ -88,17 +80,17 @@ class FestivalServiceTest {
     void addCustomizedFestival() throws Exception {
 
         //given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = createCustomFestival(requestDto, user);
         Long festivalId = 1L;
 
-        given(userRepository.findByIdentifier(any())).willReturn(Optional.of(user));
+        given(userLowService.findById(any())).willReturn(user);
         given(festivalRepository.save(any())).willReturn(festival);
         setFestivalId(festival, festivalId);
 
         //when
-        Long Id = festivalService.addCustomizedFestival(requestDto, user.getIdentifier());
+        Long Id = festivalService.addCustomizedFestival(requestDto, user.getId());
 
         //then
         assertAll(
@@ -106,11 +98,11 @@ class FestivalServiceTest {
                 () -> assertThat(Id).isEqualTo(festival.getId())
         );
 
-        verify(userRepository).findByIdentifier(any());
+        verify(userLowService).findById(any());
         verify(festivalRepository).save(any());
         verify(temporalFileRepository).deleteById(any());
         verify(temporalFileRepository).deleteByIds(any());
-        verifyNoMoreInteractions(userRepository, qFestivalRepository, s3Service, temporalFileRepository);
+        verifyNoMoreInteractions(userLowService, qFestivalRepository, s3Service, temporalFileRepository);
     }
 
     @Test
@@ -118,20 +110,19 @@ class FestivalServiceTest {
     void addCustomizedFestivalFail(){
 
         //given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
-        String testIdentifier = "testIdentifier";
 
-        given(userRepository.findByIdentifier(any())).willReturn(Optional.empty());
+        given(userLowService.findById(any())).willThrow(new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
 
         //when
         NotFoundEntityException e = assertThrows(
-                NotFoundEntityException.class, () -> festivalService.addCustomizedFestival(requestDto, testIdentifier)
+                NotFoundEntityException.class, () -> festivalService.addCustomizedFestival(requestDto, user.getId())
         );
 
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.USER_NOT_FOUND);
 
-        verify(userRepository).findByIdentifier(any());
+        verify(userLowService).findById(any());
         verifyNoMoreInteractions(festivalRepository);
     }
 
@@ -140,24 +131,24 @@ class FestivalServiceTest {
     @DisplayName("시작일이 종료일보다 늦을 경우 축제 예외 반환")
     void addCustomizedFestivalFail2() {
         // given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto =
                 new FestivalCustomRequestDto(
                         "축제title", 32, "주소1", "상세주소",
                         new FileUploadRequest(1L,"imageUrl"), null, testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
                         "homepageUrl", "축제에 대한 개요");
 
-        given(userRepository.findByIdentifier(any()))
-                .willReturn(Optional.of(user));
+        given(userLowService.findById(any()))
+                .willReturn(user);
 
         // when & then
         assertThatThrownBy(()->
-                festivalService.addCustomizedFestival(requestDto, user.getIdentifier()))
+                festivalService.addCustomizedFestival(requestDto, user.getId()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(ExceptionCode.FESTIVAL_BAD_DATE.getErrorMessage());
 
-        verify(userRepository).findByIdentifier(any());
-        verifyNoMoreInteractions(userRepository);
+        verify(userLowService).findById(any());
+        verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(festivalRepository);
     }
 
@@ -245,19 +236,17 @@ class FestivalServiceTest {
         Pageable pageable = PageRequest.of(0,2);
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(userRepository.findByIdentifier(any())).willReturn(Optional.of(user));
         given(festivalRepository.findFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
 
         //when
-        Page<FestivalListResponse> result = festivalService.findMyFestivals(identifier, pageable);
+        Page<FestivalListResponse> result = festivalService.findMyFestivals(user.getId(), pageable);
 
         //total
         assertThat(result.getContent().size()).isEqualTo(2);
         assertThat(result.getTotalElements()).isEqualTo(10);
 
-        verify(userRepository).findByIdentifier(any());
         verify(festivalRepository).findFestivalByManagerId(any(), any());
-        verifyNoMoreInteractions(userRepository, festivalRepository);
+        verifyNoMoreInteractions(userLowService, festivalRepository);
     }
 
     @Test
@@ -289,7 +278,7 @@ class FestivalServiceTest {
     @DisplayName("자신이 등록한 축제를 변경 - 변경 성공(포스터 변경 x)")
     void updateFestival() {
         //given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = createCustomFestival(requestDto, user);
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
@@ -297,7 +286,7 @@ class FestivalServiceTest {
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
 
         //when
-        FestivalDetailResponseDto updated = festivalService.updateFestival(user.getIdentifier(), any(), updateInfo);
+        FestivalDetailResponseDto updated = festivalService.updateFestival(user.getId(), any(), updateInfo);
 
         //then
         assertAll(
@@ -315,7 +304,7 @@ class FestivalServiceTest {
     @DisplayName("자신이 등록하지 않은 축제를 수정 - 변경 실패")
     void updateFestivalFail() {
         //given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = createFestival();
 
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
@@ -324,7 +313,7 @@ class FestivalServiceTest {
 
         //when
         ForbiddenException e = assertThrows(
-                ForbiddenException.class, () -> festivalService.updateFestival(user.getIdentifier(), any(), updateInfo)
+                ForbiddenException.class, () -> festivalService.updateFestival(user.getId(), any(), updateInfo)
         );
 
         //then
@@ -338,14 +327,14 @@ class FestivalServiceTest {
     void updateStateFestivalNotFound() {
 
         //given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.empty());
 
         //when
         NotFoundEntityException e = assertThrows(
-                NotFoundEntityException.class, () -> festivalService.updateFestival(user.getIdentifier(), any(), updateInfo)
+                NotFoundEntityException.class, () -> festivalService.updateFestival(user.getId(), any(), updateInfo)
         );
 
         //then
@@ -359,14 +348,14 @@ class FestivalServiceTest {
     void removeOne() {
 
         //given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
 
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
 
         //when
-        festivalService.deleteFestivalForManager(user.getIdentifier(), any());
+        festivalService.deleteFestivalForManager(user.getId(), any());
 
         //then
         verify(festivalRepository).findFestivalByIdWithManager(any());
@@ -382,16 +371,14 @@ class FestivalServiceTest {
     void removeOneFail() {
 
         //given
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
-        String identifierUser2 = "i am user2";
-
         given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
 
         //when
         ForbiddenException e = assertThrows(
-                ForbiddenException.class, () -> festivalService.deleteFestivalForManager(identifierUser2, any())
+                ForbiddenException.class, () -> festivalService.deleteFestivalForManager(100L, any())
         );
 
         //then
@@ -430,6 +417,7 @@ class FestivalServiceTest {
 
     }
 
+
     private FestivalRequestDto createRequestDto() {
         return new FestivalRequestDto(
                 "contentId","축제title", 32, "주소1", "상세주소",
@@ -459,8 +447,8 @@ class FestivalServiceTest {
         festivals.add(createFestival());
         festivals.add(createFestival());
         festivals.add(createFestival());
-        festivals.add(createCustomFestival(createCustomRequestDto(), testUtil.createTestUser()));
-        festivals.add(createCustomFestival(createCustomRequestDto(), testUtil.createTestUser()));
+        festivals.add(createCustomFestival(createCustomRequestDto(), testUtil.createTestUserWithId()));
+        festivals.add(createCustomFestival(createCustomRequestDto(), testUtil.createTestUserWithId()));
         return festivals;
     }
 

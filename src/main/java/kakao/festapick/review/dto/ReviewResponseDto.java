@@ -2,7 +2,6 @@ package kakao.festapick.review.dto;
 
 import kakao.festapick.review.domain.Review;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public record ReviewResponseDto (

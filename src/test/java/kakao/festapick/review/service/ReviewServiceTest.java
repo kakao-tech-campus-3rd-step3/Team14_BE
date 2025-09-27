@@ -1,16 +1,5 @@
 package kakao.festapick.review.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -28,7 +17,6 @@ import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
-import kakao.festapick.user.service.UserService;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +25,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ReviewServiceTest {
@@ -67,7 +65,7 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 등록 성공")
     void createReviewSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
@@ -75,7 +73,7 @@ public class ReviewServiceTest {
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(userLowService.findByIdentifier(any()))
+        given(userLowService.findById(any()))
                 .willReturn(user);
         given(reviewRepository.existsByUserIdAndFestivalId(any(), any()))
                 .willReturn(false);
@@ -85,12 +83,12 @@ public class ReviewServiceTest {
         ReviewRequestDto requestDto = new ReviewRequestDto(content, score, List.of(new FileUploadRequest(1L,"image")), null);
 
         Long savedId = reviewService.createReview(festival.getId(),
-                requestDto, user.getIdentifier());
+                requestDto, user.getId());
 
         assertThat(review.getId()).isEqualTo(savedId);
 
         verify(festivalRepository).findFestivalById(any());
-        verify(userLowService).findByIdentifier(any());
+        verify(userLowService).findById(any());
         verify(reviewRepository).existsByUserIdAndFestivalId(any(), any());
         verify(reviewRepository).save(any());
         verify(fileService).saveAll(anyList());
@@ -101,14 +99,14 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("중복으로 인한 리뷰 등록 실패")
     void createReviewFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
 
         given(festivalRepository.findFestivalById(any()))
                 .willReturn(Optional.of(festival));
-        given(userLowService.findByIdentifier(any()))
+        given(userLowService.findById(any()))
                 .willReturn(user);
         given(reviewRepository.existsByUserIdAndFestivalId(any(), any()))
                 .willReturn(true);
@@ -116,11 +114,11 @@ public class ReviewServiceTest {
         ReviewRequestDto requestDto = new ReviewRequestDto(content, score, null, null);
 
         DuplicateEntityException e = Assertions.assertThrows(DuplicateEntityException.class,
-                () -> reviewService.createReview(festival.getId(), requestDto, user.getIdentifier()));
+                () -> reviewService.createReview(festival.getId(), requestDto, user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_DUPLICATE);
 
         verify(festivalRepository).findFestivalById(any());
-        verify(userLowService).findByIdentifier(any());
+        verify(userLowService).findById(any());
         verify(reviewRepository).existsByUserIdAndFestivalId(any(), any());
         verifyNoMoreInteractions(festivalRepository,userLowService,reviewRepository,fileService, temporalFileRepository);
     }
@@ -128,18 +126,18 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 삭제 성공")
     void deleteReviewSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.deleteByUserIdentifierAndId(any(), any()))
+        given(reviewRepository.deleteByUserIdAndId(any(), any()))
                 .willReturn(1);
 
-        reviewService.removeReview(review.getId(), user.getIdentifier());
+        reviewService.removeReview(review.getId(), user.getId());
 
-        verify(reviewRepository).deleteByUserIdentifierAndId(any(), any());
+        verify(reviewRepository).deleteByUserIdAndId(any(), any());
         verify(fileService).deleteByDomainId(any(),any());
         verifyNoMoreInteractions(festivalRepository,userLowService,reviewRepository,fileService);
     }
@@ -149,33 +147,33 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 삭제 실패 (없는 리뷰 삭제 시도)")
     void deleteReviewFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.deleteByUserIdentifierAndId(any(), any()))
+        given(reviewRepository.deleteByUserIdAndId(any(), any()))
                 .willReturn(0);
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> reviewService.removeReview(review.getId(), user.getIdentifier()));
+                () -> reviewService.removeReview(review.getId(), user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
 
-        verify(reviewRepository).deleteByUserIdentifierAndId(any(), any());
+        verify(reviewRepository).deleteByUserIdAndId(any(), any());
         verifyNoMoreInteractions(festivalRepository,userLowService,reviewRepository,fileService);
     }
 
     @Test
     @DisplayName("리뷰 수정 성공")
     void updateReviewSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.findByUserIdentifierAndId(any(), any()))
+        given(reviewRepository.findByUserIdAndId(any(), any()))
                 .willReturn(Optional.of(review));
 
         given(fileService.findByDomainIdAndDomainType(any(), any()))
@@ -183,9 +181,9 @@ public class ReviewServiceTest {
 
         ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5, null, null);
 
-        reviewService.updateReview(review.getId(), requestDto, user.getIdentifier());
+        reviewService.updateReview(review.getId(), requestDto, user.getId());
 
-        verify(reviewRepository).findByUserIdentifierAndId(any(), any());
+        verify(reviewRepository).findByUserIdAndId(any(), any());
         verify(fileService).findByDomainIdAndDomainType(any(),any());
         verify(fileService).deleteAllByFileEntity(any());
         verify(temporalFileRepository).deleteByIds(any());
@@ -196,22 +194,22 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("리뷰 수정 실패 (없는 리뷰 수정 시도)")
     void updateReviewFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUser();
+        UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         String content = "test content";
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.findByUserIdentifierAndId(any(), any()))
+        given(reviewRepository.findByUserIdAndId(any(), any()))
                 .willReturn(Optional.empty());
 
         ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5, null, null);
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> reviewService.updateReview(review.getId(), requestDto, user.getIdentifier()));
+                () -> reviewService.updateReview(review.getId(), requestDto, user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
 
-        verify(reviewRepository).findByUserIdentifierAndId(any(), any());
+        verify(reviewRepository).findByUserIdAndId(any(), any());
         verifyNoMoreInteractions(festivalRepository,userLowService,reviewRepository,fileService, temporalFileRepository);
     }
 

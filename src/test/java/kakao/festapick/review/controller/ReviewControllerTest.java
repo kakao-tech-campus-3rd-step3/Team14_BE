@@ -1,17 +1,7 @@
 package kakao.festapick.review.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
-import java.util.Optional;
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -23,13 +13,13 @@ import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
-import kakao.festapick.mockuser.WithCustomMockUser;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
 import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
+import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,6 +29,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -71,10 +69,10 @@ public class ReviewControllerTest {
 
     @Test
     @DisplayName("리뷰 등록 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void createReviewSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
         Festival festival = saveFestival();
         TemporalFile t1 = temporalFileRepository.save(new TemporalFile("imageUrl1"));
         TemporalFile t2 = temporalFileRepository.save(new TemporalFile("imageUrl2"));
@@ -94,7 +92,7 @@ public class ReviewControllerTest {
         int idx = header.lastIndexOf("/");
         Long savedReviewId = Long.valueOf(header.substring(idx + 1));
 
-        Optional<Review> find = reviewRepository.findByUserIdentifierAndId(userEntity.getIdentifier(),
+        Optional<Review> find = reviewRepository.findByUserIdAndId(userEntity.getId(),
                 savedReviewId);
         assertThat(find).isPresent();
         Review actual = find.get();
@@ -117,8 +115,9 @@ public class ReviewControllerTest {
 
     @Test
     @DisplayName("리뷰 등록 실패 (없는 축제에 대한 등록)")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void createReviewFail() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3, null, null);
 
@@ -130,8 +129,9 @@ public class ReviewControllerTest {
 
     @Test
     @DisplayName("내 리뷰 조회 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void getReviewsSuccess1() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         mockMvc.perform(get("/api/reviews/my"))
                 .andExpect(status().isOk());
@@ -149,10 +149,10 @@ public class ReviewControllerTest {
 
     @Test
     @DisplayName("리뷰 삭제 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void removeReviewSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
         Festival festival = saveFestival();
 
         Review target = reviewRepository.save(new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
@@ -166,10 +166,10 @@ public class ReviewControllerTest {
 
     @Test
     @DisplayName("리뷰 수정 성공")
-    @WithCustomMockUser(identifier = identifier, role = "ROLE_USER")
     void updateReviewSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
         Festival festival = saveFestival();
 
         TemporalFile t2 = temporalFileRepository.save(new TemporalFile("imageUrl2"));

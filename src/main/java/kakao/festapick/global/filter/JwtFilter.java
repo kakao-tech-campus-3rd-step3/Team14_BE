@@ -9,9 +9,7 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.user.service.UserLowService;
-import kakao.festapick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -64,8 +62,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             UserEntity findUser = userLowService.findByIdentifier(identifier);
+            Long userId = findUser.getId();
             List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+findUser.getRoleType().name()));
-            Authentication auth = new UsernamePasswordAuthenticationToken(identifier, null, authorities);
+            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
             filterChain.doFilter(request, response);
         } catch (NotFoundEntityException ex) {

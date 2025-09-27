@@ -1,8 +1,9 @@
 package kakao.festapick.festival.dto;
 
+import kakao.festapick.festival.domain.Festival;
+
 import java.time.LocalDate;
 import java.util.List;
-import kakao.festapick.festival.domain.Festival;
 
 public record FestivalDetailResponseDto(
         Long id,
