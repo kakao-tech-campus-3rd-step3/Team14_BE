@@ -62,8 +62,15 @@ dependencies {
 	// aws
 	implementation libs.aws.s3
 
+	// Websocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// STOMP
+	implementation group: 'org.webjars', name: 'stomp-websocket', version: '2.3.3-1'
+
 	// XmlMapper
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+
 }
 
 tasks.named('test') {

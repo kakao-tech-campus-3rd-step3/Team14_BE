@@ -1,5 +1,6 @@
 package kakao.festapick.festival.service;
 
+import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.*;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -69,6 +70,9 @@ class FestivalServiceTest {
 
     @Mock
     private ReviewService reviewService;
+
+    @Mock
+    private ChatRoomService chatRoomService;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -406,7 +410,8 @@ class FestivalServiceTest {
         verify(festivalRepository).findFestivalById(festivalId);
         verify(wishRepository).deleteByFestivalId(festivalId);
         verify(reviewService).deleteReviewByFestivalId(festivalId);
-        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService);
+        verify(chatRoomService).deleteChatRoomByfestivalIdIfExist(festivalId);
+        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService, chatRoomService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {

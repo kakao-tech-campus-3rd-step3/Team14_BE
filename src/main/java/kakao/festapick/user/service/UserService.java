@@ -1,6 +1,8 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.chat.repository.ChatMessageRepository;
+import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -33,6 +35,8 @@ public class UserService {
     private final QUserRepository qUserRepository;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
 
     public void withDraw(Long userId, HttpServletResponse response) {
@@ -87,6 +91,8 @@ public class UserService {
 
     private void deleteRelatedEntity(UserEntity findUser) {
         wishRepository.deleteByUserId(findUser.getId());
+        chatParticipantRepository.deleteByUserId(findUser.getId());
+        chatMessageRepository.deleteByUserId(findUser.getId());
         reviewService.deleteReviewByUserId(findUser.getId());
         festivalService.deleteFestivalByManagerId(findUser.getId());
     }

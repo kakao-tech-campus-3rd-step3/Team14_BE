@@ -1,5 +1,6 @@
 package kakao.festapick.util;
 
+import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -44,6 +45,15 @@ public class TestUtil {
 
     public Festival createTestFestival(UserEntity userEntity) {
         return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, userEntity, null);
+    }
+
+    public Festival createTourApiTestFestival() {
+        return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, null, null);
+    }
+
+
+    public ChatRoom createTestChatRoom(Festival festival) {
+        return new ChatRoom("test room", festival);
     }
 
 
