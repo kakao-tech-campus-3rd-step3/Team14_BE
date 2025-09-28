@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Getter
 public class UserEntity {
 
-    private static String defaultImage = "123";
+    private static String defaultImage;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

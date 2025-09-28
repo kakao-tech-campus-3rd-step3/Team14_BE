@@ -33,6 +33,4 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
 
     @Query("select w from Wish w where w.festival.id = :festivalId")
     List<Wish> findByFestivalId(Long festivalId);
-
-    String user(UserEntity user);
 }
