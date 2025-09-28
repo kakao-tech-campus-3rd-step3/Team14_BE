@@ -1,5 +1,15 @@
 package kakao.festapick.review.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.lang.reflect.Field;
+import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.service.FestivalLowService;
@@ -14,7 +24,6 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
-import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
@@ -25,16 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ReviewServiceTest {
@@ -49,7 +48,7 @@ public class ReviewServiceTest {
     private FestivalLowService festivalLowService;
 
     @Mock
-    private ReviewRepository reviewRepository;
+    private ReviewLowService reviewLowService;
 
     @Mock
     private FileService fileService;
@@ -75,9 +74,9 @@ public class ReviewServiceTest {
                 .willReturn(festival);
         given(userLowService.findById(any()))
                 .willReturn(user);
-        given(reviewRepository.existsByUserIdAndFestivalId(any(), any()))
+        given(reviewLowService.existsByUserIdAndFestivalId(any(), any()))
                 .willReturn(false);
-        given(reviewRepository.save(any()))
+        given(reviewLowService.save(any()))
                 .willReturn(review);
 
         ReviewRequestDto requestDto = new ReviewRequestDto(content, score, List.of(new FileUploadRequest(1L,"image")), null);
@@ -89,11 +88,11 @@ public class ReviewServiceTest {
 
         verify(festivalLowService).findFestivalById(any());
         verify(userLowService).findById(any());
-        verify(reviewRepository).existsByUserIdAndFestivalId(any(), any());
-        verify(reviewRepository).save(any());
+        verify(reviewLowService).existsByUserIdAndFestivalId(any(), any());
+        verify(reviewLowService).save(any());
         verify(fileService).saveAll(anyList());
         verify(temporalFileRepository).deleteByIds(any());
-        verifyNoMoreInteractions(festivalLowService,userLowService,reviewRepository,fileService, temporalFileRepository);
+        verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService, temporalFileRepository);
     }
 
     @Test
@@ -108,7 +107,7 @@ public class ReviewServiceTest {
                 .willReturn(festival);
         given(userLowService.findById(any()))
                 .willReturn(user);
-        given(reviewRepository.existsByUserIdAndFestivalId(any(), any()))
+        given(reviewLowService.existsByUserIdAndFestivalId(any(), any()))
                 .willReturn(true);
 
         ReviewRequestDto requestDto = new ReviewRequestDto(content, score, null, null);
@@ -119,8 +118,8 @@ public class ReviewServiceTest {
 
         verify(festivalLowService).findFestivalById(any());
         verify(userLowService).findById(any());
-        verify(reviewRepository).existsByUserIdAndFestivalId(any(), any());
-        verifyNoMoreInteractions(festivalLowService,userLowService,reviewRepository,fileService, temporalFileRepository);
+        verify(reviewLowService).existsByUserIdAndFestivalId(any(), any());
+        verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService, temporalFileRepository);
     }
 
     @Test
@@ -132,14 +131,14 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.deleteByUserIdAndId(any(), any()))
+        given(reviewLowService.deleteByUserIdAndId(any(), any()))
                 .willReturn(1);
 
         reviewService.removeReview(review.getId(), user.getId());
 
-        verify(reviewRepository).deleteByUserIdAndId(any(), any());
+        verify(reviewLowService).deleteByUserIdAndId(any(), any());
         verify(fileService).deleteByDomainId(any(),any());
-        verifyNoMoreInteractions(festivalLowService,userLowService,reviewRepository,fileService);
+        verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService);
     }
 
 
@@ -153,15 +152,15 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.deleteByUserIdAndId(any(), any()))
+        given(reviewLowService.deleteByUserIdAndId(any(), any()))
                 .willReturn(0);
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
                 () -> reviewService.removeReview(review.getId(), user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
 
-        verify(reviewRepository).deleteByUserIdAndId(any(), any());
-        verifyNoMoreInteractions(festivalLowService,userLowService,reviewRepository,fileService);
+        verify(reviewLowService).deleteByUserIdAndId(any(), any());
+        verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService);
     }
 
     @Test
@@ -173,8 +172,8 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.findByUserIdAndId(any(), any()))
-                .willReturn(Optional.of(review));
+        given(reviewLowService.findByUserIdAndId(any(), any()))
+                .willReturn(review);
 
         given(fileService.findByDomainIdAndDomainType(any(), any()))
                 .willReturn(List.of());
@@ -183,34 +182,12 @@ public class ReviewServiceTest {
 
         reviewService.updateReview(review.getId(), requestDto, user.getId());
 
-        verify(reviewRepository).findByUserIdAndId(any(), any());
+        verify(reviewLowService).findByUserIdAndId(any(), any());
         verify(fileService).findByDomainIdAndDomainType(any(),any());
         verify(fileService).deleteAllByFileEntity(any());
         verify(temporalFileRepository).deleteByIds(any());
         verify(s3Service).deleteFiles(any());
-        verifyNoMoreInteractions(festivalLowService,userLowService,reviewRepository,fileService, temporalFileRepository);
-    }
-
-    @Test
-    @DisplayName("리뷰 수정 실패 (없는 리뷰 수정 시도)")
-    void updateReviewFail() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUserWithId();
-        Festival festival = testFestival();
-        String content = "test content";
-        Integer score = 1;
-        Review review = new Review(1L, user, festival, content, score);
-
-        given(reviewRepository.findByUserIdAndId(any(), any()))
-                .willReturn(Optional.empty());
-
-        ReviewRequestDto requestDto = new ReviewRequestDto("updated", 5, null, null);
-
-        NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> reviewService.updateReview(review.getId(), requestDto, user.getId()));
-        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
-
-        verify(reviewRepository).findByUserIdAndId(any(), any());
-        verifyNoMoreInteractions(festivalLowService,userLowService,reviewRepository,fileService, temporalFileRepository);
+        verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService, temporalFileRepository);
     }
 
     @Test
@@ -225,8 +202,8 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewRepository.findById(any()))
-                .willReturn(Optional.of(review));
+        given(reviewLowService.findById(any()))
+                .willReturn(review);
 
         // when
         ReviewResponseDto reviewDto = reviewService.getReview(review.getId());
