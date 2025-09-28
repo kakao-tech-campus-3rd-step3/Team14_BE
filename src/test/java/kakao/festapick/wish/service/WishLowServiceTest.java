@@ -1,4 +1,4 @@
-package kakao.festapick.review.service;
+package kakao.festapick.wish.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,10 +13,10 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.review.domain.Review;
-import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.util.TestUtil;
+import kakao.festapick.wish.domain.Wish;
+import kakao.festapick.wish.repository.WishRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,40 +26,38 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ReviewLowServiceTest {
+class WishLowServiceTest {
 
     private final TestUtil testUtil = new TestUtil();
 
     @Mock
-    private ReviewRepository reviewRepository;
+    private WishRepository wishRepository;
 
     @InjectMocks
-    private ReviewLowService reviewLowService;
+    private WishLowService wishLowService;
 
     @Test
-    @DisplayName("없는 리뷰 조회하는 경우 예외가 발생")
-    void findReviewFail() throws NoSuchFieldException, IllegalAccessException {
+    @DisplayName("없는 위시를 조회하는 경우")
+    void findWishFail() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
-        String content = "test content";
-        Integer score = 1;
-        Review review = new Review(1L, user, festival, content, score);
+        Wish wish = new Wish(1L, user, festival);
 
-        given(reviewRepository.findByUserIdAndId(any(), any()))
+        given(wishRepository.findByUserIdAndId(any(), any()))
                 .willReturn(Optional.empty());
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> reviewLowService.findByUserIdAndId(review.getId(), user.getId()));
-        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
+                () -> wishLowService.findByUserIdAndId(wish.getId(), user.getId()));
+        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_NOT_FOUND);
 
-        verify(reviewRepository).findByUserIdAndId(any(), any());
-        verifyNoMoreInteractions(reviewRepository);
+        verify(wishRepository).findByUserIdAndId(any(), any());
+        verifyNoMoreInteractions(wishRepository);
     }
 
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
-                11, "test area1", "test area2", "http://asd.example.com/test.jpg", testUtil.toLocalDate("20250823"),
-                testUtil.toLocalDate("20251231"));
+                11, "test area1", "test area2", "http://asd.example.com/test.jpg",
+                testUtil.toLocalDate("20250823"), testUtil.toLocalDate("20251231"));
         Festival festival = new Festival(festivalRequestDto, new TourDetailResponse());
 
         Field idField = Festival.class.getDeclaredField("id");
@@ -68,7 +66,4 @@ class ReviewLowServiceTest {
 
         return festival;
     }
-
-
-
 }
