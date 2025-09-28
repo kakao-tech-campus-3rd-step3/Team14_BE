@@ -19,6 +19,7 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.repository.WishRepository;
+import kakao.festapick.wish.service.WishLowService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +34,6 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -66,7 +66,7 @@ class FestivalServiceTest {
     private FileService fileService;
 
     @Mock
-    private WishRepository wishRepository;
+    private WishLowService wishLowService;
 
     @Mock
     private ReviewService reviewService;
@@ -327,8 +327,8 @@ class FestivalServiceTest {
         verify(festivalLowService).deleteById(any()); //행위 검증
         verify(fileService).deleteByDomainId(any(), any());
         verify(reviewService).deleteReviewByFestivalId(festival.getId());
-        verify(wishRepository).deleteByFestivalId(festival.getId());
-        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishRepository);
+        verify(wishLowService).deleteByFestivalId(festival.getId());
+        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService);
     }
 
     @Test
@@ -349,7 +349,7 @@ class FestivalServiceTest {
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
         verify(festivalLowService).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalLowService, wishRepository, reviewService);
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService);
     }
 
     @Test
@@ -369,10 +369,10 @@ class FestivalServiceTest {
         //then: 행위만을 검증
         verify(festivalLowService).deleteById(festivalId);
         verify(festivalLowService).findFestivalById(festivalId);
-        verify(wishRepository).deleteByFestivalId(festivalId);
+        verify(wishLowService).deleteByFestivalId(festivalId);
         verify(reviewService).deleteReviewByFestivalId(festivalId);
         verify(chatRoomService).deleteChatRoomByfestivalIdIfExist(festivalId);
-        verifyNoMoreInteractions(festivalLowService, wishRepository, reviewService, chatRoomService);
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {

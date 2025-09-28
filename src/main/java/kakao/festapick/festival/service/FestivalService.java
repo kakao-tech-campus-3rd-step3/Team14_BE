@@ -4,7 +4,6 @@ import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.*;
-import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
@@ -15,11 +14,10 @@ import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
-import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
-import kakao.festapick.wish.repository.WishRepository;
+import kakao.festapick.wish.service.WishLowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,7 +36,7 @@ import java.util.stream.Collectors;
 public class FestivalService {
 
     private final FestivalLowService festivalLowService;
-    private final WishRepository wishRepository;
+    private final WishLowService wishLowService;
     private final ReviewService reviewService;
     private final UserLowService userLowService;
     private final QFestivalRepository qFestivalRepository;
@@ -240,7 +238,7 @@ public class FestivalService {
     }
 
     private void deleteRelatedEntity(Long festivalId) {
-        wishRepository.deleteByFestivalId(festivalId);
+        wishLowService.deleteByFestivalId(festivalId);
         reviewService.deleteReviewByFestivalId(festivalId);
         chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
     }

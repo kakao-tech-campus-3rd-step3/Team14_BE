@@ -2,6 +2,7 @@ package kakao.festapick.wish.repository;
 
 import java.util.List;
 import java.util.Optional;
+
 import kakao.festapick.wish.domain.Wish;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
