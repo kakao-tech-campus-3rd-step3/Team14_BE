@@ -2,7 +2,7 @@ package kakao.festapick.wish.service;
 
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
-import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -42,7 +42,7 @@ public class WishServiceTest {
     private UserLowService userLowService;
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalLowService festivalLowService;
 
     @Mock
     private WishRepository wishRepository;
@@ -56,8 +56,8 @@ public class WishServiceTest {
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(festivalRepository.findFestivalById(any()))
-                .willReturn(Optional.of(festival));
+        given(festivalLowService.findFestivalById(any()))
+                .willReturn(festival);
         given(userLowService.findById(any()))
                 .willReturn(user);
         given(wishRepository.findByUserIdAndFestivalId(any(), any()))
@@ -78,11 +78,11 @@ public class WishServiceTest {
                         .isEqualTo(festival.getAreaCode())
         );
 
-        verify(festivalRepository).findFestivalById(any());
+        verify(festivalLowService).findFestivalById(any());
         verify(userLowService).findById(any());
         verify(wishRepository).findByUserIdAndFestivalId(any(), any());
         verify(wishRepository).save(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }
@@ -94,8 +94,8 @@ public class WishServiceTest {
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(festivalRepository.findFestivalById(any()))
-                .willReturn(Optional.of(festival));
+        given(festivalLowService.findFestivalById(any()))
+                .willReturn(festival);
         given(userLowService.findById(any()))
                 .willReturn(user);
         given(wishRepository.findByUserIdAndFestivalId(any(), any()))
@@ -105,10 +105,10 @@ public class WishServiceTest {
                 () -> wishService.createWish(festival.getId(), user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_DUPLICATE);
 
-        verify(festivalRepository).findFestivalById(any());
+        verify(festivalLowService).findFestivalById(any());
         verify(userLowService).findById(any());
         verify(wishRepository).findByUserIdAndFestivalId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }
@@ -127,7 +127,7 @@ public class WishServiceTest {
 
         verify(wishRepository).findByUserIdAndId(any(), any());
         verify(wishRepository).delete(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }
@@ -147,7 +147,7 @@ public class WishServiceTest {
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_NOT_FOUND);
 
         verify(wishRepository).findByUserIdAndId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishRepository);
     }

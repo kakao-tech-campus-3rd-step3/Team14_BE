@@ -2,7 +2,7 @@ package kakao.festapick.review.service;
 
 import jakarta.validation.Valid;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final FestivalRepository festivalRepository;
+    private final FestivalLowService festivalLowService;
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
     private final S3Service s3Service;
@@ -42,8 +42,7 @@ public class ReviewService {
 
 
     public Long createReview(Long festivalId, ReviewRequestDto requestDto, Long userId) {
-        Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+        Festival festival = festivalLowService.findFestivalById(festivalId);
         UserEntity user = userLowService.findById(userId);
 
         if (reviewRepository.existsByUserIdAndFestivalId(user.getId(), festivalId)) {

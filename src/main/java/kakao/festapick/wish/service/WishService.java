@@ -3,7 +3,7 @@ package kakao.festapick.wish.service;
 
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
-import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -25,12 +25,11 @@ public class WishService {
 
     private final WishRepository wishRepository;
     private final UserLowService userLowService;
-    private final FestivalRepository festivalRepository;
+    private final FestivalLowService festivalLowService;
 
     @Transactional
     public WishResponseDto createWish(Long festivalId, Long userId) {
-        Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+        Festival festival = festivalLowService.findFestivalById(festivalId);
         UserEntity user = userLowService.findById(userId);
 
         wishRepository.findByUserIdAndFestivalId(userId, festivalId)
