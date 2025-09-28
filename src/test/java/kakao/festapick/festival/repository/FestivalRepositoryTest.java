@@ -178,6 +178,26 @@ class FestivalRepositoryTest {
         );
     }
 
+
+    @Test
+    @DisplayName("축제 제목으로 축제 검색")
+    void searchFestivalByTitle(){
+
+        //given
+        String searchKeyword = "부산대";
+
+        //when
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Festival> festivalPage = festivalRepository.findFestivalByTitleStartingWithAndState(searchKeyword, FestivalState.APPROVED, pageable);
+
+        //then
+        assertAll(
+                () -> assertThat(festivalPage.getContent().size()).isGreaterThanOrEqualTo(1),
+                () -> assertThat(festivalPage.getContent().getFirst().getTitle()).contains("부산대")
+        );
+    }
+
+
     private FestivalRequestDto FestivalRequest(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){
         return new FestivalRequestDto(
                 contentId, title, areaCode, "addr1", "addr2",

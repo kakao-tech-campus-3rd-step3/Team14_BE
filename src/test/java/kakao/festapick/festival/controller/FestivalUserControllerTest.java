@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -365,6 +364,39 @@ class FestivalUserControllerTest {
         //when-then
         mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId()))
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
+    }
+
+    @Test
+    @DisplayName("축제 title로 축제를 검색")
+    void searchFestival() throws Exception {
+
+        //given
+        String keyword = "정컴인";
+
+        //when
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals").param("keyword", keyword))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andReturn();
+        String response = mvcResult.getResponse().getContentAsString();
+        List<Map<String, String>> festivals = read(response, "$.content");
+
+        //then
+        assertAll(
+                () -> assertThat(festivals.size()).isEqualTo(1),
+                () -> assertThat(festivals.getFirst().get("title")).isEqualTo("정컴인축제")
+        );
+    }
+
+    @Test
+    @DisplayName("축제 title로 축제를 검색 - 공백은 허용하지 않음")
+    void searchFestivalFail() throws Exception {
+
+        //given
+        String keyword = "  ";
+
+        //when - then
+        mockMvc.perform(get("/api/festivals").param("keyword", keyword))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
 
     private FestivalRequestDto FestivalRequest(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){

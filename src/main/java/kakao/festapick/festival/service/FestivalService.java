@@ -93,6 +93,11 @@ public class FestivalService {
         return festivalList.map(FestivalListResponse::new);
     }
 
+    public Page<FestivalListResponse> findFestivalByTitle(String keyWord, Pageable pageable){
+        Page<Festival> festivals = festivalRepository.findFestivalByTitleStartingWithAndState(keyWord, FestivalState.APPROVED, pageable);
+        return festivals.map(FestivalListResponse::new);
+    }
+
     //모든 축제 검색 기능(관리자)
     public Page<FestivalListResponseForAdmin> findAllWithPage(FestivalSearchCondForAdmin cond,
             Pageable pageable) {

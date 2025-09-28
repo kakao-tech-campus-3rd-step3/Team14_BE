@@ -35,4 +35,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Query("delete from Festival f where f.manager.id = :userId")
     void deleteByManagerId(Long userId);
 
+    Page<Festival> findFestivalByTitleStartingWithAndState(String title, FestivalState state, Pageable pageable);
+
 }
