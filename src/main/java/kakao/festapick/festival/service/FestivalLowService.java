@@ -60,8 +60,8 @@ public class FestivalLowService {
         festivalRepository.deleteByManagerId(userId);
     }
 
-    public Page<Festival> findFestivalByTitleStartingWithAndState(String title, FestivalState state, Pageable pageable){
-        return festivalRepository.findFestivalByTitleStartingWithAndState(title, state, pageable);
+    public Page<Festival> findFestivalByTitle(String title, FestivalState state, Pageable pageable){
+        return festivalRepository.findFestivalByTitle(title, state, pageable);
     }
 
 

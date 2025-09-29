@@ -2,7 +2,6 @@ package kakao.festapick.wish.service;
 
 import java.util.List;
 import java.util.Optional;
-import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.wish.domain.Wish;

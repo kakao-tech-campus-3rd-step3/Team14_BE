@@ -188,7 +188,7 @@ class FestivalRepositoryTest {
 
         //when
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Festival> festivalPage = festivalRepository.findFestivalByTitleStartingWithAndState(searchKeyword, FestivalState.APPROVED, pageable);
+        Page<Festival> festivalPage = festivalRepository.findFestivalByTitle(searchKeyword, FestivalState.APPROVED, pageable);
 
         //then
         assertAll(

@@ -91,7 +91,7 @@ public class FestivalService {
     }
 
     public Page<FestivalListResponse> findFestivalByTitle(String keyWord, Pageable pageable){
-        Page<Festival> festivals = festivalLowService.findFestivalByTitleStartingWithAndState(keyWord, FestivalState.APPROVED, pageable);
+        Page<Festival> festivals = festivalLowService.findFestivalByTitle(keyWord, FestivalState.APPROVED, pageable);
         return festivals.map(FestivalListResponse::new);
     }
 
