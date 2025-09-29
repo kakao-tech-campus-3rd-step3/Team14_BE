@@ -3,8 +3,6 @@ package kakao.festapick.festival.service;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.*;
-import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -18,7 +16,6 @@ import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
-import kakao.festapick.wish.repository.WishRepository;
 import kakao.festapick.wish.service.WishLowService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,9 +49,6 @@ class FestivalServiceTest {
 
     @Mock
     private UserLowService userLowService;
-
-    @Mock
-    private QFestivalRepository qFestivalRepository;
 
     @Mock
     private S3Service s3Service;
@@ -106,7 +100,7 @@ class FestivalServiceTest {
         verify(festivalLowService).save(any());
         verify(temporalFileRepository).deleteById(any());
         verify(temporalFileRepository).deleteByIds(any());
-        verifyNoMoreInteractions(userLowService, qFestivalRepository, s3Service, temporalFileRepository);
+        verifyNoMoreInteractions(userLowService, festivalLowService, s3Service, temporalFileRepository);
     }
 
     @Test
@@ -244,7 +238,7 @@ class FestivalServiceTest {
         List<Festival> festivals = getFestivals();
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(qFestivalRepository.findByStateAndTitleLike(any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findByStateAndTitleLike(any(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponseForAdmin> result = festivalService.findAllWithPage(cond, pageable);
@@ -255,8 +249,8 @@ class FestivalServiceTest {
                 () -> assertThat(result.getContent().size()).isEqualTo(festivals.size()),
                 () -> assertThat(result.getContent().getFirst()).isInstanceOf(FestivalListResponseForAdmin.class)
         );
-        verify(qFestivalRepository).findByStateAndTitleLike(any(), any());
-        verifyNoMoreInteractions(qFestivalRepository);
+        verify(festivalLowService).findByStateAndTitleLike(any(), any());
+        verifyNoMoreInteractions(festivalLowService);
 
     }
 

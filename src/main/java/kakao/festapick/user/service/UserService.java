@@ -33,7 +33,6 @@ public class UserService {
     private final WishLowService wishLowService;
     private final ReviewService reviewService;
     private final CookieComponent cookieComponent;
-    private final QUserRepository qUserRepository;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
     private final ChatParticipantRepository chatParticipantRepository;
@@ -53,7 +52,7 @@ public class UserService {
     }
 
     public Page<UserResponseDtoForAdmin> findByIdentifierOrUserEmail(UserSearchCond userSearchCond, Pageable pageable) {
-        return qUserRepository.findByIdentifierOrUserEmail(userSearchCond, pageable)
+        return userLowService.findByIdentifierOrUserEmail(userSearchCond, pageable)
                 .map(UserResponseDtoForAdmin::new);
     }
 

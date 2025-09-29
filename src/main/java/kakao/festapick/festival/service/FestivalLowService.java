@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,8 @@ import org.springframework.stereotype.Service;
 public class FestivalLowService {
 
     private final FestivalRepository festivalRepository;
+
+    private final QFestivalRepository qFestivalRepository;
 
     public Festival save(Festival festival){
         return festivalRepository.save(festival);
@@ -62,6 +66,10 @@ public class FestivalLowService {
 
     public Page<Festival> findFestivalByTitle(String title, FestivalState state, Pageable pageable){
         return festivalRepository.findFestivalByTitle(title, state, pageable);
+    }
+
+    public Page<Festival> findByStateAndTitleLike(FestivalSearchCondForAdmin cond, Pageable pageable){
+        return qFestivalRepository.findByStateAndTitleLike(cond, pageable);
     }
 
 

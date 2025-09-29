@@ -39,7 +39,7 @@ public class FestivalService {
     private final WishLowService wishLowService;
     private final ReviewService reviewService;
     private final UserLowService userLowService;
-    private final QFestivalRepository qFestivalRepository;
+
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
     private final FileService fileService;
@@ -98,7 +98,7 @@ public class FestivalService {
     //모든 축제 검색 기능(관리자)
     public Page<FestivalListResponseForAdmin> findAllWithPage(FestivalSearchCondForAdmin cond,
             Pageable pageable) {
-        return qFestivalRepository.findByStateAndTitleLike(cond, pageable)
+        return festivalLowService.findByStateAndTitleLike(cond, pageable)
                 .map(FestivalListResponseForAdmin::new);
     }
 
