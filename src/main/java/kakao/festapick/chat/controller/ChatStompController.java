@@ -32,7 +32,6 @@ public class ChatStompController {
 
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
-    private final ChatParticipantService chatParticipantService;
 
     @MessageMapping("/{chatRoomId}/messages")
     public void sendChat(
@@ -44,15 +43,4 @@ public class ChatStompController {
         ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
         chatMessageService.sendChat(chatRoomResponseDto.roomId(), requestDto, userId);
     }
-
-    @SubscribeMapping("/{chatRoomId}/messages")
-    public void enterChatRoom(
-            @DestinationVariable Long chatRoomId,
-            Principal principal
-    ) {
-        Long userId = Long.valueOf(principal.getName());
-        ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
-        chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
-    }
-
 }
