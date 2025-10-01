@@ -3,16 +3,13 @@ package kakao.festapick.wish.repository;
 import java.util.List;
 import java.util.Optional;
 
-import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.wish.domain.Wish;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface WishRepository extends JpaRepository<Wish, Long> {
 
     @Query(value = "select w from Wish w join fetch w.festival f where w.user.id = :userId",

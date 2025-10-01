@@ -16,6 +16,7 @@ import kakao.festapick.user.dto.UserResponseDtoForAdmin;
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.user.repository.QUserRepository;
 import kakao.festapick.wish.repository.WishRepository;
+import kakao.festapick.wish.service.WishLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,10 +30,9 @@ public class UserService {
 
     private final UserLowService userLowService;
     private final FestivalService festivalService;
-    private final WishRepository wishRepository;
+    private final WishLowService wishLowService;
     private final ReviewService reviewService;
     private final CookieComponent cookieComponent;
-    private final QUserRepository qUserRepository;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
     private final ChatParticipantRepository chatParticipantRepository;
@@ -52,7 +52,7 @@ public class UserService {
     }
 
     public Page<UserResponseDtoForAdmin> findByIdentifierOrUserEmail(UserSearchCond userSearchCond, Pageable pageable) {
-        return qUserRepository.findByIdentifierOrUserEmail(userSearchCond, pageable)
+        return userLowService.findByIdentifierOrUserEmail(userSearchCond, pageable)
                 .map(UserResponseDtoForAdmin::new);
     }
 
@@ -90,7 +90,7 @@ public class UserService {
     }
 
     private void deleteRelatedEntity(UserEntity findUser) {
-        wishRepository.deleteByUserId(findUser.getId());
+        wishLowService.deleteByUserId(findUser.getId());
         chatParticipantRepository.deleteByUserId(findUser.getId());
         chatMessageRepository.deleteByUserId(findUser.getId());
         reviewService.deleteReviewByUserId(findUser.getId());

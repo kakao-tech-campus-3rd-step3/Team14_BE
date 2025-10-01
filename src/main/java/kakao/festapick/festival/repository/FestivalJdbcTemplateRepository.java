@@ -4,9 +4,7 @@ import kakao.festapick.festival.domain.Festival;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -14,13 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-@Transactional
 @RequiredArgsConstructor
 public class FestivalJdbcTemplateRepository {
 
     private final JdbcTemplate jdbcTemplate;
-
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public void upsertFestivalInfo(List<Festival> festivalList) {
         String upsertQuery =

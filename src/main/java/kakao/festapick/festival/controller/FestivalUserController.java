@@ -1,6 +1,7 @@
 package kakao.festapick.festival.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -13,12 +14,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
 
-
+@Validated
 @RestController
 @RequestMapping("/api/festivals")
 @RequiredArgsConstructor
@@ -54,6 +56,17 @@ public class FestivalUserController {
         FestivalDetailResponseDto festivalDetail = festivalService.findOneById(festivalId);
         ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
+    }
+
+    //축제명을 바탕으로 축제를 검색하는 기능
+    @GetMapping
+    public ResponseEntity<Page<FestivalListResponse>> searchFestival(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam @NotBlank(message = "검색어를 필수로 입력해야 합니다.") String keyword
+    ){
+        Page<FestivalListResponse> festivalListResponses = festivalService.findFestivalByTitle(keyword, PageRequest.of(page, size));
+        return ResponseEntity.ok(festivalListResponses);
     }
 
     @GetMapping("/my")
