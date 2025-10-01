@@ -1,7 +1,6 @@
 package kakao.festapick.ai.repository;
 
 import kakao.festapick.ai.domain.RecommendationHistory;
-import kakao.festapick.user.domain.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

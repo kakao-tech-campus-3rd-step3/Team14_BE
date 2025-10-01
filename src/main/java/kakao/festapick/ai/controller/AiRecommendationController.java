@@ -32,12 +32,12 @@ public class AiRecommendationController {
     }
 
     @GetMapping("/histories")
-    public ResponseEntity<ApiResponseDto<Page<FestivalListResponse>>> getRecommendedFestival(@AuthenticationPrincipal Long userId,
+    public ResponseEntity<Page<FestivalListResponse>> getRecommendedFestival(@AuthenticationPrincipal Long userId,
                                                                                              @RequestParam(defaultValue = "0") int page,
                                                                                              @RequestParam(defaultValue = "5") int size) {
         Page<FestivalListResponse> response = aiRecommendationService.getRecommendedFestivals(userId, PageRequest.of(page, size));
 
-        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto(response));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }
