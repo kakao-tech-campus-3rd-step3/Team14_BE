@@ -3,6 +3,8 @@ package kakao.festapick.ai.service;
 import kakao.festapick.ai.domain.RecommendationHistory;
 import kakao.festapick.ai.repository.RecommendationHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,5 +25,9 @@ public class RecommendationHistoryLowService {
 
     public void saveAll(List<RecommendationHistory> recommendationHistories) {
         recommendationHistoryRepository.saveAll(recommendationHistories);
+    }
+
+    public Page<RecommendationHistory> findByUserIdWithFestival(Long userId, Pageable pageable) {
+        return recommendationHistoryRepository.findByUserIdWithFestival(userId,pageable);
     }
 }

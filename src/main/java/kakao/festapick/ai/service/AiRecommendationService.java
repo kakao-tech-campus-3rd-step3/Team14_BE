@@ -10,6 +10,8 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -55,5 +57,11 @@ public class AiRecommendationService {
 
 
         return response.getBody();
+    }
+
+
+    public Page<FestivalListResponse> getRecommendedFestivals(Long userId, Pageable pageable) {
+        return recommendationHistoryLowService.findByUserIdWithFestival(userId, pageable)
+                .map(recommendationHistory -> new FestivalListResponse(recommendationHistory.getFestival()));
     }
 }
