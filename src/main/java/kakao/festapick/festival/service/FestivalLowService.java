@@ -1,7 +1,11 @@
 package kakao.festapick.festival.service;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
@@ -70,6 +74,10 @@ public class FestivalLowService {
 
     public Page<Festival> findByStateAndTitleLike(FestivalSearchCondForAdmin cond, Pageable pageable){
         return qFestivalRepository.findByStateAndTitleLike(cond, pageable);
+    }
+
+    public List<Festival> findAllById(Set<Long> ids){
+        return festivalRepository.findAllById(ids);
     }
 
 
