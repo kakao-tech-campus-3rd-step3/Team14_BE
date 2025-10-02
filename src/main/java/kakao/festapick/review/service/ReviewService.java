@@ -1,8 +1,15 @@
 package kakao.festapick.review.service;
 
 import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -16,7 +23,6 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
-import kakao.festapick.review.repository.ReviewRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
@@ -25,33 +31,30 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ReviewService {
 
-    private final ReviewRepository reviewRepository;
-    private final FestivalRepository festivalRepository;
+    private final ReviewLowService reviewLowService;
+    private final FestivalLowService festivalLowService;
+    private final UserLowService userLowService;
+
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
     private final S3Service s3Service;
-    private final UserLowService userLowService;
 
 
     public Long createReview(Long festivalId, ReviewRequestDto requestDto, Long userId) {
-        Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+        Festival festival = festivalLowService.findFestivalById(festivalId);
         UserEntity user = userLowService.findById(userId);
 
-        if (reviewRepository.existsByUserIdAndFestivalId(user.getId(), festivalId)) {
+        if (reviewLowService.existsByUserIdAndFestivalId(user.getId(), festivalId)) {
             throw new DuplicateEntityException(ExceptionCode.REVIEW_DUPLICATE);
         }
 
         Review newReview = new Review(user, festival, requestDto.content(), requestDto.score());
-        Review saved = reviewRepository.save(newReview);
+        Review saved = reviewLowService.save(newReview);
 
         saveFiles(requestDto.imageInfos(), requestDto.videoInfo(), saved.getId());
 
@@ -59,7 +62,7 @@ public class ReviewService {
     }
 
     public Page<ReviewResponseDto> getFestivalReviews(Long festivalId, Pageable pageable) {
-        Page<Review> reviews = reviewRepository.findByFestivalIdWithAll(festivalId, pageable);
+        Page<Review> reviews = reviewLowService.findByFestivalIdWithAll(festivalId, pageable);
 
         List<FileEntity> files = findFilesByReview(reviews);
 
@@ -75,8 +78,7 @@ public class ReviewService {
     }
 
     public ReviewResponseDto getReview(Long reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND));
+        Review review = reviewLowService.findById(reviewId);
 
         List<FileEntity> files = fileService.findByDomainIdAndDomainType(reviewId, DomainType.REVIEW);
 
@@ -90,8 +92,7 @@ public class ReviewService {
     }
 
     public Page<ReviewResponseDto> getMyReviews(Long userId, Pageable pageable) {
-        Page<Review> reviews = reviewRepository.findByUserIdWithAll(userId, pageable);
-
+        Page<Review> reviews = reviewLowService.findByUserIdWithAll(userId, pageable);
 
         List<FileEntity> files = findFilesByReview(reviews);
 
@@ -113,8 +114,7 @@ public class ReviewService {
      */
 
     public void updateReview(Long reviewId, @Valid ReviewRequestDto requestDto, Long userId) {
-        Review review = reviewRepository.findByUserIdAndId(userId, reviewId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND));
+        Review review = reviewLowService.findByUserIdAndId(userId, reviewId);
 
         review.changeContent(requestDto.content());
         review.changeScore(requestDto.score());
@@ -163,7 +163,7 @@ public class ReviewService {
 
     public void removeReview(Long reviewId, Long userId) {
 
-        if (reviewRepository.deleteByUserIdAndId(userId, reviewId) == 0) {
+        if (reviewLowService.deleteByUserIdAndId(userId, reviewId) == 0) {
             throw new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND);
         }
 
@@ -172,20 +172,20 @@ public class ReviewService {
 
     public void deleteReviewByFestivalId(Long festivalId) {
 
-        List<Long> reviewIds = reviewRepository.findByFestivalId(festivalId)
+        List<Long> reviewIds = reviewLowService.findByFestivalId(festivalId)
                 .stream().map(Review::getId).toList();
 
-        reviewRepository.deleteByFestivalId(festivalId);
+        reviewLowService.deleteByFestivalId(festivalId);
 
         fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
     public void deleteReviewByUserId(Long userId) {
 
-        List<Long> reviewIds = reviewRepository.findByUserId(userId)
+        List<Long> reviewIds = reviewLowService.findByUserId(userId)
                 .stream().map(Review::getId).toList();
 
-        reviewRepository.deleteByUserId(userId);
+        reviewLowService.deleteByUserId(userId);
 
         fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
