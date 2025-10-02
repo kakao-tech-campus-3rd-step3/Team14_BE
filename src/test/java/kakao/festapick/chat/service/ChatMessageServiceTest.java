@@ -18,6 +18,12 @@ import kakao.festapick.chat.dto.SendChatRequestDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.domain.FileType;
+import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.fileupload.repository.TemporalFileRepository;
+import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
@@ -47,6 +53,10 @@ public class ChatMessageServiceTest {
     private ChatMessageLowService chatMessageLowService;
     @Mock
     private ChatRoomLowService chatRoomLowService;
+    @Mock
+    private FileService fileService;
+    @Mock
+    private TemporalFileRepository temporalFileRepository;
 
     @Test
     @DisplayName("채팅 전송 성공")
@@ -63,16 +73,20 @@ public class ChatMessageServiceTest {
         given(chatMessageLowService.save(any()))
                 .willReturn(chatMessage);
 
-        SendChatRequestDto requestDto = new SendChatRequestDto("test message");
+        SendChatRequestDto requestDto = new SendChatRequestDto("test message", List.of(new FileUploadRequest(1L,"image")));
         chatMessageService.sendChat(chatRoom.getId(), requestDto, user.getId());
 
         verify(userLowService).findById(any());
         verify(chatRoomLowService).findByRoomId(any());
         verify(chatMessageLowService).save(any());
+        verify(fileService).saveAll(any());
+        verify(temporalFileRepository).deleteByIds(any());
         verify(webSocket).convertAndSend((String) any(), (Object) any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);
+        verifyNoMoreInteractions(fileService);
+        verifyNoMoreInteractions(temporalFileRepository);
         verifyNoMoreInteractions(webSocket);
     }
 
@@ -91,6 +105,9 @@ public class ChatMessageServiceTest {
 
         given(chatMessageLowService.findByChatRoomId(any(), any()))
                 .willReturn(page);
+
+        given(fileService.findAllFileEntityByDomain(any(), any()))
+                .willReturn(List.of(new FileEntity("test url", FileType.IMAGE, DomainType.CHAT, chatMessage.getId())));
 
         Page<ChatPayload> response = chatMessageService.getPreviousMessages(1L,
                 PageRequest.of(0, 1));
