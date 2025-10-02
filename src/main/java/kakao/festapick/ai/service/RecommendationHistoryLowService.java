@@ -30,4 +30,12 @@ public class RecommendationHistoryLowService {
     public Page<RecommendationHistory> findByUserIdWithFestival(Long userId, Pageable pageable) {
         return recommendationHistoryRepository.findByUserIdWithFestival(userId,pageable);
     }
+
+    public void deleteByUserId(Long userId) {
+        recommendationHistoryRepository.deleteByUserId(userId);
+    }
+
+    public void deleteByFestivalId(Long festivalId) {
+        recommendationHistoryRepository.deleteByFestivalId(festivalId);
+    }
 }
