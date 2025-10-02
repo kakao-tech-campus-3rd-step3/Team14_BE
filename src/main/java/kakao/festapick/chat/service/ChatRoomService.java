@@ -3,11 +3,8 @@ package kakao.festapick.chat.service;
 import java.util.Optional;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
-import kakao.festapick.chat.repository.ChatMessageRepository;
-import kakao.festapick.chat.repository.ChatParticipantRepository;
-import kakao.festapick.chat.repository.ChatRoomRepository;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import lombok.RequiredArgsConstructor;
@@ -21,19 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ChatRoomService {
 
-    private final ChatRoomRepository chatRoomRepository;
-    private final FestivalRepository festivalRepository;
-    private final ChatParticipantRepository chatParticipantRepository;
-    private final ChatMessageRepository chatMessageRepository;
+    private final ChatRoomLowService chatRoomLowService;
+    private final FestivalLowService festivalLowService;
+    private final ChatParticipantLowService chatParticipantLowService;
+    private final ChatMessageLowService chatMessageLowService;
 
     public ChatRoomResponseDto getExistChatRoomOrMakeByFestivalId(Long festivalId) {
-        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findByFestivalId(festivalId);
+        Optional<ChatRoom> chatRoomOptional = chatRoomLowService.findByFestivalId(festivalId);
         if (chatRoomOptional.isEmpty()) {
-            Festival festival = festivalRepository.findFestivalById(festivalId)
-                    .orElseThrow(
-                            () -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+            Festival festival = festivalLowService.findFestivalById(festivalId);
             ChatRoom newChatRoom = new ChatRoom(festival.getTitle() + " 채팅방", festival);
-            ChatRoom savedChatRoom = chatRoomRepository.save(newChatRoom);
+            ChatRoom savedChatRoom = chatRoomLowService.save(newChatRoom);
             return new ChatRoomResponseDto(savedChatRoom.getId(),
                     savedChatRoom.getRoomName(), savedChatRoom.getFestivalId());
         } else {
@@ -44,29 +39,28 @@ public class ChatRoomService {
     }
 
     public ChatRoomResponseDto getChatRoomByRoomId(Long roomId) {
-        ChatRoom chatRoom = chatRoomRepository.findByRoomId(roomId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.CHATROOM_NOT_FOUND));
+        ChatRoom chatRoom = chatRoomLowService.findByRoomId(roomId);
         return new ChatRoomResponseDto(chatRoom.getId(), chatRoom.getRoomName(),
                 chatRoom.getFestivalId());
     }
 
     public Page<ChatRoomResponseDto> getChatRooms(Pageable pageable) {
-        Page<ChatRoom> chatRooms = chatRoomRepository.findAll(pageable);
+        Page<ChatRoom> chatRooms = chatRoomLowService.findAll(pageable);
         return chatRooms.map(chatRoom -> new ChatRoomResponseDto(chatRoom.getId(),
                 chatRoom.getRoomName(), chatRoom.getFestivalId()));
     }
 
     public void deleteChatRoomByfestivalIdIfExist(Long festivalId) {
-        Optional<ChatRoom> chatRoom = chatRoomRepository.findByFestivalId(festivalId);
+        Optional<ChatRoom> chatRoom = chatRoomLowService.findByFestivalId(festivalId);
         if (chatRoom.isPresent()) {
             Long chatRoomId = chatRoom.get().getId();
             deleteRelatedEntity(chatRoomId);
-            chatRoomRepository.deleteById(chatRoomId);
+            chatRoomLowService.deleteById(chatRoomId);
         }
     }
 
     private void deleteRelatedEntity(Long chatRoomId) {
-        chatParticipantRepository.deleteByChatRoomId(chatRoomId);
-        chatMessageRepository.deleteByChatRoomId(chatRoomId);
+        chatParticipantLowService.deleteByChatRoomId(chatRoomId);
+        chatMessageLowService.deleteByChatRoomId(chatRoomId);
     }
 }

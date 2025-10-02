@@ -7,9 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
     @Query(value = "select c from ChatMessage c join fetch c.user u where c.chatRoom.id = :chatRoomId",
