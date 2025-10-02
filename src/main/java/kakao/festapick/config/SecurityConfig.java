@@ -108,6 +108,7 @@ public class SecurityConfig {
             "/login",
             "/view/**", //view 확인용
             "/management/health_check",
-            "/stomp/**"
+            "/stomp/**",
+            "/api/login/status"
     };
 }

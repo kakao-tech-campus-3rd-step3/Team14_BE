@@ -3,6 +3,7 @@ package kakao.festapick.user.service;
 import jakarta.servlet.http.HttpServletResponse;
 import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
+import kakao.festapick.ai.service.RecommendationHistoryLowService;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -29,6 +30,7 @@ public class UserService {
     private final UserLowService userLowService;
     private final FestivalService festivalService;
     private final WishLowService wishLowService;
+    private final RecommendationHistoryLowService recommendationHistoryLowService;
     private final ReviewService reviewService;
     private final CookieComponent cookieComponent;
     private final S3Service s3Service;
@@ -88,6 +90,7 @@ public class UserService {
     }
 
     private void deleteRelatedEntity(UserEntity findUser) {
+        recommendationHistoryLowService.deleteByUserId(findUser.getId());
         wishLowService.deleteByUserId(findUser.getId());
         chatParticipantLowService.deleteByUserId(findUser.getId());
         chatMessageLowService.deleteByUserId(findUser.getId());

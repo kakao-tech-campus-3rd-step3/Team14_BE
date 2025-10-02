@@ -1,5 +1,6 @@
 package kakao.festapick.util;
 
+import kakao.festapick.ai.domain.RecommendationHistory;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
@@ -80,5 +81,9 @@ public class TestUtil {
         images.add(new FileUploadRequest(999L,"https://festapick.secondimage.com"));
         images.add(new FileUploadRequest(9999L,"https://festapick.thridimage.com"));
         return images;
+    }
+
+    public RecommendationHistory createRecommendationHistory(UserEntity user, Festival festival) {
+        return new RecommendationHistory(festival, user);
     }
 }
