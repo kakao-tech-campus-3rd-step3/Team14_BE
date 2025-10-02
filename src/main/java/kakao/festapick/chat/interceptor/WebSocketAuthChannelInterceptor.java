@@ -71,7 +71,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             Principal principal = headerAccessor.getUser();
             String destination = headerAccessor.getDestination();
             if (principal == null) {
-                throw new AuthenticationException(ExceptionCode.ACCESS_TOKEN_NOT_EXIST); //todo 적절한 예외
+                throw new AuthenticationException(ExceptionCode.NO_LOGIN);
             }
             if (destination == null) {
                 return message;
