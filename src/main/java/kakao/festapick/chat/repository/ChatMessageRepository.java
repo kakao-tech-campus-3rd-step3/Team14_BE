@@ -20,6 +20,9 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Query(value = "select c from ChatMessage c join fetch c.user u where c.chatRoom.id = :chatRoomId and c.user.id = :userId")
     List<ChatMessage> findAllByChatRoomIdAndUserId(Long chatRoomId, Long userId);
 
+    @Query(value = "select c from ChatMessage c where c.user.id = :userId")
+    List<ChatMessage> findAllByUserId(Long userId);
+
     @Modifying(clearAutomatically = true)
     @Query("delete from ChatMessage c where c.chatRoom.id = :chatRoomId")
     void deleteByChatRoomId(Long chatRoomId);

@@ -37,6 +37,10 @@ public class ChatMessageLowService {
         return chatMessageRepository.findAllByChatRoomId(chatRoomId);
     }
 
+    public List<ChatMessage> findAllByUserId(Long userId) {
+        return chatMessageRepository.findAllByUserId(userId);
+    }
+
     public List<ChatMessage> findAllByChatRoomIdAndUserId(Long chatRoomId, Long userId) {
         return chatMessageRepository.findAllByChatRoomIdAndUserId(chatRoomId, userId);
     }

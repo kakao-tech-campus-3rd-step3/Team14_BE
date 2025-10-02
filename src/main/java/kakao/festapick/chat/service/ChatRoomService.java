@@ -1,12 +1,17 @@
 package kakao.festapick.chat.service;
 
+import java.util.List;
 import java.util.Optional;
+import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.review.domain.Review;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +27,7 @@ public class ChatRoomService {
     private final FestivalLowService festivalLowService;
     private final ChatParticipantLowService chatParticipantLowService;
     private final ChatMessageLowService chatMessageLowService;
+    private final FileService fileService;
 
     public ChatRoomResponseDto getExistChatRoomOrMakeByFestivalId(Long festivalId) {
         Optional<ChatRoom> chatRoomOptional = chatRoomLowService.findByFestivalId(festivalId);
@@ -62,5 +68,9 @@ public class ChatRoomService {
     private void deleteRelatedEntity(Long chatRoomId) {
         chatParticipantLowService.deleteByChatRoomId(chatRoomId);
         chatMessageLowService.deleteByChatRoomId(chatRoomId);
+
+        List<Long> chatMessageIds = chatMessageLowService.findAllByChatRoomId(chatRoomId)
+                .stream().map(ChatMessage::getId).toList();
+        fileService.deleteByDomainIds(chatMessageIds, DomainType.CHAT); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 }
