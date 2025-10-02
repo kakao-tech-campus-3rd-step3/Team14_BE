@@ -15,8 +15,6 @@ import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.SendChatRequestDto;
-import kakao.festapick.chat.repository.ChatMessageRepository;
-import kakao.festapick.chat.repository.ChatRoomRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -33,7 +31,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,9 +44,9 @@ public class ChatMessageServiceTest {
     @Mock
     private UserLowService userLowService;
     @Mock
-    private ChatMessageRepository chatMessageRepository;
+    private ChatMessageLowService chatMessageLowService;
     @Mock
-    private ChatRoomRepository chatRoomRepository;
+    private ChatRoomLowService chatRoomLowService;
 
     @Test
     @DisplayName("채팅 전송 성공")
@@ -61,21 +58,21 @@ public class ChatMessageServiceTest {
 
         given(userLowService.findById(any()))
                 .willReturn(user);
-        given(chatRoomRepository.findById(any()))
-                .willReturn(Optional.of(chatRoom));
-        given(chatMessageRepository.save(any()))
+        given(chatRoomLowService.findByRoomId(any()))
+                .willReturn(chatRoom);
+        given(chatMessageLowService.save(any()))
                 .willReturn(chatMessage);
 
         SendChatRequestDto requestDto = new SendChatRequestDto("test message");
         chatMessageService.sendChat(chatRoom.getId(), requestDto, user.getId());
 
         verify(userLowService).findById(any());
-        verify(chatRoomRepository).findById(any());
-        verify(chatMessageRepository).save(any());
+        verify(chatRoomLowService).findByRoomId(any());
+        verify(chatMessageLowService).save(any());
         verify(webSocket).convertAndSend((String) any(), (Object) any());
-        verifyNoMoreInteractions(chatRoomRepository);
+        verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(chatMessageRepository);
+        verifyNoMoreInteractions(chatMessageLowService);
         verifyNoMoreInteractions(webSocket);
     }
 
@@ -92,7 +89,7 @@ public class ChatMessageServiceTest {
 
         Page<ChatMessage> page = new PageImpl<>(messageList);
 
-        given(chatMessageRepository.findByChatRoomId(any(), any()))
+        given(chatMessageLowService.findByChatRoomId(any(), any()))
                 .willReturn(page);
 
         Page<ChatPayload> response = chatMessageService.getPreviousMessages(1L,
@@ -102,10 +99,10 @@ public class ChatMessageServiceTest {
                 () -> AssertionsForClassTypes.assertThat(response.getContent().get(0)).isNotNull()
         );
 
-        verify(chatMessageRepository).findByChatRoomId(any(), any());
-        verifyNoMoreInteractions(chatRoomRepository);
+        verify(chatMessageLowService).findByChatRoomId(any(), any());
+        verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(chatMessageRepository);
+        verifyNoMoreInteractions(chatMessageLowService);
         verifyNoMoreInteractions(webSocket);
     }
 
