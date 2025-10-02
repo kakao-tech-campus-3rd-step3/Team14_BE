@@ -1,5 +1,6 @@
 package kakao.festapick.festival.service;
 
+import kakao.festapick.ai.service.RecommendationHistoryLowService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
@@ -39,7 +40,7 @@ public class FestivalService {
     private final WishLowService wishLowService;
     private final ReviewService reviewService;
     private final UserLowService userLowService;
-
+    private final RecommendationHistoryLowService recommendationHistoryLowService;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
     private final FileService fileService;
@@ -238,6 +239,7 @@ public class FestivalService {
     }
 
     private void deleteRelatedEntity(Long festivalId) {
+        recommendationHistoryLowService.deleteByFestivalId(festivalId);
         wishLowService.deleteByFestivalId(festivalId);
         reviewService.deleteReviewByFestivalId(festivalId);
         chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
