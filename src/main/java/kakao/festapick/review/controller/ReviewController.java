@@ -1,5 +1,8 @@
 package kakao.festapick.review.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import kakao.festapick.dto.ApiResponseDto;
@@ -20,10 +23,15 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Tag(name = "Review API", description = "리뷰 도메인 API")
 public class ReviewController {
 
     private final ReviewService reviewService;
 
+    @Operation(
+            summary = "리뷰 작성",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()") // 리뷰 작성은 인증 필요
     @PostMapping("/festivals/{festivalId}/reviews")
     public ResponseEntity<Void> createReview(
@@ -36,7 +44,7 @@ public class ReviewController {
         return ResponseEntity.created(URI.create("/api/reviews/" + reviewId)).build();
     }
 
-
+    @Operation(summary = "리뷰 조회 기능(특정 축제에 대한 리뷰 조회)")
     @GetMapping("/festivals/{festivalId}/reviews") // 리뷰 조회는 인증 불필요
     public ResponseEntity<Page<ReviewResponseDto>> getFestivalReviews(
             @RequestParam(defaultValue = "0", required = false) int page,
@@ -49,6 +57,10 @@ public class ReviewController {
                 HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "내가 작성한 리뷰 조회(myReview)",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()") // 내 리뷰만 조회는 인증 필요
     @GetMapping("/reviews/my")
     public ResponseEntity<Page<ReviewResponseDto>> getMyReviews(
@@ -62,6 +74,7 @@ public class ReviewController {
                 HttpStatus.OK);
     }
 
+    @Operation(summary = "리뷰 조회(리뷰 단건 조회)")
     @GetMapping("/reviews/{reviewId}") // 리뷰 PK를 통한 것은 인증 불필요
     public ResponseEntity<ApiResponseDto<ReviewResponseDto>> getReview(@PathVariable Long reviewId) {
 
@@ -70,7 +83,10 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-
+    @Operation(
+            summary = "내가 작성한 리뷰 수정",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()") // 리뷰 수정은 인증 필요
     @PutMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> updateReview(
@@ -83,6 +99,10 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(
+            summary = "내가 작성한 리뷰 삭제",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()") // 리뷰 삭제는 인증 필요
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> removeReview(
