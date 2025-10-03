@@ -12,6 +12,7 @@ import kakao.festapick.chat.service.ChatParticipantService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.global.exception.WebSocketException;
 import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
@@ -74,7 +75,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                 throw new AuthenticationException(ExceptionCode.NO_LOGIN);
             }
             if (destination == null) {
-                return message;
+                throw new WebSocketException(ExceptionCode.MISSING_DESTINATION);
             }
             Matcher matcher = SUB_PATTERN.matcher(destination);
             if (matcher.matches()) {
@@ -82,6 +83,9 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                 Long chatRoomId = Long.valueOf(matcher.group(1));
                 ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
                 chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
+            }
+            else {
+                throw new WebSocketException(ExceptionCode.INVALID_DESTINATION);
             }
         }
 

@@ -34,7 +34,11 @@ public enum ExceptionCode {
     FESTIVAL_BAD_IMAGE("이미 등록되어 있는 이미지 입니다."),
 
     //INTERNAL_SERVER_ERROR
-    FAST_API_CONNECTION_ERROR("AI 추천 기능 호출 실패");
+    FAST_API_CONNECTION_ERROR("AI 추천 기능 호출 실패"),
+
+    //WEB_SOCKET_EXCEPTION
+    MISSING_DESTINATION("destination이 없습니다."),
+    INVALID_DESTINATION("유효하지 않은 destination입니다.");
 
     private final String errorMessage;
 
