@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private final JwtUtil jwtUtil;
@@ -84,7 +85,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                 ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
                 chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
             }
-            else if(!destination.equals("/queue/errors")){
+            else if(!destination.equals("/user/queue/errors")){
+                log.info(destination);
                 throw new WebSocketException(ExceptionCode.INVALID_DESTINATION);
             }
         }
