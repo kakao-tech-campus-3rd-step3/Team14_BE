@@ -40,7 +40,6 @@ public class WishController {
             summary = "내가 누른 좋아요 목록 가져오기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/wishes/my")
     public ResponseEntity<Page<WishResponseDto>> getWishes(
             @AuthenticationPrincipal Long userId,
@@ -56,7 +55,6 @@ public class WishController {
             summary = "좋아요 삭제",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/wishes/{wishId}")
     public ResponseEntity<Void> removeWish(
             @PathVariable Long wishId,
