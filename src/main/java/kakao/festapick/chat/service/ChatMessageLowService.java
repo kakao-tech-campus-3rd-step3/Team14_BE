@@ -2,19 +2,10 @@ package kakao.festapick.chat.service;
 
 import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
-import kakao.festapick.chat.domain.ChatRoom;
-import kakao.festapick.chat.dto.ChatPayload;
-import kakao.festapick.chat.dto.SendChatRequestDto;
 import kakao.festapick.chat.repository.ChatMessageRepository;
-import kakao.festapick.chat.repository.ChatRoomRepository;
-import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

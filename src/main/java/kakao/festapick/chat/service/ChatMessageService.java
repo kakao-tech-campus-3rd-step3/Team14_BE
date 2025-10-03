@@ -6,16 +6,13 @@ import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
-import kakao.festapick.chat.dto.SendChatRequestDto;
+import kakao.festapick.chat.dto.ChatRequestDto;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
-import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.NotFoundEntityException;
-import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +44,7 @@ public class ChatMessageService {
         });
     }
 
-    public void sendChat(Long chatRoomId, SendChatRequestDto requestDto, Long userId) {
+    public void sendChat(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.findById(userId);
         String senderName = sender.getUsername();
         String profileImgUrl = sender.getProfileImageUrl();

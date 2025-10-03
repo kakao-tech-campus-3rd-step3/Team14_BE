@@ -5,16 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 
-public record SendChatRequestDto(
+public record ChatRequestDto(
         @NotBlank
         String content,
         List<FileUploadRequest> imageInfos
 ) {
-        public SendChatRequestDto (String content){
-                this(content, null);
-        }
 
-        public SendChatRequestDto {
+        public ChatRequestDto {
                 if (imageInfos == null) imageInfos = new ArrayList<>();
         }
 }

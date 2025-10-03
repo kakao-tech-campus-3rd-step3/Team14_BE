@@ -10,11 +10,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
-import kakao.festapick.chat.dto.SendChatRequestDto;
+import kakao.festapick.chat.dto.ChatRequestDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -73,7 +72,7 @@ public class ChatMessageServiceTest {
         given(chatMessageLowService.save(any()))
                 .willReturn(chatMessage);
 
-        SendChatRequestDto requestDto = new SendChatRequestDto("test message", List.of(new FileUploadRequest(1L,"image")));
+        ChatRequestDto requestDto = new ChatRequestDto("test message", List.of(new FileUploadRequest(1L,"image")));
         chatMessageService.sendChat(chatRoom.getId(), requestDto, user.getId());
 
         verify(userLowService).findById(any());
