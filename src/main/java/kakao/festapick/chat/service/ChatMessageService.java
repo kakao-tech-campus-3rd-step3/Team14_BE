@@ -34,17 +34,6 @@ public class ChatMessageService {
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
 
-    // 채팅 메시지 엔티티와 url 매핑
-    private static void chatMessageIdAndUrlMapping(List<FileEntity> files,
-            HashMap<Long, List<String>> imageUrls) {
-        files.forEach(file -> {
-            if (!imageUrls.containsKey(file.getDomainId())) {
-                imageUrls.put(file.getDomainId(), new ArrayList<>());
-            }
-            imageUrls.get(file.getDomainId()).add(file.getUrl());
-        });
-    }
-
     // 채팅 메시지 보내기
     public void sendChat(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.findById(userId);
@@ -84,7 +73,8 @@ public class ChatMessageService {
                 .stream().map(ChatMessage::getId).toList();
 
         chatMessageLowService.deleteByUserId(userId);
-        fileService.deleteByDomainIds(chatMessageIds, DomainType.CHAT); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+        fileService.deleteByDomainIds(chatMessageIds,
+                DomainType.CHAT); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
     // 파일 저장
@@ -94,7 +84,8 @@ public class ChatMessageService {
 
         if (imageInfos != null) {
             imageInfos.forEach(imageInfo -> {
-                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.CHAT, id));
+                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.CHAT,
+                        id));
                 temporalFileIds.add(imageInfo.id());
             });
         }
@@ -115,5 +106,16 @@ public class ChatMessageService {
                 .toList();
 
         return fileService.findAllFileEntityByDomain(domainIds, DomainType.CHAT);
+    }
+
+    // 채팅 메시지 엔티티와 url 매핑
+    private void chatMessageIdAndUrlMapping(List<FileEntity> files,
+            HashMap<Long, List<String>> imageUrls) {
+        files.forEach(file -> {
+            if (!imageUrls.containsKey(file.getDomainId())) {
+                imageUrls.put(file.getDomainId(), new ArrayList<>());
+            }
+            imageUrls.get(file.getDomainId()).add(file.getUrl());
+        });
     }
 }
