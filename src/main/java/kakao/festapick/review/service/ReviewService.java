@@ -45,10 +45,12 @@ public class ReviewService {
     private final S3Service s3Service;
 
 
+    // 리뷰 생성 기능
     public Long createReview(Long festivalId, ReviewRequestDto requestDto, Long userId) {
         Festival festival = festivalLowService.findFestivalById(festivalId);
         UserEntity user = userLowService.findById(userId);
 
+        // 유저가 해당 축제에 남긴 리뷰가 이미 있으면 예외 반환
         if (reviewLowService.existsByUserIdAndFestivalId(user.getId(), festivalId)) {
             throw new DuplicateEntityException(ExceptionCode.REVIEW_DUPLICATE);
         }
@@ -61,6 +63,7 @@ public class ReviewService {
         return saved.getId();
     }
 
+    // 축제에 대한 리뷰 조회 (pageable)
     public Page<ReviewResponseDto> getFestivalReviews(Long festivalId, Pageable pageable) {
         Page<Review> reviews = reviewLowService.findByFestivalIdWithAll(festivalId, pageable);
 
@@ -77,6 +80,7 @@ public class ReviewService {
         );
     }
 
+    // 리뷰 id로 리뷰 단건 조회
     public ReviewResponseDto getReview(Long reviewId) {
         Review review = reviewLowService.findById(reviewId);
 
@@ -91,6 +95,7 @@ public class ReviewService {
 
     }
 
+    // 내가 작성한 리뷰 조회
     public Page<ReviewResponseDto> getMyReviews(Long userId, Pageable pageable) {
         Page<Review> reviews = reviewLowService.findByUserIdWithAll(userId, pageable);
 
@@ -113,6 +118,7 @@ public class ReviewService {
      * 4. 기존 리뷰에 존재하지 않는 파일이지만 ReviewRequestDto에 존재한다면 추가를 해야한다.
      */
 
+    // 리뷰 수정 기능
     public void updateReview(Long reviewId, @Valid ReviewRequestDto requestDto, Long userId) {
         Review review = reviewLowService.findByUserIdAndId(userId, reviewId);
 
@@ -161,8 +167,10 @@ public class ReviewService {
     }
 
 
+    // 작성한 리뷰 삭제
     public void removeReview(Long reviewId, Long userId) {
 
+        // 해당하는 리뷰 가 없는 경우 예외 반환
         if (reviewLowService.deleteByUserIdAndId(userId, reviewId) == 0) {
             throw new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND);
         }
@@ -170,6 +178,7 @@ public class ReviewService {
         fileService.deleteByDomainId(reviewId, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
+    // 축제에 작성된 리뷰 전체 삭제
     public void deleteReviewByFestivalId(Long festivalId) {
 
         List<Long> reviewIds = reviewLowService.findByFestivalId(festivalId)
@@ -180,6 +189,7 @@ public class ReviewService {
         fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
+    // 유저가 작성한 리뷰 전체 삭제
     public void deleteReviewByUserId(Long userId) {
 
         List<Long> reviewIds = reviewLowService.findByUserId(userId)

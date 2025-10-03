@@ -8,7 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import kakao.festapick.festival.domain.Festival;
 import lombok.Getter;
@@ -25,8 +25,8 @@ public class ChatRoom {
     @Column(name = "roomName", nullable = false, length = 255)
     private String roomName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "festival_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "festival_id", nullable = false, unique = true)
     private Festival festival;
 
     protected ChatRoom() {

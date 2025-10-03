@@ -1,11 +1,18 @@
 package kakao.festapick.chat.interceptor;
 
 import io.jsonwebtoken.Claims;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import kakao.festapick.chat.dto.ChatRoomResponseDto;
+import kakao.festapick.chat.service.ChatParticipantService;
+import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.global.exception.AuthenticationException;
 import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.global.exception.WebSocketException;
 import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
@@ -27,10 +34,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private final JwtUtil jwtUtil;
     private final UserLowService userLowService;
+    private final ChatParticipantService chatParticipantService;
+    private final ChatRoomService chatRoomService;
+    private final Pattern SUB_PATTERN = Pattern.compile("^/sub/(\\d+)/messages$");
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -58,6 +69,26 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             Authentication auth = new UsernamePasswordAuthenticationToken(userId, null,
                     authorities);
             headerAccessor.setUser(auth);
+        } else if (StompCommand.SUBSCRIBE.equals(headerAccessor.getCommand())) {
+            Principal principal = headerAccessor.getUser();
+            String destination = headerAccessor.getDestination();
+            if (principal == null) {
+                throw new AuthenticationException(ExceptionCode.NO_LOGIN);
+            }
+            if (destination == null) {
+                throw new WebSocketException(ExceptionCode.MISSING_DESTINATION);
+            }
+            Matcher matcher = SUB_PATTERN.matcher(destination);
+            if (matcher.matches()) {
+                Long userId = Long.valueOf(principal.getName());
+                Long chatRoomId = Long.valueOf(matcher.group(1));
+                ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
+                chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
+            }
+            else if(!destination.equals("/user/queue/errors")){
+                log.info(destination);
+                throw new WebSocketException(ExceptionCode.INVALID_DESTINATION);
+            }
         }
 
         return message;

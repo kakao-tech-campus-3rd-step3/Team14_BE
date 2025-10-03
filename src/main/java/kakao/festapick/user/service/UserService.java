@@ -1,9 +1,9 @@
 package kakao.festapick.user.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import kakao.festapick.chat.service.ChatMessageService;
+import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.ai.service.RecommendationHistoryLowService;
-import kakao.festapick.chat.repository.ChatMessageRepository;
-import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -15,8 +15,6 @@ import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.dto.UserResponseDtoForAdmin;
 import kakao.festapick.user.dto.UserSearchCond;
-import kakao.festapick.user.repository.QUserRepository;
-import kakao.festapick.wish.repository.WishRepository;
 import kakao.festapick.wish.service.WishLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,8 +35,8 @@ public class UserService {
     private final CookieComponent cookieComponent;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
-    private final ChatParticipantRepository chatParticipantRepository;
-    private final ChatMessageRepository chatMessageRepository;
+    private final ChatParticipantLowService chatParticipantLowService;
+    private final ChatMessageService chatMessageService;
 
 
     public void withDraw(Long userId, HttpServletResponse response) {
@@ -94,8 +92,8 @@ public class UserService {
     private void deleteRelatedEntity(UserEntity findUser) {
         recommendationHistoryLowService.deleteByUserId(findUser.getId());
         wishLowService.deleteByUserId(findUser.getId());
-        chatParticipantRepository.deleteByUserId(findUser.getId());
-        chatMessageRepository.deleteByUserId(findUser.getId());
+        chatParticipantLowService.deleteByUserId(findUser.getId());
+        chatMessageService.deleteChatMessagesByUserId(findUser.getId());
         reviewService.deleteReviewByUserId(findUser.getId());
         festivalService.deleteFestivalByManagerId(findUser.getId());
     }
