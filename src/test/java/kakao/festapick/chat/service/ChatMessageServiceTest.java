@@ -72,7 +72,7 @@ public class ChatMessageServiceTest {
         given(chatMessageLowService.save(any()))
                 .willReturn(chatMessage);
 
-        ChatRequestDto requestDto = new ChatRequestDto("test message", List.of(new FileUploadRequest(1L,"image")));
+        ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
         chatMessageService.sendChat(chatRoom.getId(), requestDto, user.getId());
 
         verify(userLowService).findById(any());

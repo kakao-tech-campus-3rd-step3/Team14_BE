@@ -8,11 +8,11 @@ public record ChatPayload(
         String senderName,
         String profileImgUrl,
         String content,
-        List<String>imageUrls
+        String imageUrl
 ) {
 
-    public ChatPayload(ChatMessage chatMessage, List<String> imageUrls) {
+    public ChatPayload(ChatMessage chatMessage, String imageUrl) {
         this(chatMessage.getId(), chatMessage.getSenderName(), chatMessage.getSenderProfileUrl(),
-                chatMessage.getContent(), imageUrls);
+                chatMessage.getContent(), imageUrl);
     }
 }

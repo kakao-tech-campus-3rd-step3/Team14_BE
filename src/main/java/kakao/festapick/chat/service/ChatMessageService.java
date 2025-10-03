@@ -45,9 +45,9 @@ public class ChatMessageService {
         ChatMessage chatMessage = new ChatMessage(requestDto.content(), chatRoom, sender);
         // db에 저장 후
         ChatMessage savedMessage = chatMessageLowService.save(chatMessage);
-        List<String> urls = saveFiles(requestDto.imageInfos(), savedMessage.getId());
+        String url = saveFile(requestDto.imageInfo(), savedMessage.getId());
         ChatPayload payload = new ChatPayload(savedMessage.getId(), senderName,
-                profileImgUrl, requestDto.content(), urls);
+                profileImgUrl, requestDto.content(), url);
 
         // 마지막에 웹소켓 전송
         webSocket.convertAndSend("/sub/" + chatRoom.getId() + "/messages", payload);
@@ -60,11 +60,11 @@ public class ChatMessageService {
 
         List<FileEntity> files = findFilesByChatMessages(previousMessages);
 
-        HashMap<Long, List<String>> imageUrls = new HashMap<>();
+        HashMap<Long, String> imageUrls = new HashMap<>();
         chatMessageIdAndUrlMapping(files, imageUrls);
 
         return previousMessages.map(chatMessage -> new ChatPayload(chatMessage,
-                imageUrls.getOrDefault(chatMessage.getId(), List.of())));
+                imageUrls.getOrDefault(chatMessage.getId(), null)));
     }
 
     // 유저가 작성한 메시지 전체 삭제 기능
@@ -78,25 +78,16 @@ public class ChatMessageService {
     }
 
     // 파일 저장
-    private List<String> saveFiles(List<FileUploadRequest> imageInfos, Long id) {
-        List<FileEntity> files = new ArrayList<>();
-        List<Long> temporalFileIds = new ArrayList<>();
-
-        if (imageInfos != null) {
-            imageInfos.forEach(imageInfo -> {
-                files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.CHAT,
-                        id));
-                temporalFileIds.add(imageInfo.id());
-            });
+    private String saveFile(FileUploadRequest imageInfo, Long id) {
+        if (imageInfo != null) {
+            FileEntity file = new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.CHAT, id);
+            Long temporalFileId = imageInfo.id();
+            fileService.saveAll(List.of(file));
+            // 저장이 정상적으로 됬을 경우 임시 파일 목록에서 제거
+            temporalFileRepository.deleteByIds(List.of(temporalFileId));
+            return file.getUrl();
         }
-
-        if (!files.isEmpty()) {
-            fileService.saveAll(files);
-        }
-        // 저장이 정상적으로 됬을 경우 임시 파일 목록에서 제거
-        temporalFileRepository.deleteByIds(temporalFileIds);
-
-        return files.stream().map(FileEntity::getUrl).toList();
+        return null;
     }
 
     // 메시지들의 해당하는 파일 엔티티 찾기
@@ -110,12 +101,9 @@ public class ChatMessageService {
 
     // 채팅 메시지 엔티티와 url 매핑
     private void chatMessageIdAndUrlMapping(List<FileEntity> files,
-            HashMap<Long, List<String>> imageUrls) {
+            HashMap<Long, String> imageUrls) {
         files.forEach(file -> {
-            if (!imageUrls.containsKey(file.getDomainId())) {
-                imageUrls.put(file.getDomainId(), new ArrayList<>());
-            }
-            imageUrls.get(file.getDomainId()).add(file.getUrl());
+            imageUrls.put(file.getDomainId(), file.getUrl());
         });
     }
 }
