@@ -34,6 +34,7 @@ public class ChatMessageService {
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
 
+    // 채팅 메시지 엔티티와 url 매핑
     private static void chatMessageIdAndUrlMapping(List<FileEntity> files,
             HashMap<Long, List<String>> imageUrls) {
         files.forEach(file -> {
@@ -44,6 +45,7 @@ public class ChatMessageService {
         });
     }
 
+    // 채팅 메시지 보내기
     public void sendChat(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.findById(userId);
         String senderName = sender.getUsername();
@@ -52,14 +54,17 @@ public class ChatMessageService {
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(chatRoomId);
 
         ChatMessage chatMessage = new ChatMessage(requestDto.content(), chatRoom, sender);
+        // db에 저장 후
         ChatMessage savedMessage = chatMessageLowService.save(chatMessage);
         List<String> urls = saveFiles(requestDto.imageInfos(), savedMessage.getId());
         ChatPayload payload = new ChatPayload(savedMessage.getId(), senderName,
                 profileImgUrl, requestDto.content(), urls);
 
+        // 마지막에 웹소켓 전송
         webSocket.convertAndSend("/sub/" + chatRoom.getId() + "/messages", payload);
     }
 
+    // 채팅방에서 최근 메시지 조회 (Pageable)
     public Page<ChatPayload> getPreviousMessages(Long chatRoomId, Pageable pageable) {
         Page<ChatMessage> previousMessages = chatMessageLowService.findByChatRoomId(chatRoomId,
                 pageable);
@@ -73,6 +78,7 @@ public class ChatMessageService {
                 imageUrls.getOrDefault(chatMessage.getId(), List.of())));
     }
 
+    // 유저가 작성한 메시지 전체 삭제 기능
     public void deleteChatMessagesByUserId(Long userId) {
         List<Long> chatMessageIds = chatMessageLowService.findAllByUserId(userId)
                 .stream().map(ChatMessage::getId).toList();
@@ -81,6 +87,7 @@ public class ChatMessageService {
         fileService.deleteByDomainIds(chatMessageIds, DomainType.CHAT); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
+    // 파일 저장
     private List<String> saveFiles(List<FileUploadRequest> imageInfos, Long id) {
         List<FileEntity> files = new ArrayList<>();
         List<Long> temporalFileIds = new ArrayList<>();
@@ -95,11 +102,13 @@ public class ChatMessageService {
         if (!files.isEmpty()) {
             fileService.saveAll(files);
         }
+        // 저장이 정상적으로 됬을 경우 임시 파일 목록에서 제거
         temporalFileRepository.deleteByIds(temporalFileIds);
 
         return files.stream().map(FileEntity::getUrl).toList();
     }
 
+    // 메시지들의 해당하는 파일 엔티티 찾기
     private List<FileEntity> findFilesByChatMessages(Page<ChatMessage> chatMessages) {
         List<Long> domainIds = chatMessages.stream()
                 .map(ChatMessage::getId)

@@ -17,6 +17,7 @@ public class ChatParticipantService {
     private final ChatRoomLowService chatRoomLowService;
     private final UserLowService userLowService;
 
+    //채팅룸 입장 시 Chat Participant에 저장
     public void enterChatRoom(Long userId, Long roomId) {
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(roomId);
 
