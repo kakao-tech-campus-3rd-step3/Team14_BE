@@ -84,7 +84,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                 ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
                 chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
             }
-            else {
+            else if(!destination.equals("/queue/errors")){
                 throw new WebSocketException(ExceptionCode.INVALID_DESTINATION);
             }
         }
