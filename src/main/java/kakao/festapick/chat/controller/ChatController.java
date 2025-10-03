@@ -1,5 +1,8 @@
 package kakao.festapick.chat.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
 import kakao.festapick.chat.service.ChatMessageService;
@@ -19,11 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Chat API", description = "채팅 도메인 API")
 public class ChatController {
 
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
 
+    @Operation(
+            summary = "축제 아이디로 채팅방 아이디 조회",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/api/festivals/{festivalId}/chatRooms")
     public ResponseEntity<ApiResponseDto<Long>> getChatRoomId(
@@ -35,6 +43,10 @@ public class ChatController {
                 HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "채팅방의 이전 메세지 불러오기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/chatRooms/{chatRoomId}/messages")
     public ResponseEntity<Page<ChatPayload>> getPreviousMessages(
@@ -48,6 +60,10 @@ public class ChatController {
         return new ResponseEntity<>(payloads, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "채팅방 목록 보기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/chatRooms")
     public ResponseEntity<Page<ChatRoomResponseDto>> getChatRooms(
