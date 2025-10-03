@@ -1,5 +1,7 @@
 package kakao.festapick.wish.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Max;
 import kakao.festapick.dto.ApiResponseDto;
 import kakao.festapick.wish.dto.WishResponseDto;
@@ -20,6 +22,10 @@ public class WishController {
 
     private final WishService wishService;
 
+    @Operation(
+            summary = "축제 좋아요 기능(좋아요 생성)",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/festivals/{festivalId}/wishes")
     public ResponseEntity<ApiResponseDto<WishResponseDto>> createWish(
@@ -30,6 +36,10 @@ public class WishController {
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "내가 누른 좋아요 목록 가져오기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @GetMapping("/wishes/my")
     public ResponseEntity<Page<WishResponseDto>> getWishes(
             @AuthenticationPrincipal Long userId,
@@ -41,6 +51,10 @@ public class WishController {
                 HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "좋아요 삭제",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @DeleteMapping("/wishes/{wishId}")
     public ResponseEntity<Void> removeWish(
             @PathVariable Long wishId,

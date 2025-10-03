@@ -109,6 +109,8 @@ public class SecurityConfig {
             "/view/**", //view 확인용
             "/management/health_check",
             "/stomp/**",
-            "/api/login/status"
+            "/api/login/status",
+            "/swagger-ui/**", // swagger
+            "/v3/api-docs/**"
     };
 }
