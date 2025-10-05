@@ -3,6 +3,8 @@ package kakao.festapick.chat.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
@@ -13,6 +15,7 @@ import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
@@ -31,24 +34,26 @@ public class ChatMessageService {
     private final UserLowService userLowService;
     private final ChatMessageLowService chatMessageLowService;
     private final ChatRoomLowService chatRoomLowService;
-    private final FileService fileService;
+    private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
 
     // 채팅 메시지 보내기
     public void sendChat(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.findById(userId);
-        String senderName = sender.getUsername();
-        String profileImgUrl = sender.getProfileImageUrl();
-
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(chatRoomId);
+        String imageUrl = null;
 
-        ChatMessage chatMessage = new ChatMessage(requestDto.content(), chatRoom, sender);
+        if (requestDto.imageInfo() != null) {
+            imageUrl = requestDto.getImageUrl();
+            Long temporalFileId = requestDto.getTemporalFileId();
+            // 저장이 정상적으로 됬을 경우 임시 파일 목록에서 제거
+            temporalFileRepository.deleteByIds(List.of(temporalFileId));
+        }
+
+        ChatMessage chatMessage = new ChatMessage(requestDto.content(), imageUrl, chatRoom, sender);
         // db에 저장 후
         ChatMessage savedMessage = chatMessageLowService.save(chatMessage);
-        String url = saveFile(requestDto.imageInfo(), savedMessage.getId());
-        ChatPayload payload = new ChatPayload(savedMessage.getId(), senderName,
-                profileImgUrl, requestDto.content(), url);
-
+        ChatPayload payload = new ChatPayload(savedMessage);
         // 마지막에 웹소켓 전송
         webSocket.convertAndSend("/sub/" + chatRoom.getId() + "/messages", payload);
     }
@@ -57,53 +62,19 @@ public class ChatMessageService {
     public Page<ChatPayload> getPreviousMessages(Long chatRoomId, Pageable pageable) {
         Page<ChatMessage> previousMessages = chatMessageLowService.findByChatRoomId(chatRoomId,
                 pageable);
-
-        List<FileEntity> files = findFilesByChatMessages(previousMessages);
-
-        HashMap<Long, String> imageUrls = new HashMap<>();
-        chatMessageIdAndUrlMapping(files, imageUrls);
-
-        return previousMessages.map(chatMessage -> new ChatPayload(chatMessage,
-                imageUrls.getOrDefault(chatMessage.getId(), null)));
+        return previousMessages.map(ChatPayload::new);
     }
 
     // 유저가 작성한 메시지 전체 삭제 기능
     public void deleteChatMessagesByUserId(Long userId) {
-        List<Long> chatMessageIds = chatMessageLowService.findAllByUserId(userId)
-                .stream().map(ChatMessage::getId).toList();
-
-        chatMessageLowService.deleteByUserId(userId);
-        fileService.deleteByDomainIds(chatMessageIds,
-                DomainType.CHAT); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
-    }
-
-    // 파일 저장
-    private String saveFile(FileUploadRequest imageInfo, Long id) {
-        if (imageInfo != null) {
-            FileEntity file = new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.CHAT, id);
-            Long temporalFileId = imageInfo.id();
-            fileService.saveAll(List.of(file));
-            // 저장이 정상적으로 됬을 경우 임시 파일 목록에서 제거
-            temporalFileRepository.deleteByIds(List.of(temporalFileId));
-            return file.getUrl();
-        }
-        return null;
-    }
-
-    // 메시지들의 해당하는 파일 엔티티 찾기
-    private List<FileEntity> findFilesByChatMessages(Page<ChatMessage> chatMessages) {
-        List<Long> domainIds = chatMessages.stream()
-                .map(ChatMessage::getId)
+        List<String> chatMessageImageUrls = chatMessageLowService
+                .findAllByUserId(userId)
+                .stream()
+                .map(ChatMessage::getImageUrl)
+                .filter(Objects::nonNull)
                 .toList();
 
-        return fileService.findAllFileEntityByDomain(domainIds, DomainType.CHAT);
-    }
-
-    // 채팅 메시지 엔티티와 url 매핑
-    private void chatMessageIdAndUrlMapping(List<FileEntity> files,
-            HashMap<Long, String> imageUrls) {
-        files.forEach(file -> {
-            imageUrls.put(file.getDomainId(), file.getUrl());
-        });
+        chatMessageLowService.deleteByUserId(userId);
+        s3Service.deleteFiles(chatMessageImageUrls); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 }

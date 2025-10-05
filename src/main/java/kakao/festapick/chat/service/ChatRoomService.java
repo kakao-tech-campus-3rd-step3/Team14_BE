@@ -1,6 +1,7 @@
 package kakao.festapick.chat.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
@@ -9,6 +10,7 @@ import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.review.domain.Review;
@@ -27,7 +29,7 @@ public class ChatRoomService {
     private final FestivalLowService festivalLowService;
     private final ChatParticipantLowService chatParticipantLowService;
     private final ChatMessageLowService chatMessageLowService;
-    private final FileService fileService;
+    private final S3Service s3Service;
 
     // 축제에 해당하는 채팅방이 존재하는지 확인 후 채팅방 정보 반환, 없으면 생성 후 반환
     public ChatRoomResponseDto getExistChatRoomOrMakeByFestivalId(Long festivalId) {
@@ -78,8 +80,12 @@ public class ChatRoomService {
         chatParticipantLowService.deleteByChatRoomId(chatRoomId);
         chatMessageLowService.deleteByChatRoomId(chatRoomId);
 
-        List<Long> chatMessageIds = chatMessageLowService.findAllByChatRoomId(chatRoomId)
-                .stream().map(ChatMessage::getId).toList();
-        fileService.deleteByDomainIds(chatMessageIds, DomainType.CHAT); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+        List<String> chatMessageUrls = chatMessageLowService.findAllByChatRoomId(chatRoomId)
+                .stream()
+                .map(ChatMessage::getImageUrl)
+                .filter(Objects::nonNull)
+                .toList();
+
+        s3Service.deleteFiles(chatMessageUrls); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 }

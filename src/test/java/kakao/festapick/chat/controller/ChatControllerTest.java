@@ -88,7 +88,7 @@ public class ChatControllerTest {
         Festival festival = saveFestival();
         ChatRoom chatRoom = new ChatRoom("test room", festival);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        ChatMessage chatMessage = new ChatMessage("test message",savedChatRoom, userEntity);
+        ChatMessage chatMessage = new ChatMessage("test message", "image url", savedChatRoom, userEntity);
         chatMessageRepository.save(chatMessage);
 
         mockMvc.perform(get(String.format("/api/chatRooms/%s/messages", savedChatRoom.getId())))

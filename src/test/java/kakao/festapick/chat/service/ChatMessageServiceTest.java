@@ -23,6 +23,7 @@ import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
@@ -53,7 +54,7 @@ public class ChatMessageServiceTest {
     @Mock
     private ChatRoomLowService chatRoomLowService;
     @Mock
-    private FileService fileService;
+    private S3Service s3Service;
     @Mock
     private TemporalFileRepository temporalFileRepository;
 
@@ -63,7 +64,7 @@ public class ChatMessageServiceTest {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
-        ChatMessage chatMessage = new ChatMessage(1L, "test message", chatRoom, user);
+        ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url",chatRoom, user);
 
         given(userLowService.findById(any()))
                 .willReturn(user);
@@ -78,13 +79,12 @@ public class ChatMessageServiceTest {
         verify(userLowService).findById(any());
         verify(chatRoomLowService).findByRoomId(any());
         verify(chatMessageLowService).save(any());
-        verify(fileService).saveAll(any());
         verify(temporalFileRepository).deleteByIds(any());
         verify(webSocket).convertAndSend((String) any(), (Object) any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);
-        verifyNoMoreInteractions(fileService);
+        verifyNoMoreInteractions(s3Service);
         verifyNoMoreInteractions(temporalFileRepository);
         verifyNoMoreInteractions(webSocket);
     }
@@ -95,7 +95,7 @@ public class ChatMessageServiceTest {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
-        ChatMessage chatMessage = new ChatMessage(1L, "test message", chatRoom, user);
+        ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url",chatRoom, user);
 
         List<ChatMessage> messageList = new ArrayList<>();
         messageList.add(chatMessage);
@@ -104,9 +104,6 @@ public class ChatMessageServiceTest {
 
         given(chatMessageLowService.findByChatRoomId(any(), any()))
                 .willReturn(page);
-
-        given(fileService.findAllFileEntityByDomain(any(), any()))
-                .willReturn(List.of(new FileEntity("test url", FileType.IMAGE, DomainType.CHAT, chatMessage.getId())));
 
         Page<ChatPayload> response = chatMessageService.getPreviousMessages(1L,
                 PageRequest.of(0, 1));

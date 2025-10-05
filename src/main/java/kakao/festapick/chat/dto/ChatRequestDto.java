@@ -9,4 +9,12 @@ public record ChatRequestDto(
         FileUploadRequest imageInfo
 ) {
 
+    public String getImageUrl() {
+        return imageInfo.presignedUrl();
+    }
+
+    public Long getTemporalFileId() {
+        return imageInfo.id();
+    }
+
 }

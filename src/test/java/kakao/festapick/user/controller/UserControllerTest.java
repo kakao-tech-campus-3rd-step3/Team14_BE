@@ -115,8 +115,8 @@ class UserControllerTest {
         chatParticipantRepository.save(new ChatParticipant(userEntity, savedChatRoom2));
 
         for (int i=0; i<5; i++) {
-            chatMessageRepository.save(new ChatMessage("test message " + i, savedChatRoom1, userEntity));
-            chatMessageRepository.save(new ChatMessage("test message " + i, savedChatRoom2, userEntity));
+            chatMessageRepository.save(new ChatMessage("test message " + i, "image url", savedChatRoom1, userEntity));
+            chatMessageRepository.save(new ChatMessage("test message " + i, "image url", savedChatRoom2, userEntity));
         }
 
         // when & then

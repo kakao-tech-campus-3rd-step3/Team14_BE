@@ -27,6 +27,8 @@ public class ChatMessage {
     @Size(max = 255)
     private String content;
 
+    private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chatroom_id", nullable = false)
     private ChatRoom chatRoom;
@@ -38,13 +40,15 @@ public class ChatMessage {
     protected ChatMessage() {
     }
 
-    public ChatMessage(String content, ChatRoom chatRoom, UserEntity user) {
-        this(null, content, chatRoom, user);
+    public ChatMessage(String content, String imageUrl, ChatRoom chatRoom, UserEntity user) {
+        this(null, content, imageUrl, chatRoom, user);
     }
 
-    public ChatMessage(Long id, String content, ChatRoom chatRoom, UserEntity user) {
+    public ChatMessage(Long id, String content, String imageUrl, ChatRoom chatRoom,
+            UserEntity user) {
         this.id = id;
         this.content = content;
+        this.imageUrl = imageUrl;
         this.chatRoom = chatRoom;
         this.user = user;
     }
@@ -55,5 +59,9 @@ public class ChatMessage {
 
     public String getSenderProfileUrl() {
         return this.getUser().getProfileImageUrl();
+    }
+
+    public Long getUserId() {
+        return this.getUser().getId();
     }
 }
