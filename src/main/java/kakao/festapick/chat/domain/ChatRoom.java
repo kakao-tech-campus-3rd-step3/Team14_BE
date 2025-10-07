@@ -10,13 +10,14 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.festival.domain.Festival;
 import lombok.Getter;
 
 @Entity
 @Getter
 @Table(indexes = @Index(name = "idx_chat_room_festival_id", columnList = "festival_id"))
-public class ChatRoom {
+public class ChatRoom extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

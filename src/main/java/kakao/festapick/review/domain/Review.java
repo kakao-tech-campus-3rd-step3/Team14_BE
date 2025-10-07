@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 @Getter
 @Check(constraints = "score >= 1 AND score <= 5")
 @EntityListeners(AuditingEntityListener.class)
-public class Review {
+public class Review extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,13 +42,6 @@ public class Review {
     @Min(1)
     @Max(5)
     private Integer score;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    private LocalDateTime updatedDate;
 
     protected Review() {
     }
