@@ -34,13 +34,12 @@ public class ChatController {
     )
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/api/festivals/{festivalId}/chatRooms")
-    public ResponseEntity<ApiResponseDto<Long>> getChatRoomId(
+    public ResponseEntity<ApiResponseDto<ChatRoomResponseDto>> getChatRoomId(
             @PathVariable Long festivalId
     ) {
         ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getExistChatRoomOrMakeByFestivalId(
                 festivalId);
-        return new ResponseEntity<>(new ApiResponseDto<>(chatRoomResponseDto.roomId()),
-                HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponseDto<>(chatRoomResponseDto), HttpStatus.OK);
     }
 
     @Operation(
