@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
 
@@ -22,7 +23,7 @@ import lombok.Getter;
         )
 },
         indexes = @Index(name = "idx_chat_participant_user_id_chatroom_id", columnList = "user_id, chatroom_id"))
-public class ChatParticipant {
+public class ChatParticipant extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

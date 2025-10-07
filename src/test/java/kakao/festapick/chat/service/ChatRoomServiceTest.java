@@ -11,10 +11,9 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
-import kakao.festapick.chat.repository.ChatRoomRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
-import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
@@ -35,9 +34,9 @@ public class ChatRoomServiceTest {
     @InjectMocks
     private ChatRoomService chatRoomService;
     @Mock
-    private ChatRoomRepository chatRoomRepository;
+    private ChatRoomLowService chatRoomLowService;
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalLowService festivalLowService;
 
     @Test
     @DisplayName("축제 아이디로 존재하는 채팅방 조회 성공")
@@ -46,7 +45,7 @@ public class ChatRoomServiceTest {
 
         ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
 
-        given(chatRoomRepository.findByFestivalId(any()))
+        given(chatRoomLowService.findByFestivalId(any()))
                 .willReturn(Optional.of(chatRoom));
 
         ChatRoomResponseDto responseDto = chatRoomService.getExistChatRoomOrMakeByFestivalId(
@@ -60,9 +59,9 @@ public class ChatRoomServiceTest {
                         .isEqualTo(festival.getId())
         );
 
-        verify(chatRoomRepository).findByFestivalId(any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(chatRoomRepository);
+        verify(chatRoomLowService).findByFestivalId(any());
+        verifyNoMoreInteractions(festivalLowService);
+        verifyNoMoreInteractions(chatRoomLowService);
     }
 
     @Test
@@ -72,11 +71,11 @@ public class ChatRoomServiceTest {
 
         ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
 
-        given(chatRoomRepository.findByFestivalId(any()))
+        given(chatRoomLowService.findByFestivalId(any()))
                 .willReturn(Optional.empty());
-        given(festivalRepository.findFestivalById(any()))
-                .willReturn(Optional.of(festival));
-        given(chatRoomRepository.save(any()))
+        given(festivalLowService.findFestivalById(any()))
+                .willReturn(festival);
+        given(chatRoomLowService.save(any()))
                 .willReturn(chatRoom);
 
         ChatRoomResponseDto responseDto = chatRoomService.getExistChatRoomOrMakeByFestivalId(
@@ -90,11 +89,11 @@ public class ChatRoomServiceTest {
                         .isEqualTo(festival.getId())
         );
 
-        verify(festivalRepository).findFestivalById(any());
-        verify(chatRoomRepository).findByFestivalId(any());
-        verify(chatRoomRepository).save(any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(chatRoomRepository);
+        verify(festivalLowService).findFestivalById(any());
+        verify(chatRoomLowService).findByFestivalId(any());
+        verify(chatRoomLowService).save(any());
+        verifyNoMoreInteractions(festivalLowService);
+        verifyNoMoreInteractions(chatRoomLowService);
     }
 
     @Test
@@ -104,8 +103,8 @@ public class ChatRoomServiceTest {
 
         ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
 
-        given(chatRoomRepository.findByRoomId(any()))
-                .willReturn(Optional.of(chatRoom));
+        given(chatRoomLowService.findByRoomId(any()))
+                .willReturn(chatRoom);
 
         ChatRoomResponseDto responseDto = chatRoomService.getChatRoomByRoomId(festival.getId());
 
@@ -117,26 +116,26 @@ public class ChatRoomServiceTest {
                         .isEqualTo(festival.getId())
         );
 
-        verify(chatRoomRepository).findByRoomId(any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(chatRoomRepository);
+        verify(chatRoomLowService).findByRoomId(any());
+        verifyNoMoreInteractions(festivalLowService);
+        verifyNoMoreInteractions(chatRoomLowService);
     }
 
     @Test
     @DisplayName("없는 방 아이디로 채팅방 조회 실패")
     void getExistChatRoomFail() {
 
-        given(chatRoomRepository.findByRoomId(any()))
-                .willReturn(Optional.empty());
+        given(chatRoomLowService.findByRoomId(any()))
+                .willThrow(new NotFoundEntityException(ExceptionCode.CHATROOM_NOT_FOUND));
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
                 () -> chatRoomService.getChatRoomByRoomId(999L));
 
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.CHATROOM_NOT_FOUND);
 
-        verify(chatRoomRepository).findByRoomId(any());
-        verifyNoMoreInteractions(festivalRepository);
-        verifyNoMoreInteractions(chatRoomRepository);
+        verify(chatRoomLowService).findByRoomId(any());
+        verifyNoMoreInteractions(festivalLowService);
+        verifyNoMoreInteractions(chatRoomLowService);
     }
 
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {

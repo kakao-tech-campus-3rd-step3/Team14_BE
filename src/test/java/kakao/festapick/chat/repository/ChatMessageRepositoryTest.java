@@ -65,7 +65,7 @@ public class ChatMessageRepositoryTest {
         ChatRoom chatRoom = saveChatRoom(festival);
 
         ChatMessage actual = chatMessageRepository.save(
-                new ChatMessage("test message", chatRoom, userEntity));
+                new ChatMessage("test message", "image url",chatRoom, userEntity));
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),
@@ -83,7 +83,7 @@ public class ChatMessageRepositoryTest {
         Festival festival = saveFestival();
         ChatRoom chatRoom = saveChatRoom(festival);
 
-        chatMessageRepository.save(new ChatMessage("test message", chatRoom, userEntity));
+        chatMessageRepository.save(new ChatMessage("test message", "image url", chatRoom, userEntity));
 
         Page<ChatMessage> find = chatMessageRepository.findByChatRoomId(chatRoom.getId(), PageRequest.of(0, 1));
         ChatMessage actual = find.getContent().get(0);

@@ -1,6 +1,7 @@
 package kakao.festapick.festival.domain;
 
 import jakarta.persistence.*;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
@@ -17,7 +18,7 @@ import java.time.LocalDate;
 @Getter
 @Slf4j
 @Table(indexes = @Index(name = "idx_festival_area_state_startdate_id", columnList= "areaCode, state, startDate, id"))
-public class Festival {
+public class Festival extends BaseTimeEntity {
 
     private static String defaultImage;
 

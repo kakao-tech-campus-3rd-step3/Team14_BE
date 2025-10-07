@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,8 +115,8 @@ class UserControllerTest {
         chatParticipantRepository.save(new ChatParticipant(userEntity, savedChatRoom2));
 
         for (int i=0; i<5; i++) {
-            chatMessageRepository.save(new ChatMessage("test message " + i, savedChatRoom1, userEntity));
-            chatMessageRepository.save(new ChatMessage("test message " + i, savedChatRoom2, userEntity));
+            chatMessageRepository.save(new ChatMessage("test message " + i, "image url", savedChatRoom1, userEntity));
+            chatMessageRepository.save(new ChatMessage("test message " + i, "image url", savedChatRoom2, userEntity));
         }
 
         // when & then
@@ -123,8 +124,8 @@ class UserControllerTest {
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
-        List<ChatMessage> messages1 = chatMessageRepository.findAllByChatRoomIdAndUserId(savedChatRoom1.getId(), userEntity.getId());
-        List<ChatMessage> messages2 = chatMessageRepository.findAllByChatRoomIdAndUserId(savedChatRoom2.getId(), userEntity.getId());
+        List<ChatMessage> messages1 = chatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), Pageable.unpaged()).getContent();
+        List<ChatMessage> messages2 = chatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), Pageable.unpaged()).getContent();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(findUser.isPresent()).isEqualTo(false);

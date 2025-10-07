@@ -330,7 +330,7 @@ class FestivalUserControllerTest {
             userRepository.save(testUser);
             wishRepository.save(new Wish(testUser, savedFestival));
             chatParticipantRepository.save(new ChatParticipant(testUser, savedChatRoom));
-            chatMessageRepository.save(new ChatMessage("test message", savedChatRoom, testUser));
+            chatMessageRepository.save(new ChatMessage("test message", "image url",savedChatRoom, testUser));
         }
 
         //when-then

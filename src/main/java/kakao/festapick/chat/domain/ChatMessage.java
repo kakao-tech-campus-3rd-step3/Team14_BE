@@ -11,13 +11,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
 
 @Entity
 @Getter
 @Table(indexes = @Index(name = "idx_chat_message_chatroom_id_user_id", columnList = "chatroom_id, user_id"))
-public class ChatMessage {
+public class ChatMessage extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +27,8 @@ public class ChatMessage {
     @Column(name = "content", nullable = false, length = 255)
     @Size(max = 255)
     private String content;
+
+    private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chatroom_id", nullable = false)
@@ -38,13 +41,15 @@ public class ChatMessage {
     protected ChatMessage() {
     }
 
-    public ChatMessage(String content, ChatRoom chatRoom, UserEntity user) {
-        this(null, content, chatRoom, user);
+    public ChatMessage(String content, String imageUrl, ChatRoom chatRoom, UserEntity user) {
+        this(null, content, imageUrl, chatRoom, user);
     }
 
-    public ChatMessage(Long id, String content, ChatRoom chatRoom, UserEntity user) {
+    public ChatMessage(Long id, String content, String imageUrl, ChatRoom chatRoom,
+            UserEntity user) {
         this.id = id;
         this.content = content;
+        this.imageUrl = imageUrl;
         this.chatRoom = chatRoom;
         this.user = user;
     }
@@ -55,5 +60,9 @@ public class ChatMessage {
 
     public String getSenderProfileUrl() {
         return this.getUser().getProfileImageUrl();
+    }
+
+    public Long getUserId() {
+        return this.getUser().getId();
     }
 }

@@ -1,6 +1,7 @@
 package kakao.festapick.user.domain;
 
 import jakarta.persistence.*;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.jwt.domain.RefreshToken;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "users")
 @Getter
-public class UserEntity {
+public class UserEntity extends BaseTimeEntity {
 
     private static String defaultImage;
 
@@ -49,13 +50,6 @@ public class UserEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RefreshToken refreshToken;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    private LocalDateTime updatedDate;
 
     public UserEntity(String identifier, String email, String username, UserRoleType userRoleType, SocialType socialType) {
         this.identifier = identifier;
