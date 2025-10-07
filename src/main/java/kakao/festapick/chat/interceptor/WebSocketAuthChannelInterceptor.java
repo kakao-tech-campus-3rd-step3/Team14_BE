@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
@@ -16,7 +15,6 @@ import kakao.festapick.global.exception.WebSocketException;
 import kakao.festapick.jwt.util.JwtUtil;
 import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.service.OAuth2UserService;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,14 +32,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
+
+    private static final Pattern CHATROOM_DEST_PATTERN = Pattern.compile("^/sub/(\\d+)/messages$");
+    private static final String USER_ERROR_DEST = "/user/queue/errors";
 
     private final JwtUtil jwtUtil;
     private final UserLowService userLowService;
     private final ChatParticipantService chatParticipantService;
     private final ChatRoomService chatRoomService;
-    private final Pattern SUB_PATTERN = Pattern.compile("^/sub/(\\d+)/messages$");
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -78,19 +77,21 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             if (destination == null) {
                 throw new WebSocketException(ExceptionCode.MISSING_DESTINATION);
             }
-            Matcher matcher = SUB_PATTERN.matcher(destination);
-            if (matcher.matches()) {
-                Long userId = Long.valueOf(principal.getName());
-                Long chatRoomId = Long.valueOf(matcher.group(1));
-                ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
-                chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
-            }
-            else if(!destination.equals("/user/queue/errors")){
-                log.info(destination);
-                throw new WebSocketException(ExceptionCode.INVALID_DESTINATION);
-            }
+            checkDestination(destination, principal);
         }
 
         return message;
+    }
+
+    private void checkDestination(String destination, Principal principal) {
+        Matcher matcher = CHATROOM_DEST_PATTERN.matcher(destination);
+        if (matcher.matches()) {
+            Long userId = Long.valueOf(principal.getName());
+            Long chatRoomId = Long.valueOf(matcher.group(1));
+            ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
+            chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
+        } else if (!destination.equals(USER_ERROR_DEST)) {
+            throw new WebSocketException(ExceptionCode.INVALID_DESTINATION);
+        }
     }
 }
