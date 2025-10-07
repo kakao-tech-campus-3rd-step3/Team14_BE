@@ -38,6 +38,7 @@ public enum ExceptionCode {
 
     //WEB_SOCKET_EXCEPTION
     MISSING_DESTINATION("destination이 없습니다."),
+    MISSING_COMMAND("command가 없습니다."),
     INVALID_DESTINATION("유효하지 않은 destination입니다.");
 
     private final String errorMessage;
