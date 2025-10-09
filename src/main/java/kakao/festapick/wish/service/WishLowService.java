@@ -25,8 +25,15 @@ public class WishLowService {
         return wishRepository.findByUserIdWithFestivalPage(userId, pageable);
     }
 
-    public Optional<Wish> findByUserIdAndFestivalId(Long userId, Long festivalId){
-        return wishRepository.findByUserIdAndFestivalId(userId, festivalId);
+    public Wish findByUserIdAndFestivalId(Long userId, Long festivalId){
+        return wishRepository.findByUserIdAndFestivalId(userId, festivalId)
+                .orElseThrow(()-> new NotFoundEntityException(ExceptionCode.WISH_NOT_FOUND));
+    }
+
+    public boolean existsByUserIdAndFestivalId(Long userId, Long festivalId){
+        Optional<Wish> findWish = wishRepository.findByUserIdAndFestivalId(userId, festivalId);
+        if (findWish.isPresent()) return true;
+        else return false;
     }
 
     public Wish findByUserIdAndId(Long userId, Long wishId){

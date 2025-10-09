@@ -75,7 +75,7 @@ public class WishServiceTest {
 
         verify(festivalLowService).findFestivalById(any());
         verify(userLowService).getReferenceById(any());
-        verify(wishLowService).findByUserIdAndFestivalId(any(), any());
+        verify(wishLowService).existsByUserIdAndFestivalId(any(), any());
         verify(wishLowService).save(any());
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
@@ -93,8 +93,8 @@ public class WishServiceTest {
                 .willReturn(festival);
         given(userLowService.getReferenceById(any()))
                 .willReturn(user);
-        given(wishLowService.findByUserIdAndFestivalId(any(), any()))
-                .willReturn(Optional.of(wish));
+        given(wishLowService.existsByUserIdAndFestivalId(any(), any()))
+                .willReturn(true);
 
         DuplicateEntityException e = Assertions.assertThrows(DuplicateEntityException.class,
                 () -> wishService.createWish(festival.getId(), user.getId()));
@@ -102,15 +102,15 @@ public class WishServiceTest {
 
         verify(festivalLowService).findFestivalById(any());
         verify(userLowService).getReferenceById(any());
-        verify(wishLowService).findByUserIdAndFestivalId(any(), any());
+        verify(wishLowService).existsByUserIdAndFestivalId(any(), any());
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishLowService);
     }
 
     @Test
-    @DisplayName("위시 삭제 성공")
-    void deleteWishSuccess() throws NoSuchFieldException, IllegalAccessException {
+    @DisplayName("위시 삭제 성공 (WishId 사용)")
+    void deleteWishSuccessWithWishId() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
@@ -118,9 +118,28 @@ public class WishServiceTest {
         given(wishLowService.findByUserIdAndId(any(), any()))
                 .willReturn(wish);
 
-        wishService.removeWish(wish.getId(), user.getId());
+        wishService.removeWishWithWishId(wish.getId(), user.getId());
 
         verify(wishLowService).findByUserIdAndId(any(), any());
+        verify(wishLowService).delete(any());
+        verifyNoMoreInteractions(festivalLowService);
+        verifyNoMoreInteractions(userLowService);
+        verifyNoMoreInteractions(wishLowService);
+    }
+
+    @Test
+    @DisplayName("위시 삭제 성공 (FestivalId 사용)")
+    void deleteWishSuccessWithFestivalId() throws NoSuchFieldException, IllegalAccessException {
+        UserEntity user = testUtil.createTestUserWithId();
+        Festival festival = testFestival();
+        Wish wish = new Wish(1L, user, festival);
+
+        given(wishLowService.findByUserIdAndFestivalId(any(), any()))
+                .willReturn(wish);
+
+        wishService.removeWishWithFestivalId(festival.getId(), user.getId());
+
+        verify(wishLowService).findByUserIdAndFestivalId(any(), any());
         verify(wishLowService).delete(any());
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
