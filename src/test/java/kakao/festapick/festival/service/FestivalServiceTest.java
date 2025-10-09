@@ -87,7 +87,7 @@ class FestivalServiceTest {
         Festival festival = createCustomFestival(requestDto, user);
         Long festivalId = 1L;
 
-        given(userLowService.findById(any())).willReturn(user);
+        given(userLowService.getReferenceById(any())).willReturn(user);
         given(festivalLowService.save(any())).willReturn(festival);
         setFestivalId(festival, festivalId);
 
@@ -100,7 +100,7 @@ class FestivalServiceTest {
                 () -> assertThat(Id).isEqualTo(festival.getId())
         );
 
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(festivalLowService).save(any());
         verify(temporalFileRepository).deleteById(any());
         verify(temporalFileRepository).deleteByIds(any());
@@ -115,7 +115,7 @@ class FestivalServiceTest {
         UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
 
-        given(userLowService.findById(any())).willThrow(new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        given(userLowService.getReferenceById(any())).willThrow(new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
 
         //when
         NotFoundEntityException e = assertThrows(
@@ -124,7 +124,7 @@ class FestivalServiceTest {
 
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.USER_NOT_FOUND);
 
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verifyNoMoreInteractions(festivalLowService);
     }
 
@@ -140,7 +140,7 @@ class FestivalServiceTest {
                         new FileUploadRequest(1L,"imageUrl"), null, testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
                         "homepageUrl", "축제에 대한 개요");
 
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
 
         // when & then
@@ -149,7 +149,7 @@ class FestivalServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(ExceptionCode.FESTIVAL_BAD_DATE.getErrorMessage());
 
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(festivalLowService);
     }

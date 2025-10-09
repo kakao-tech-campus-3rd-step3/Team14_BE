@@ -48,7 +48,7 @@ public class ReviewService {
     // 리뷰 생성 기능
     public Long createReview(Long festivalId, ReviewRequestDto requestDto, Long userId) {
         Festival festival = festivalLowService.findFestivalById(festivalId);
-        UserEntity user = userLowService.findById(userId);
+        UserEntity user = userLowService.getReferenceById(userId);
 
         // 유저가 해당 축제에 남긴 리뷰가 이미 있으면 예외 반환
         if (reviewLowService.existsByUserIdAndFestivalId(user.getId(), festivalId)) {

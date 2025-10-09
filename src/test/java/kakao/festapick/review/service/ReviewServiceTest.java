@@ -72,7 +72,7 @@ public class ReviewServiceTest {
 
         given(festivalLowService.findFestivalById(any()))
                 .willReturn(festival);
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
         given(reviewLowService.existsByUserIdAndFestivalId(any(), any()))
                 .willReturn(false);
@@ -87,7 +87,7 @@ public class ReviewServiceTest {
         assertThat(review.getId()).isEqualTo(savedId);
 
         verify(festivalLowService).findFestivalById(any());
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(reviewLowService).existsByUserIdAndFestivalId(any(), any());
         verify(reviewLowService).save(any());
         verify(fileService).saveAll(anyList());
@@ -105,7 +105,7 @@ public class ReviewServiceTest {
 
         given(festivalLowService.findFestivalById(any()))
                 .willReturn(festival);
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
         given(reviewLowService.existsByUserIdAndFestivalId(any(), any()))
                 .willReturn(true);
@@ -117,7 +117,7 @@ public class ReviewServiceTest {
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_DUPLICATE);
 
         verify(festivalLowService).findFestivalById(any());
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(reviewLowService).existsByUserIdAndFestivalId(any(), any());
         verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService, temporalFileRepository);
     }

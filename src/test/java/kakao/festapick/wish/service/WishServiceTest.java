@@ -55,7 +55,7 @@ public class WishServiceTest {
 
         given(festivalLowService.findFestivalById(any()))
                 .willReturn(festival);
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
 
         given(wishLowService.save(any())).willReturn(wish);
@@ -74,7 +74,7 @@ public class WishServiceTest {
         );
 
         verify(festivalLowService).findFestivalById(any());
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(wishLowService).findByUserIdAndFestivalId(any(), any());
         verify(wishLowService).save(any());
         verifyNoMoreInteractions(festivalLowService);
@@ -91,7 +91,7 @@ public class WishServiceTest {
 
         given(festivalLowService.findFestivalById(any()))
                 .willReturn(festival);
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
         given(wishLowService.findByUserIdAndFestivalId(any(), any()))
                 .willReturn(Optional.of(wish));
@@ -101,7 +101,7 @@ public class WishServiceTest {
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_DUPLICATE);
 
         verify(festivalLowService).findFestivalById(any());
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(wishLowService).findByUserIdAndFestivalId(any(), any());
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);

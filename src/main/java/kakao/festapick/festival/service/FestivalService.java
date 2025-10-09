@@ -49,7 +49,7 @@ public class FestivalService {
     //CREATE
     @Transactional
     public Long addCustomizedFestival(FestivalCustomRequestDto requestDto, Long userId) {
-        UserEntity user = userLowService.findById(userId);
+        UserEntity user = userLowService.getReferenceById(userId);
 
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalLowService.save(festival);

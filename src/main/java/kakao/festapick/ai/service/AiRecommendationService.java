@@ -33,7 +33,7 @@ public class AiRecommendationService {
     public List<FestivalListResponse> getRecommendation(AiRecommendationRequest aiRecommendationRequest, Long userId) {
 
 
-        UserEntity findUser = userLowService.findById(userId);
+        UserEntity findUser = userLowService.getReferenceById(userId);
 
         ResponseEntity<List<FestivalListResponse>> response = fastApiClient.post()
                 .uri("/festivals/recommend")

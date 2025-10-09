@@ -29,7 +29,7 @@ public class WishService {
     @Transactional
     public WishResponseDto createWish(Long festivalId, Long userId) {
         Festival festival = festivalLowService.findFestivalById(festivalId);
-        UserEntity user = userLowService.findById(userId);
+        UserEntity user = userLowService.getReferenceById(userId);
 
         // 이미 좋아요를 했으면 예외 반환
         wishLowService.findByUserIdAndFestivalId(userId, festivalId)
