@@ -2,7 +2,6 @@ package kakao.festapick.wish.service;
 
 
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -39,18 +38,17 @@ public class WishService {
 
         Wish newWish = new Wish(user, festival);
         Wish saved = wishLowService.save(newWish);
-        FestivalDetailResponseDto festivalResponseDto = new FestivalDetailResponseDto(festival);
-        return new WishResponseDto(saved.getId(), festivalResponseDto.id(), userId, festivalResponseDto.title(),
-                festivalResponseDto.areaCode());
+
+        return new WishResponseDto(saved.getId(), festival.getId(), userId,  festival.getTitle(), festival.getAreaCode());
     }
 
     // 유저의 좋아요 반환
     public Page<WishResponseDto> getWishes(Long userId, Pageable pageable) {
         Page<Wish> wishes = wishLowService.findByUserIdWithFestivalPage(userId, pageable);
         return wishes.map(wish -> {
-            FestivalDetailResponseDto responseDto = new FestivalDetailResponseDto(wish.getFestival());
-            return new WishResponseDto(wish.getId() ,responseDto.id(), userId, responseDto.title(),
-                    responseDto.areaCode());
+            Festival festival = wish.getFestival();
+            return new WishResponseDto(wish.getId() ,festival.getId(), userId, festival.getTitle(),
+                    festival.getAreaCode());
         });
 
     }

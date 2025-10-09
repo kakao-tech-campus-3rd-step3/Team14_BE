@@ -30,7 +30,7 @@ public class FestivalAdminController {
 
     @GetMapping("/{festivalId}")
     public String getFestivalInfo(@PathVariable Long festivalId, Model model){
-        FestivalDetailResponseDto festivalInfo = festivalService.findOneById(festivalId);
+        FestivalDetailResponseDto festivalInfo = festivalService.findOneById(festivalId, null);
 
         model.addAttribute("festival", festivalInfo);
 

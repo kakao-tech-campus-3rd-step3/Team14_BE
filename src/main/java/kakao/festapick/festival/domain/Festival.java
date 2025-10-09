@@ -8,11 +8,15 @@ import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.wish.domain.Wish;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -61,6 +65,12 @@ public class Festival extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private UserEntity manager;
+
+    @OneToMany(mappedBy = "festival")
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "festival")
+    private List<Wish> wishes = new ArrayList<>();
 
     protected Festival() { }
 

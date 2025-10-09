@@ -58,8 +58,8 @@ public class FestivalUserController {
 
     @Operation(summary = "축제 상세 조회")
     @GetMapping("/{festivalId}")
-    public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> getFestivalInfo(@PathVariable Long festivalId){
-        FestivalDetailResponseDto festivalDetail = festivalService.findOneById(festivalId);
+    public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> getFestivalInfo(@PathVariable Long festivalId, @AuthenticationPrincipal Long userId) {
+        FestivalDetailResponseDto festivalDetail = festivalService.findOneById(festivalId, userId);
         ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
     }

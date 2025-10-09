@@ -39,8 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalServiceTest {
@@ -160,10 +159,11 @@ class FestivalServiceTest {
 
         //given
         Festival festival = createFestival();
-        given(festivalLowService.findFestivalById(any())).willReturn(festival);
+
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
-        FestivalDetailResponseDto response = festivalService.findOneById(festival.getId());
+        FestivalDetailResponseDto response = festivalService.findOneById(festival.getId(), null);
 
         //then
         assertAll(
@@ -173,8 +173,8 @@ class FestivalServiceTest {
                 () -> assertThat(response.imageInfos()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
         );
 
-        verify(festivalLowService).findFestivalById(any());
-        verifyNoMoreInteractions(festivalLowService);
+        verify(festivalLowService).findByIdWithReviews(any());
+        verifyNoMoreInteractions(festivalLowService,wishLowService);
     }
 
     @Test
@@ -200,7 +200,7 @@ class FestivalServiceTest {
         );
 
         verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any());
-        verifyNoMoreInteractions(festivalLowService);
+        verifyNoMoreInteractions(festivalLowService, wishLowService);
     }
 
     @Test
@@ -230,7 +230,7 @@ class FestivalServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(10);
 
         verify(festivalLowService).findFestivalByManagerId(any(), any());
-        verifyNoMoreInteractions(userLowService, festivalLowService);
+        verifyNoMoreInteractions(userLowService, festivalLowService, wishLowService);
     }
 
     @Test
@@ -267,7 +267,7 @@ class FestivalServiceTest {
         Festival festival = createCustomFestival(requestDto, user);
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
-        given(festivalLowService.findFestivalByIdWithManager(any())).willReturn(festival);
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         FestivalDetailResponseDto updated = festivalService.updateFestival(user.getId(), any(), updateInfo);
@@ -277,11 +277,11 @@ class FestivalServiceTest {
                 () -> assertThat(updated.title()).isEqualTo(updateInfo.title()),
                 () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
-        verify(festivalLowService).findFestivalByIdWithManager(any());
+        verify(festivalLowService).findByIdWithReviews(any());
         verify(temporalFileRepository).deleteByIds(anyList());
         verify(s3Service).deleteFiles(any());
 
-        verifyNoMoreInteractions(festivalLowService, temporalFileRepository,s3Service);
+        verifyNoMoreInteractions(festivalLowService, temporalFileRepository,s3Service, wishLowService);
     }
 
     @Test
@@ -293,7 +293,7 @@ class FestivalServiceTest {
 
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
-        given(festivalLowService.findFestivalByIdWithManager(any())).willReturn(festival);
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         ForbiddenException e = assertThrows(
@@ -302,7 +302,7 @@ class FestivalServiceTest {
 
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
-        verify(festivalLowService).findFestivalByIdWithManager(any());
+        verify(festivalLowService).findByIdWithReviews(any());
         verifyNoMoreInteractions(festivalLowService, temporalFileRepository, s3Service);
     }
 
@@ -315,13 +315,13 @@ class FestivalServiceTest {
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
 
-        given(festivalLowService.findFestivalByIdWithManager(any())).willReturn(festival);
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         festivalService.deleteFestivalForManager(user.getId(), any());
 
         //then
-        verify(festivalLowService).findFestivalByIdWithManager(any());
+        verify(festivalLowService).findByIdWithReviews(any());
         verify(festivalLowService).deleteById(any()); //행위 검증
         verify(recommendationHistoryLowService).deleteByFestivalId(festival.getId());
         verify(fileService).deleteByDomainId(any(), any());
@@ -338,7 +338,7 @@ class FestivalServiceTest {
         UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
-        given(festivalLowService.findFestivalByIdWithManager(any())).willReturn(festival);
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         ForbiddenException e = assertThrows(
@@ -347,7 +347,7 @@ class FestivalServiceTest {
 
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
-        verify(festivalLowService).findFestivalByIdWithManager(any());
+        verify(festivalLowService).findByIdWithReviews(any());
         verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService,recommendationHistoryLowService);
     }
 

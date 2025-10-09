@@ -6,8 +6,10 @@ import kakao.festapick.ai.dto.AiRecommendationRequest;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
+import kakao.festapick.wish.service.WishLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,7 @@ public class AiRecommendationService {
     private final RecommendationHistoryLowService recommendationHistoryLowService;
     private final UserLowService userLowService;
     private final FestivalLowService festivalLowService;
+    private final WishLowService wishLowService;
 
     public List<FestivalListResponse> getRecommendation(AiRecommendationRequest aiRecommendationRequest, Long userId) {
 
@@ -62,6 +66,20 @@ public class AiRecommendationService {
 
     public Page<FestivalListResponse> getRecommendedFestivals(Long userId, Pageable pageable) {
         return recommendationHistoryLowService.findByUserIdWithFestival(userId, pageable)
-                .map(recommendationHistory -> new FestivalListResponse(recommendationHistory.getFestival()));
+                .map(recommendationHistory -> {
+                    Festival festival = recommendationHistory.getFestival();
+                    Double averageScore = calculateReviewScore(festival);
+                    long wishCount = festival.getWishes().size();
+                    return new FestivalListResponse(festival, averageScore, wishCount);
+                });
+    }
+
+    private Double calculateReviewScore(Festival festival) {
+        // 리뷰 별점 평균 계산
+        OptionalDouble averageCalc = festival.getReviews()
+                .stream().mapToDouble(Review::getScore).average();
+
+        // 존재하는 리뷰가 없으면 null 반환
+        return averageCalc.isPresent() ? averageCalc.getAsDouble() : null;
     }
 }

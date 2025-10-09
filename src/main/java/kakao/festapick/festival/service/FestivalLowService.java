@@ -47,11 +47,6 @@ public class FestivalLowService {
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
     }
 
-    public Festival findFestivalByIdWithManager(Long id){
-        return festivalRepository.findFestivalByIdWithManager(id)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
-    }
-
     public Page<Festival> findFestivalByManagerId(Long managerId, Pageable pageable){
         return festivalRepository.findFestivalByManagerId(managerId, pageable);
     }
@@ -80,5 +75,9 @@ public class FestivalLowService {
         return festivalRepository.findAllById(ids);
     }
 
+    public Festival findByIdWithReviews(Long id) {
+        return festivalRepository.findByIdWithReviews(id)
+                .orElseThrow(()-> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+    }
 
 }
