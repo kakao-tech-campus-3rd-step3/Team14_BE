@@ -64,8 +64,6 @@ public class UserAdminController {
     @PostMapping("/admin/users/{id}/role")
     public String changeRole(@PathVariable Long id, @RequestParam UserRoleType role) {
 
-        System.out.println(id);
-        System.out.println(role);
         userService.changeUserRole(id, role);
 
         return "redirect:/admin/users";
