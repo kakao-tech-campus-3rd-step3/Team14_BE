@@ -37,8 +37,8 @@ public class FMPermissionLowService {
         return fmPermissionRepository.findAllFMPermissionsWithUser(pageable);
     }
 
-    public void removeFMPermission(Long userId){
-        fmPermissionRepository.removeFMPermissionByUserId(userId);
+    public void removeFMPermission(Long id){
+        fmPermissionRepository.removeFMPermissionById(id);
     }
 
 }

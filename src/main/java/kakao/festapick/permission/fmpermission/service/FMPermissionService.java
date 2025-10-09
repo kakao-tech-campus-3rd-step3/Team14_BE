@@ -139,7 +139,7 @@ public class FMPermissionService {
             throw new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND);
         }
 
-        fmPermissionLowService.removeFMPermission(userId);
+        fmPermissionLowService.removeFMPermission(id);
         fileService.deleteByDomainId(id, DomainType.PERMISSION);//첨부 했던 모든 문서들 삭제
     }
 

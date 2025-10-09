@@ -12,7 +12,7 @@ public interface FMPermissionRepository extends JpaRepository<FMPermission, Long
     @Query("select fp from FMPermission fp where fp.user.id =:userId")
     Optional<FMPermission> findByUserId(Long userId);
 
-    void removeFMPermissionByUserId(Long userId);
+    void removeFMPermissionById(Long id);
 
     boolean existsFMPermissionByUserId(Long userId);
 
