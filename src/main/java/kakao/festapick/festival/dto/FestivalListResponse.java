@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 public record FestivalListResponse(
         Long id,
+        Long managerId,
         String title,
         String addr1,
         String addr2,
@@ -17,6 +18,7 @@ public record FestivalListResponse(
     public FestivalListResponse(Festival festival){
         this(
                 festival.getId(),
+                festival.getManager() == null ? null : festival.getManager().getId(),
                 festival.getTitle(),
                 festival.getAddr1(),
                 festival.getAddr2(),

@@ -40,7 +40,7 @@ public class WishService {
         Wish newWish = new Wish(user, festival);
         Wish saved = wishLowService.save(newWish);
         FestivalDetailResponseDto festivalResponseDto = new FestivalDetailResponseDto(festival);
-        return new WishResponseDto(saved.getId(), festivalResponseDto.id(), festivalResponseDto.title(),
+        return new WishResponseDto(saved.getId(), festivalResponseDto.id(), userId, festivalResponseDto.title(),
                 festivalResponseDto.areaCode());
     }
 
@@ -49,7 +49,7 @@ public class WishService {
         Page<Wish> wishes = wishLowService.findByUserIdWithFestivalPage(userId, pageable);
         return wishes.map(wish -> {
             FestivalDetailResponseDto responseDto = new FestivalDetailResponseDto(wish.getFestival());
-            return new WishResponseDto(wish.getId() ,responseDto.id(), responseDto.title(),
+            return new WishResponseDto(wish.getId() ,responseDto.id(), userId, responseDto.title(),
                     responseDto.areaCode());
         });
 

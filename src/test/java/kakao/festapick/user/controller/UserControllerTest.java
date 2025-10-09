@@ -8,7 +8,7 @@ import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.chat.repository.ChatRoomRepository;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.TemporalFile;
@@ -153,6 +153,7 @@ class UserControllerTest {
         UserResponseDto content = result.content();
 
         assertSoftly(softly -> {
+            softly.assertThat(content.userId()).isEqualTo(userEntity.getId());
             softly.assertThat(content.email()).isEqualTo(userEntity.getEmail());
             softly.assertThat(content.profileImageUrl()).isEqualTo(userEntity.getProfileImageUrl());
             softly.assertThat(content.username()).isEqualTo(userEntity.getUsername());

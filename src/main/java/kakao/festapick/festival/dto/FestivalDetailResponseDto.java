@@ -7,6 +7,7 @@ import java.util.List;
 
 public record FestivalDetailResponseDto(
         Long id,
+        Long managerId,
         String contentId,
         String title,
         int areaCode,
@@ -22,6 +23,7 @@ public record FestivalDetailResponseDto(
     public FestivalDetailResponseDto(Festival festival){
         this(
                 festival.getId(),
+                festival.getManager() == null ? null : festival.getManager().getId(),
                 festival.getContentId(),
                 festival.getTitle(),
                 festival.getAreaCode(),
@@ -39,6 +41,7 @@ public record FestivalDetailResponseDto(
     public FestivalDetailResponseDto(Festival festival, List<String> images){
         this(
                 festival.getId(),
+                festival.getManager() == null ? null : festival.getManager().getId(),
                 festival.getContentId(),
                 festival.getTitle(),
                 festival.getAreaCode(),

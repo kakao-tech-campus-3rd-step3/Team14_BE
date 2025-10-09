@@ -3,7 +3,7 @@ package kakao.festapick.wish.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Max;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.service.WishService;
 import lombok.RequiredArgsConstructor;
