@@ -21,10 +21,12 @@ public enum ExceptionCode {
     WISH_NOT_FOUND("존재하지 않는 좋아요입니다."),
     REVIEW_NOT_FOUND("존재하지 않는 리뷰입니다."),
     CHATROOM_NOT_FOUND("존재하지 않는 채팅방입니다."),
+    FM_PERMISSION_NOT_FOUND("존재하지 않는 승급 신청입니다."),
 
     //CONFLICT
     WISH_DUPLICATE("이미 좋아요한 축제입니다."),
     REVIEW_DUPLICATE("이미 리뷰를 한 축제입니다, 리뷰 수정을 이용해주세요."),
+    FM_PERMISSION_DUPLICATE("(FESTIVAL_MANAGER)이미 신청을 완료했습니다."),
   
     //FORBIDDEN
     FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다."),
@@ -32,6 +34,7 @@ public enum ExceptionCode {
     //BAD_REQUEST
     FESTIVAL_BAD_DATE("축제 시작일은 종료일보다 빨라야합니다."),
     FESTIVAL_BAD_IMAGE("이미 등록되어 있는 이미지 입니다."),
+    FM_PERMISSION_BAD_REQUEST("이미 FESTIVAL MANAGER 입니다."),
 
     //INTERNAL_SERVER_ERROR
     FAST_API_CONNECTION_ERROR("AI 추천 기능 호출 실패"),
