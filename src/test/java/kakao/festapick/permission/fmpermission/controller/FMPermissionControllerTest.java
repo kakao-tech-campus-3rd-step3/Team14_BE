@@ -118,7 +118,7 @@ class FMPermissionControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(updateDto);
 
         //when
-        MvcResult mvcResult = mockMvc.perform(patch("/api/fm-permissions/my/" + fmPermission.getId())
+        MvcResult mvcResult = mockMvc.perform(patch("/api/fm-permissions/my")
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -145,7 +145,7 @@ class FMPermissionControllerTest {
         FMPermission fmPermission = fmPermissionRepository.save(new FMPermission(user, "부산대학교"));
         createAndSaveDocs(fmPermission.getId());
 
-        mockMvc.perform(delete("/api/fm-permissions/my/" + fmPermission.getId()))
+        mockMvc.perform(delete("/api/fm-permissions/my"))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()))
                 .andReturn();
 

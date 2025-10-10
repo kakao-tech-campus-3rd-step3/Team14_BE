@@ -69,15 +69,16 @@ public class FMPermissionService {
     }
 
     // 업데이트(반려 또는 대기 중인 경우 서류를 수정하도록)
-    public FMPermissionResponseDto updateDocuments(Long userId, Long id, List<FileUploadRequest> documents){
+    public FMPermissionResponseDto updateDocuments(Long userId, List<FileUploadRequest> documents){
 
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
+        Long permissionId = fmPermission.getId();
 
         if(fmPermission.getPermissionState().equals(PermissionState.ACCEPTED)){
             throw new BadRequestException(ExceptionCode.FM_PERMISSION_BAD_REQUEST);
         }
 
-        List<FileEntity> registeredDocs = fileService.findByDomainIdAndDomainType(id, DomainType.PERMISSION);
+        List<FileEntity> registeredDocs = fileService.findByDomainIdAndDomainType(permissionId, DomainType.PERMISSION);
         Set<String> registeredDocsUrl = registeredDocs.stream()
                 .map(docs -> docs.getUrl())
                 .collect(Collectors.toSet());
@@ -98,7 +99,7 @@ public class FMPermissionService {
                 .filter(fileUploadRequest -> uploadDocsUrl.contains(fileUploadRequest.presignedUrl()))
                 .toList();
 
-        saveFiles(uploadFiles, id); //db에 저장
+        saveFiles(uploadFiles, permissionId); //db에 저장
         fileService.deleteAllByFileEntity(deleteFiles); //db에서 삭제
         s3Service.deleteFiles(deleteDocsUrl.stream().toList()); //s3에서 삭제
 
@@ -133,14 +134,21 @@ public class FMPermissionService {
     }
 
     //삭제
-    public void removeMyFMPermission(Long userId, Long id){
-
+    public void removeFMPermission(Long userId){
         if(!fmPermissionLowService.existsByUserId(userId)){
             throw new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND);
         }
+        FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
+        fmPermissionLowService.removeFMPermissionByUserId(userId);
+        fileService.deleteByDomainId(fmPermission.getId(), DomainType.PERMISSION);//첨부 했던 모든 문서들 삭제
+    }
 
-        fmPermissionLowService.removeFMPermission(id);
-        fileService.deleteByDomainId(id, DomainType.PERMISSION);//첨부 했던 모든 문서들 삭제
+    //user탈퇴 시, 관련 정보를 모두 삭제
+    public void deleteFMPermissionByUserId(Long userId){
+        fmPermissionLowService.findFMPermissionByUserIdForWithdraw(userId)
+                .ifPresent(fmPermission -> fileService.deleteByDomainId(fmPermission.getId(), DomainType.PERMISSION));
+
+        fmPermissionLowService.removeFMPermissionByUserId(userId);
     }
 
     //admin - 전체 조회

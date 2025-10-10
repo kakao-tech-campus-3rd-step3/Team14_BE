@@ -62,13 +62,12 @@ public class FMPermissionController {
             summary = "신청 시, 제출한 서류 변경하기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PatchMapping("/my/{id}")
+    @PatchMapping("/my")
     public ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> updateDocument(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long id,
             @RequestBody @Valid FMPermissionRequestDto requestDto
     ){
-        FMPermissionResponseDto fmPermissionResponseDto = fmPermissionService.updateDocuments(userId, id, requestDto.documents());
+        FMPermissionResponseDto fmPermissionResponseDto = fmPermissionService.updateDocuments(userId, requestDto.documents());
         return ResponseEntity.ok(new ApiResponseDto<>(fmPermissionResponseDto));
     }
 
@@ -76,12 +75,11 @@ public class FMPermissionController {
             summary = "신청 내역 삭제하기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @DeleteMapping("/my/{id}")
+    @DeleteMapping("/my")
     public ResponseEntity<Void> cancelFMPermission(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long id
+            @AuthenticationPrincipal Long userId
     ){
-        fmPermissionService.removeMyFMPermission(userId, id);
+        fmPermissionService.removeFMPermission(userId);
         return ResponseEntity.noContent().build();
     }
 

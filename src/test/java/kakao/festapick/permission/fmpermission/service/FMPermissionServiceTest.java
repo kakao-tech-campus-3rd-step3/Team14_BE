@@ -167,7 +167,7 @@ class FMPermissionServiceTest {
                 .willReturn(updatedDocs);
 
         //when
-        FMPermissionResponseDto responseDto = fmPermissionService.updateDocuments(user.getId(), fmPermission.getId(), updateRequest);
+        FMPermissionResponseDto responseDto = fmPermissionService.updateDocuments(user.getId(), updateRequest);
 
         //then
         assertAll(
@@ -214,36 +214,37 @@ class FMPermissionServiceTest {
 
 
     @Test
-    @DisplayName("Id를 통한 FMPermission 삭제")
+    @DisplayName("UserId를 통한 FMPermission 삭제")
     void removeMyFMPermission() throws Exception {
 
         //given
-        Long userId = 1L;
-        Long fmPermissionId = 2L;
+        UserEntity user = testUtil.createTestUser();
+        FMPermission fmPermission = newFMPermission(user);
 
         given(fmPermissionLowService.existsByUserId(any())).willReturn(true);
+        given(fmPermissionLowService.findFMPermissionByUserId(any())).willReturn(fmPermission);
 
         //when
-        fmPermissionService.removeMyFMPermission(userId, fmPermissionId);
+        fmPermissionService.removeFMPermission(user.getId());
 
+        //then
         verify(fmPermissionLowService).existsByUserId(any());
-        verify(fmPermissionLowService).removeFMPermission(any());
+        verify(fmPermissionLowService).removeFMPermissionByUserId(any());
         verify(fileService).deleteByDomainId(any(), any());
         verifyNoMoreInteractions(fmPermissionLowService, fileService);
     }
 
     @Test
-    @DisplayName("Id를 통한 FMPermission 삭제 실패 - 존재하지 않는 FMPermission인 경우")
-    void removeMyFMPermissionFail() throws Exception{
+    @DisplayName("UserId를 통한 FMPermission 삭제 실패 - 존재하지 않는 FMPermission인 경우")
+    void removeMyFMPermissionFail(){
         //given
         Long userId = 1L;
-        Long fmPermissionId = 2L;
 
         given(fmPermissionLowService.existsByUserId(any())).willReturn(false);
 
         NotFoundEntityException e = assertThrows(
                 NotFoundEntityException.class,
-                () -> fmPermissionService.removeMyFMPermission(userId, fmPermissionId)
+                () -> fmPermissionService.removeFMPermission(userId)
         );
 
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FM_PERMISSION_NOT_FOUND);
