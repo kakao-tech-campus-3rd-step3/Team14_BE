@@ -76,12 +76,11 @@ public class FestivalService {
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();
 
-        Double averageScore = calculateReviewScore(festival);
+        Double averageScore = festival.calculateReviewScore();
 
         // 좋아요 개수 반환
-        List<Wish> wishes = festival.getWishes();
-        long wishCount = wishes.size();
-        boolean isMyWish = checkIsMyWish(userId, wishes);
+        long wishCount = festival.getWishCount();
+        boolean isMyWish = festival.checkIsMyWish(userId);
 
         return new FestivalDetailResponseDto(festival, images, averageScore, wishCount, isMyWish);
     }
@@ -92,8 +91,8 @@ public class FestivalService {
 
         return festivalLowService.findFestivalByManagerId(userId, pageable)
                 .map(festival -> {
-                    Double averageScore = calculateReviewScore(festival);
-                    long wishCount = festival.getWishes().size();
+                    Double averageScore = festival.calculateReviewScore();
+                    long wishCount = festival.getWishCount();
                     return new FestivalListResponse(festival, averageScore, wishCount);
                 });
     }
@@ -103,8 +102,8 @@ public class FestivalService {
         Page<Festival> festivalList = festivalLowService.findFestivalByAreaCodeAndDate(areaCode,
                 LocalDate.now(), FestivalState.APPROVED, pageable);
         return festivalList.map(festival -> {
-            Double averageScore = calculateReviewScore(festival);
-            long wishCount = festival.getWishes().size();
+            Double averageScore = festival.calculateReviewScore();
+            long wishCount = festival.getWishCount();
             return new FestivalListResponse(festival, averageScore, wishCount);
         });
     }
@@ -112,8 +111,8 @@ public class FestivalService {
     public Page<FestivalListResponse> findFestivalByTitle(String keyWord, Pageable pageable){
         Page<Festival> festivals = festivalLowService.findFestivalByTitle(keyWord, FestivalState.APPROVED, pageable);
         return festivals.map(festival -> {
-            Double averageScore = calculateReviewScore(festival);
-            long wishCount = festival.getWishes().size();
+            Double averageScore = festival.calculateReviewScore();
+            long wishCount = festival.getWishCount();
             return new FestivalListResponse(festival, averageScore, wishCount);
         });
     }
@@ -185,11 +184,10 @@ public class FestivalService {
 
         s3Service.deleteFiles(deleteImgUrl.stream().toList()); // s3에서 삭제
 
-        Double averageScore = calculateReviewScore(festival);
-        List<Wish> wishes = festival.getWishes();
-        long wishCount = wishes.size();
+        Double averageScore = festival.calculateReviewScore();
+        long wishCount = festival.getWishCount();
 
-        boolean isMyWish = checkIsMyWish(userId, wishes);
+        boolean isMyWish = festival.checkIsMyWish(userId);
 
         return new FestivalDetailResponseDto(festival, festivalImgs, averageScore, wishCount, isMyWish);
     }
@@ -200,8 +198,8 @@ public class FestivalService {
         Festival festival = festivalLowService.findByIdWithReviews(id);
         festival.updateState(FestivalState.valueOf(stateDto.state()));
 
-        Double averageScore = calculateReviewScore(festival);
-        long wishCount = festival.getWishes().size();
+        Double averageScore = festival.calculateReviewScore();
+        long wishCount = festival.getWishCount();
         return new FestivalListResponse(festival, averageScore, wishCount);
     }
 
@@ -253,8 +251,8 @@ public class FestivalService {
     public List<FestivalListResponse> findApproved() {
         List<Festival> festivalList = festivalLowService.findAllByState(FestivalState.APPROVED);
         return festivalList.stream().map(festival -> {
-            Double averageScore = calculateReviewScore(festival);
-            long wishCount = festival.getWishes().size();
+            Double averageScore = festival.calculateReviewScore();
+            long wishCount = festival.getWishCount();
             return new FestivalListResponse(festival, averageScore, wishCount);
         }).toList();
     }
@@ -279,28 +277,6 @@ public class FestivalService {
         wishLowService.deleteByFestivalId(festivalId);
         reviewService.deleteReviewByFestivalId(festivalId);
         chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
-    }
-
-    private Double calculateReviewScore(Festival festival) {
-        // 리뷰 별점 평균 계산
-        OptionalDouble averageCalc = festival.getReviews()
-                .stream().mapToDouble(Review::getScore).average();
-
-        // 존재하는 리뷰가 없으면 null 반환
-        return averageCalc.isPresent() ? averageCalc.getAsDouble() : null;
-    }
-
-    // 내 좋아요인지 boolean으로 반환
-    private boolean checkIsMyWish(Long userId, List<Wish> wishes) {
-        if (userId == null) return false;
-
-        for (Wish wish : wishes) {
-            if (userId.equals(wish.getUser().getId())) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
 }

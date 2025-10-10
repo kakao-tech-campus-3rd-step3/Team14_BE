@@ -32,7 +32,6 @@ public class AiRecommendationService {
     private final RecommendationHistoryLowService recommendationHistoryLowService;
     private final UserLowService userLowService;
     private final FestivalLowService festivalLowService;
-    private final WishLowService wishLowService;
 
     public List<FestivalListResponse> getRecommendation(AiRecommendationRequest aiRecommendationRequest, Long userId) {
 
@@ -68,18 +67,10 @@ public class AiRecommendationService {
         return recommendationHistoryLowService.findByUserIdWithFestival(userId, pageable)
                 .map(recommendationHistory -> {
                     Festival festival = recommendationHistory.getFestival();
-                    Double averageScore = calculateReviewScore(festival);
-                    long wishCount = festival.getWishes().size();
+                    Double averageScore = festival.calculateReviewScore();
+                    long wishCount = festival.getWishCount();
                     return new FestivalListResponse(festival, averageScore, wishCount);
                 });
     }
 
-    private Double calculateReviewScore(Festival festival) {
-        // 리뷰 별점 평균 계산
-        OptionalDouble averageCalc = festival.getReviews()
-                .stream().mapToDouble(Review::getScore).average();
-
-        // 존재하는 리뷰가 없으면 null 반환
-        return averageCalc.isPresent() ? averageCalc.getAsDouble() : null;
-    }
 }
