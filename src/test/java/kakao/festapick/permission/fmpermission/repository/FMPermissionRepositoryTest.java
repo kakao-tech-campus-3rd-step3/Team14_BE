@@ -85,7 +85,7 @@ class FMPermissionRepositoryTest {
         Long id = newFMPermission(user).getId();
 
         //when
-        fmPermissionRepository.removeFMPermissionById(id);
+        fmPermissionRepository.removeFMPermissionByUserId(user.getId());
 
         //then
         Optional<FMPermission> foundOne = fmPermissionRepository.findFMPermissionById(id);
