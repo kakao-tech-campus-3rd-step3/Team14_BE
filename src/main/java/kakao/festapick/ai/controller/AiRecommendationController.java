@@ -3,7 +3,7 @@ package kakao.festapick.ai.controller;
 import jakarta.validation.Valid;
 import kakao.festapick.ai.dto.AiRecommendationRequest;
 import kakao.festapick.ai.service.AiRecommendationService;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

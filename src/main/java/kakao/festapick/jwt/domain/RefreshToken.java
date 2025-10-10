@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@EntityListeners(AuditingEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken extends BaseTimeEntity {
@@ -30,10 +29,6 @@ public class RefreshToken extends BaseTimeEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private UserEntity user;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
 
     public RefreshToken(UserEntity user, String token) {
         this.user = user;

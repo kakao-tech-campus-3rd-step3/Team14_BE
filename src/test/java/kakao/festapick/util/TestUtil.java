@@ -6,6 +6,7 @@ import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -85,5 +86,9 @@ public class TestUtil {
 
     public RecommendationHistory createRecommendationHistory(UserEntity user, Festival festival) {
         return new RecommendationHistory(festival, user);
+    }
+
+    public Review createReview(UserEntity user, Festival festival) {
+        return new Review(user, festival, "test content", 5);
     }
 }

@@ -141,7 +141,7 @@ class FestivalRepositoryTest {
         festivalRepository.save(festival);
 
         //when
-        Optional<Festival> foundOne = festivalRepository.findFestivalByIdWithManager(festival.getId());
+        Optional<Festival> foundOne = festivalRepository.findByIdWithReviews(festival.getId());
 
         //then
         assertThat(foundOne).isNotEmpty();

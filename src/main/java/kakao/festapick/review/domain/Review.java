@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Check(constraints = "score >= 1 AND score <= 5")
-@EntityListeners(AuditingEntityListener.class)
 public class Review extends BaseTimeEntity {
 
     @Id

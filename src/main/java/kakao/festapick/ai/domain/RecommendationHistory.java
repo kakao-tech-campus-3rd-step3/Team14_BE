@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 public class RecommendationHistory extends BaseTimeEntity {
 
@@ -36,8 +35,4 @@ public class RecommendationHistory extends BaseTimeEntity {
         this.festival = festival;
         this.user = user;
     }
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
 }

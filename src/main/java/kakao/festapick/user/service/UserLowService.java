@@ -39,4 +39,8 @@ public class UserLowService {
         return qUserRepository.findByIdentifierOrUserEmail(userSearchCond, pageable);
     }
 
+    public UserEntity getReferenceById(Long id) {
+        return userRepository.getReferenceById(id);
+    }
+
 }
