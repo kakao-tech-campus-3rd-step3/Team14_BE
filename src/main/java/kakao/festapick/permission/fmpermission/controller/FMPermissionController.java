@@ -43,7 +43,7 @@ public class FMPermissionController {
 
     @Operation(summary = "내가 신청한 목록 조회하기")
     @GetMapping("/my")
-    private ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> getMyFMPermission(
+    public ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> getMyFMPermission(
             @AuthenticationPrincipal Long userId
     ){
         FMPermissionResponseDto response = fmPermissionService.getFMPermissionByUserId(userId);
@@ -53,22 +53,23 @@ public class FMPermissionController {
 
     @Operation(summary = "신청 시, 제출한 서류 변경하기")
     @PatchMapping("/my/{id}")
-    private ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> updateDocument(
+    public ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> updateDocument(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long id,
             @RequestBody @Valid FMPermissionRequestDto requestDto
     ){
-        FMPermissionResponseDto fmPermissionResponseDto = fmPermissionService.modifyDocuments(userId, id, requestDto.documents());
+        FMPermissionResponseDto fmPermissionResponseDto = fmPermissionService.updateDocuments(userId, id, requestDto.documents());
         return ResponseEntity.ok(new ApiResponseDto<>(fmPermissionResponseDto));
     }
 
     @Operation(summary = "신청 내역 삭제하기")
     @DeleteMapping("/my/{id}")
-    private void cancelFMPermission(
+    public ResponseEntity<Void> cancelFMPermission(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long id
     ){
         fmPermissionService.removeMyFMPermission(userId, id);
+        return ResponseEntity.noContent().build();
     }
 
 }

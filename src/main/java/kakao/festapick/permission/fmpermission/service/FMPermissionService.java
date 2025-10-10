@@ -69,7 +69,7 @@ public class FMPermissionService {
     }
 
     // 업데이트(반려 또는 대기 중인 경우 서류를 수정하도록)
-    public FMPermissionResponseDto modifyDocuments(Long userId, Long id, List<FileUploadRequest> documents){
+    public FMPermissionResponseDto updateDocuments(Long userId, Long id, List<FileUploadRequest> documents){
 
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
 
