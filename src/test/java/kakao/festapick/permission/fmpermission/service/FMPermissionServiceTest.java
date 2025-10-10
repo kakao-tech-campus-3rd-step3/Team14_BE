@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -86,7 +87,7 @@ class FMPermissionServiceTest {
         return list;
     }
 
-    private List<FileUploadRequest> modifyDocs(){
+    private List<FileUploadRequest> updatedDocs(){
         List<FileUploadRequest> list = new ArrayList<>();
         list.add(new FileUploadRequest(1L, "file1.com"));
         list.add(new FileUploadRequest(2L, "file3.com"));
@@ -147,7 +148,41 @@ class FMPermissionServiceTest {
     }
 
     @Test
-    void modifyDocuments() {
+    @DisplayName("서류를 업데이트")
+    void updateDocuments() throws Exception {
+
+        // given
+        UserEntity user = testUtil.createTestUser();
+        FMPermission fmPermission = newFMPermission(user);
+
+        List<FileEntity> originalDocs = getDocs(fmPermission.getId());
+        List<FileUploadRequest> updateRequest = updatedDocs();
+        List<FileEntity> updatedDocs = updateRequest.stream()
+                .map(req -> new FileEntity(req.presignedUrl(), FileType.DOCUMENT, DomainType.PERMISSION, fmPermission.getId()))
+                .toList();
+
+        given(fmPermissionLowService.findFMPermissionByUserId(any())).willReturn(fmPermission);
+        given(fileService.findByDomainIdAndDomainType(any(), any()))
+                .willReturn(originalDocs)
+                .willReturn(updatedDocs);
+
+        //when
+        FMPermissionResponseDto responseDto = fmPermissionService.updateDocuments(user.getId(), fmPermission.getId(), updateRequest);
+
+        //then
+        assertAll(
+                () -> assertThat(fmPermission.getPermissionState()).isEqualTo(PermissionState.PENDING),
+                () -> assertThat(responseDto.state()).isEqualTo(PermissionState.PENDING),
+                () -> assertThat(responseDto.docsUrls()).isEqualTo(updatedDocs.stream().map(FileEntity::getUrl).toList())
+        );
+
+        verify(fmPermissionLowService).findFMPermissionByUserId(any());
+        verify(fileService, times(2)).findByDomainIdAndDomainType(any(), any());
+        verify(fileService).saveAll(any());
+        verify(temporalFileRepository).deleteByIds(any());
+        verify(fileService).deleteAllByFileEntity(any());
+        verify(s3Service).deleteFiles(any());
+        verifyNoMoreInteractions(fmPermissionLowService, fileService, temporalFileRepository, s3Service);
     }
 
     @Test
