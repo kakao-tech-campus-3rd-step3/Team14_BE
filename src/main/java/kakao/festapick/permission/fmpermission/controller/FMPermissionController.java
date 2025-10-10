@@ -1,6 +1,7 @@
 package kakao.festapick.permission.fmpermission.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import kakao.festapick.dto.ApiResponseDto;
@@ -27,7 +28,10 @@ public class FMPermissionController {
 
     private final FMPermissionService fmPermissionService;
 
-    @Operation(summary = "FESTIVAL_MANAGER로 승급 신청")
+    @Operation(
+            summary = "FESTIVAL_MANAGER로 승급 신청",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PostMapping
     public ResponseEntity<Void> applyFMPermission(
             @AuthenticationPrincipal Long userId,
@@ -41,7 +45,10 @@ public class FMPermissionController {
         return ResponseEntity.created(URI.create("/api/fm-permissions/" + savedId)).build();
     }
 
-    @Operation(summary = "내가 신청한 목록 조회하기")
+    @Operation(
+            summary = "내가 신청한 목록 조회하기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @GetMapping("/my")
     public ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> getMyFMPermission(
             @AuthenticationPrincipal Long userId
@@ -51,7 +58,10 @@ public class FMPermissionController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "신청 시, 제출한 서류 변경하기")
+    @Operation(
+            summary = "신청 시, 제출한 서류 변경하기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PatchMapping("/my/{id}")
     public ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> updateDocument(
             @AuthenticationPrincipal Long userId,
@@ -62,7 +72,10 @@ public class FMPermissionController {
         return ResponseEntity.ok(new ApiResponseDto<>(fmPermissionResponseDto));
     }
 
-    @Operation(summary = "신청 내역 삭제하기")
+    @Operation(
+            summary = "신청 내역 삭제하기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @DeleteMapping("/my/{id}")
     public ResponseEntity<Void> cancelFMPermission(
             @AuthenticationPrincipal Long userId,
