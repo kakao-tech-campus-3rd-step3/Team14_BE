@@ -17,7 +17,6 @@ import kakao.festapick.permission.festivalpermission.domain.FestivalPermission;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionAdminListDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionDetailDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionResponseListDto;
-import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.service.FMPermissionLowService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
@@ -42,7 +41,7 @@ public class FestivalPermissionService {
     private final PermissionFileUploader permissionFileUploader;
 
     public Long createFestivalPermission(Long userId, Long festivalId, List<FileUploadRequest> documents){
-        UserEntity user = userLowService.findById(userId);
+        UserEntity user = userLowService.getReferenceById(userId);
         Festival festival = festivalLowService.findFestivalById(festivalId);
 
         if(festival.getManager() != null){

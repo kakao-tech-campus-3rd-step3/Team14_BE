@@ -52,9 +52,6 @@ class FMPermissionServiceTest {
     private FileService fileService;
 
     @Mock
-    private TemporalFileRepository temporalFileRepository;
-
-    @Mock
     private PermissionFileUploader permissionFileUploader;
 
     @InjectMocks
