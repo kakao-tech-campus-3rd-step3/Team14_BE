@@ -5,12 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.fileupload.domain.DomainType;
@@ -19,10 +17,8 @@ import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
-import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
@@ -83,8 +79,8 @@ class FMPermissionServiceTest {
 
     private List<FileEntity> getDocs(Long id){
         List<FileEntity> list = new ArrayList<>();
-        list.add(new FileEntity(1L, "file1.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id, LocalDateTime.now()));
-        list.add(new FileEntity(2L, "file2.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id, LocalDateTime.now()));
+        list.add(new FileEntity(1L, "file1.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id));
+        list.add(new FileEntity(2L, "file2.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id));
         return list;
     }
 

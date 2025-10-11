@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionRequestDto;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionResponseDto;
 import kakao.festapick.permission.fmpermission.service.FMPermissionService;

@@ -2,7 +2,7 @@ package kakao.festapick.permission.festivalpermission.controller;
 
 import jakarta.validation.Valid;
 import java.net.URI;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionDetailDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionRequestDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionResponseListDto;
