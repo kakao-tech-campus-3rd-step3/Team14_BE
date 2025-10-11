@@ -37,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +58,8 @@ public class ChatMessageServiceTest {
     private S3Service s3Service;
     @Mock
     private TemporalFileRepository temporalFileRepository;
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Test
     @DisplayName("채팅 전송 성공")
@@ -80,7 +83,7 @@ public class ChatMessageServiceTest {
         verify(chatRoomLowService).findByRoomId(any());
         verify(chatMessageLowService).save(any());
         verify(temporalFileRepository).deleteByIds(any());
-        verify(webSocket).convertAndSend((String) any(), (Object) any());
+        verify(redisTemplate).convertAndSend((String) any(), (Object) any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);

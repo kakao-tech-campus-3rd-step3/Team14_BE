@@ -19,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ import java.util.List;
 
 import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 
 @SpringBootTest
 @Transactional
@@ -63,7 +65,9 @@ class AiRecommendationControllerTest {
         RecommendationHistory saved = recommendationHistoryRepository.save(testUtil.createRecommendationHistory(testUser, testFestival));
 
 
-        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/recommendations/histories"))
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/recommendations/histories")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
         JsonNode node = objectMapper.readTree(response);
