@@ -2,6 +2,7 @@ package kakao.festapick.chat.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +57,9 @@ public class ChatControllerTest {
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
         Festival festival = saveFestival();
 
-        mockMvc.perform(post(String.format("/api/festivals/%s/chatRooms", festival.getId())))
+        mockMvc.perform(post(String.format("/api/festivals/%s/chatRooms", festival.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isOk());
 
         Optional<ChatRoom> find = chatRoomRepository.findByFestivalId(festival.getId());
@@ -66,7 +70,8 @@ public class ChatControllerTest {
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),
                 () -> AssertionsForClassTypes.assertThat(actual.getFestival()).isEqualTo(festival),
-                () -> AssertionsForClassTypes.assertThat(actual.getRoomName()).isEqualTo(festival.getTitle()+" 채팅방")
+                () -> AssertionsForClassTypes.assertThat(actual.getRoomName())
+                        .isEqualTo(festival.getTitle() + " 채팅방")
         );
     }
 
@@ -76,7 +81,9 @@ public class ChatControllerTest {
         UserEntity userEntity = saveUserEntity();
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
-        mockMvc.perform(post(String.format("/api/festivals/%s/chatRooms", 999L)))
+        mockMvc.perform(post(String.format("/api/festivals/%s/chatRooms", 999L))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNotFound());
     }
 
@@ -88,10 +95,13 @@ public class ChatControllerTest {
         Festival festival = saveFestival();
         ChatRoom chatRoom = new ChatRoom("test room", festival);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        ChatMessage chatMessage = new ChatMessage("test message", "image url", savedChatRoom, userEntity);
+        ChatMessage chatMessage = new ChatMessage("test message", "image url", savedChatRoom,
+                userEntity);
         chatMessageRepository.save(chatMessage);
 
-        mockMvc.perform(get(String.format("/api/chatRooms/%s/messages", savedChatRoom.getId())))
+        mockMvc.perform(get(String.format("/api/chatRooms/%s/messages", savedChatRoom.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isOk());
     }
 
