@@ -33,7 +33,7 @@ public class ChatMessageService {
 
     // 채팅 메시지 보내기
     public void sendChatToRedis(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
-        UserEntity sender = userLowService.findById(userId);
+        UserEntity sender = userLowService.getReferenceById(userId);
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(chatRoomId);
         String imageUrl = null;
 

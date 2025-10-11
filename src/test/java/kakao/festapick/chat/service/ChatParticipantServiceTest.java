@@ -49,7 +49,7 @@ public class ChatParticipantServiceTest {
 
         given(chatRoomLowService.findByRoomId(any()))
                 .willReturn(chatRoom);
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
         given(chatParticipantLowService.existsByUserAndChatRoom(any(), any()))
                 .willReturn(false);
@@ -59,7 +59,7 @@ public class ChatParticipantServiceTest {
         chatParticipantService.enterChatRoom(user.getId(), chatRoom.getId());
 
         verify(chatRoomLowService).findByRoomId(any());
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(chatParticipantLowService).existsByUserAndChatRoom(any(),any());
         verify(chatParticipantLowService).save(any());
         verifyNoMoreInteractions(chatRoomLowService);
@@ -76,7 +76,7 @@ public class ChatParticipantServiceTest {
 
         given(chatRoomLowService.findByRoomId(any()))
                 .willReturn(chatRoom);
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
         given(chatParticipantLowService.existsByUserAndChatRoom(any(), any()))
                 .willReturn(true);
@@ -84,7 +84,7 @@ public class ChatParticipantServiceTest {
         chatParticipantService.enterChatRoom(user.getId(), chatRoom.getId());
 
         verify(chatRoomLowService).findByRoomId(any());
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(chatParticipantLowService).existsByUserAndChatRoom(any(),any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);

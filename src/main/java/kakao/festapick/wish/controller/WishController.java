@@ -3,7 +3,7 @@ package kakao.festapick.wish.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Max;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.service.WishService;
 import lombok.RequiredArgsConstructor;
@@ -52,14 +52,25 @@ public class WishController {
     }
 
     @Operation(
-            summary = "좋아요 삭제",
+            summary = "id 기반 좋아요 삭제",
             security = @SecurityRequirement(name = "JWT")
     )
     @DeleteMapping("/wishes/{wishId}")
     public ResponseEntity<Void> removeWish(
             @PathVariable Long wishId,
             @AuthenticationPrincipal Long userId) {
-        wishService.removeWish(wishId, userId);
+        wishService.removeWishWithWishId(wishId, userId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Operation(
+            summary = "축제 id기반 좋아요 삭제",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @DeleteMapping("/festivals/{festivalId}/wishes/my")
+    public ResponseEntity<Void> removeMyWishes(@PathVariable Long festivalId, @AuthenticationPrincipal Long userId) {
+
+        wishService.removeWishWithFestivalId(festivalId, userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

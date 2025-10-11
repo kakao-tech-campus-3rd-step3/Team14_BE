@@ -17,7 +17,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(indexes = @Index(name = "idx_domainId_domainType", columnList = "domainId, domainType"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class FileEntity extends BaseTimeEntity {
 
     @Id
@@ -38,10 +37,6 @@ public class FileEntity extends BaseTimeEntity {
 
     @Column(nullable = false)
     private Long domainId;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
 
     public FileEntity(String url, FileType fileType, DomainType domainType, Long domainId) {
         this.url = url;

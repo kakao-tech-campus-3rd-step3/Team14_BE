@@ -66,7 +66,7 @@ public class ChatMessageServiceTest {
         ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
         ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url",chatRoom, user);
 
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
         given(chatRoomLowService.findByRoomId(any()))
                 .willReturn(chatRoom);
@@ -76,7 +76,7 @@ public class ChatMessageServiceTest {
         ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
         chatMessageService.sendChatToRedis(chatRoom.getId(), requestDto, user.getId());
 
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verify(chatRoomLowService).findByRoomId(any());
         verify(chatMessageLowService).save(any());
         verify(temporalFileRepository).deleteByIds(any());

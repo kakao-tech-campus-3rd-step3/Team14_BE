@@ -7,7 +7,7 @@ import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
 import kakao.festapick.chat.service.ChatMessageService;
 import kakao.festapick.chat.service.ChatRoomService;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

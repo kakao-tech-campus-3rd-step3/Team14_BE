@@ -21,7 +21,7 @@ public class ChatParticipantService {
     public void enterChatRoom(Long userId, Long roomId) {
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(roomId);
 
-        UserEntity user = userLowService.findById(userId);
+        UserEntity user = userLowService.getReferenceById(userId);
 
         if (!chatParticipantLowService.existsByUserAndChatRoom(user, chatRoom)) {
             ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
