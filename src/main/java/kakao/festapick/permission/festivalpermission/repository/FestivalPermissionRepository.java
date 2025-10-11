@@ -6,6 +6,7 @@ import kakao.festapick.permission.festivalpermission.domain.FestivalPermission;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface FestivalPermissionRepository extends JpaRepository<FestivalPermission, Long> {
@@ -26,6 +27,17 @@ public interface FestivalPermissionRepository extends JpaRepository<FestivalPerm
     @Query("select fp from FestivalPermission fp join fetch fp.user join fetch fp.festival")
     List<FestivalPermission> findAllFestivalPermission();
 
-    void removeById(Long id);
-    
+    void deleteById(Long id);
+
+    @Modifying(clearAutomatically = true)
+    @Query("delete from FestivalPermission fp where fp.user.id =:userId")
+    void deleteByUserId(Long userId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("delete from FestivalPermission fp where fp.festival.id =:festivalId")
+    void deleteByFestivalId(Long festivalId);
+
+    List<FestivalPermission> findByUserId(Long userId);
+
+    List<FestivalPermission> findByFestivalId(Long festivalId);
 }

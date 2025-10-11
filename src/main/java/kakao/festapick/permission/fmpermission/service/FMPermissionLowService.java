@@ -47,7 +47,7 @@ public class FMPermissionLowService {
     }
 
     public void removeFMPermissionByUserId(Long id){
-        fmPermissionRepository.removeFMPermissionByUserId(id);
+        fmPermissionRepository.deleteFMPermissionByUserId(id);
     }
 
     public Map<Long, String> findDepartmentsByUserIds(List<Long> userIds){

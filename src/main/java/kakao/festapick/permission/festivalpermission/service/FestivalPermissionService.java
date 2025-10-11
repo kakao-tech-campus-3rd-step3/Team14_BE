@@ -17,6 +17,7 @@ import kakao.festapick.permission.festivalpermission.domain.FestivalPermission;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionAdminListDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionDetailDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionResponseListDto;
+import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.service.FMPermissionLowService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
@@ -108,6 +109,25 @@ public class FestivalPermissionService {
                 .toList();
     }
 
+    //user탈퇴 시, 모든 내역을 삭제
+    public void deleteFestivalPermissionByUserId(Long userId){
+        List<Long> festivalPermissionIds = festivalPermissionLowService.findByUserId(userId)
+                .stream()
+                .map(permission -> permission.getId())
+                .toList();
+        festivalPermissionLowService.deleteByUserId(userId);
+        fileService.deleteByDomainIds(festivalPermissionIds, DomainType.FESTIVAL_PERMISSION);
+    }
+
+    //축제 삭제 시, 관련된 요청을 모두 삭제
+    public void deleteFestivalPermissionByFestivalId(Long festivalId){
+        List<Long> festivalPermissionIds = festivalPermissionLowService.findByFestivalId(festivalId)
+                .stream()
+                .map(permission -> permission.getId())
+                .toList();
+        festivalPermissionLowService.deleteByFestivalId(festivalId);
+        fileService.deleteByDomainIds(festivalPermissionIds, DomainType.FESTIVAL_PERMISSION);
+    }
     //admin
     public FestivalPermissionDetailDto getFestivalPermissionById(Long id){
         FestivalPermission festivalPermission = festivalPermissionLowService.findByIdWithFestival(id);

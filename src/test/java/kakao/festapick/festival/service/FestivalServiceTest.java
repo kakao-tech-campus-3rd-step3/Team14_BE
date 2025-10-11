@@ -33,6 +33,7 @@ import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.permission.festivalpermission.service.FestivalPermissionService;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
@@ -78,6 +79,9 @@ class FestivalServiceTest {
 
     @Mock
     private RecommendationHistoryLowService recommendationHistoryLowService;
+
+    @Mock
+    private FestivalPermissionService festivalPermissionService;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -335,7 +339,8 @@ class FestivalServiceTest {
         verify(fileService).deleteByDomainId(any(), any());
         verify(reviewService).deleteReviewByFestivalId(festival.getId());
         verify(wishLowService).deleteByFestivalId(festival.getId());
-        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService);
+        verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festival.getId());
+        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService, festivalPermissionService);
     }
 
     @Test
@@ -380,7 +385,8 @@ class FestivalServiceTest {
         verify(wishLowService).deleteByFestivalId(festivalId);
         verify(reviewService).deleteReviewByFestivalId(festivalId);
         verify(chatRoomService).deleteChatRoomByfestivalIdIfExist(festivalId);
-        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService);
+        verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festivalId);
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService, festivalPermissionService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {

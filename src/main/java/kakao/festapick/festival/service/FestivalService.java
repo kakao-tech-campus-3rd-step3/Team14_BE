@@ -14,6 +14,7 @@ import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
+import kakao.festapick.permission.festivalpermission.service.FestivalPermissionService;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
@@ -46,6 +47,7 @@ public class FestivalService {
     private final TemporalFileRepository temporalFileRepository;
     private final FileService fileService;
     private final ChatRoomService chatRoomService;
+    private final FestivalPermissionService festivalPermissionService;
 
     //CREATE
     @Transactional
@@ -277,6 +279,7 @@ public class FestivalService {
         wishLowService.deleteByFestivalId(festivalId);
         reviewService.deleteReviewByFestivalId(festivalId);
         chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
+        festivalPermissionService.deleteFestivalPermissionByFestivalId(festivalId);
     }
 
 }
