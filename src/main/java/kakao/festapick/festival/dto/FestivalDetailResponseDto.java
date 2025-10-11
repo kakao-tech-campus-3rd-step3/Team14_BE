@@ -7,6 +7,7 @@ import java.util.List;
 
 public record FestivalDetailResponseDto(
         Long id,
+        Long managerId,
         String contentId,
         String title,
         int areaCode,
@@ -17,11 +18,15 @@ public record FestivalDetailResponseDto(
         LocalDate endDate,
         String overView,
         String homePage,
-        List<String> imageInfos
+        List<String> imageInfos,
+        Double averageScore,
+        long wishCount,
+        boolean isMyWish
 ) {
-    public FestivalDetailResponseDto(Festival festival){
+    public FestivalDetailResponseDto(Festival festival, Double averageScore, long wishCount, boolean isMyWish) {
         this(
                 festival.getId(),
+                festival.getManager() == null ? null : festival.getManager().getId(),
                 festival.getContentId(),
                 festival.getTitle(),
                 festival.getAreaCode(),
@@ -32,13 +37,17 @@ public record FestivalDetailResponseDto(
                 festival.getEndDate(),
                 festival.getOverView(),
                 festival.getHomePage(),
-                null
+                null,
+                averageScore,
+                wishCount,
+                isMyWish
         );
     }
 
-    public FestivalDetailResponseDto(Festival festival, List<String> images){
+    public FestivalDetailResponseDto(Festival festival, List<String> images, Double averageScore, long wishCount, boolean isMyWish) {
         this(
                 festival.getId(),
+                festival.getManager() == null ? null : festival.getManager().getId(),
                 festival.getContentId(),
                 festival.getTitle(),
                 festival.getAreaCode(),
@@ -49,7 +58,10 @@ public record FestivalDetailResponseDto(
                 festival.getEndDate(),
                 festival.getOverView(),
                 festival.getHomePage(),
-                images
+                images,
+                averageScore,
+                wishCount,
+                isMyWish
         );
     }
 }

@@ -1,5 +1,13 @@
 package kakao.festapick.wish.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -17,13 +25,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -91,8 +92,8 @@ public class WishControllerTest {
     }
 
     @Test
-    @DisplayName("위시 삭제 성공")
-    void removeWishSuccess() throws Exception {
+    @DisplayName("위시 삭제 성공 (WishId 사용)")
+    void removeWishSuccessWithWishId() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
@@ -101,6 +102,23 @@ public class WishControllerTest {
         Wish target = wishRepository.save(new Wish(userEntity, festival));
 
         mockMvc.perform(delete(String.format("/api/wishes/%s", target.getId())))
+                .andExpect(status().isNoContent());
+
+        Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(), festival.getId());
+        assertThat(find).isEmpty();
+    }
+
+    @Test
+    @DisplayName("위시 삭제 성공 (FestivalId 사용)")
+    void removeWishSuccessWithFestivalId() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+        Festival festival = saveFestival();
+
+        Wish target = wishRepository.save(new Wish(userEntity, festival));
+
+        mockMvc.perform(delete(String.format("/api/festivals/%s/wishes/my", festival.getId())))
                 .andExpect(status().isNoContent());
 
         Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(), festival.getId());

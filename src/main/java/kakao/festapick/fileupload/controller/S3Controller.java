@@ -1,6 +1,6 @@
 package kakao.festapick.fileupload.controller;
 
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.fileupload.dto.PresignedUrlResponse;
 import kakao.festapick.fileupload.service.S3Service;
 import lombok.RequiredArgsConstructor;

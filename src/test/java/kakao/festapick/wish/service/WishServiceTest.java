@@ -1,18 +1,25 @@
 package kakao.festapick.wish.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.lang.reflect.Field;
+import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
-import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.dto.WishResponseDto;
-import kakao.festapick.wish.repository.WishRepository;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -21,16 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.lang.reflect.Field;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class WishServiceTest {
@@ -42,10 +39,10 @@ public class WishServiceTest {
     private UserLowService userLowService;
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalLowService festivalLowService;
 
     @Mock
-    private WishRepository wishRepository;
+    private WishLowService wishLowService;
 
     private final TestUtil testUtil = new TestUtil();
 
@@ -56,14 +53,12 @@ public class WishServiceTest {
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(festivalRepository.findFestivalById(any()))
-                .willReturn(Optional.of(festival));
-        given(userLowService.findById(any()))
+        given(festivalLowService.findFestivalById(any()))
+                .willReturn(festival);
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
-        given(wishRepository.findByUserIdAndFestivalId(any(), any()))
-                .willReturn(Optional.empty());
-        given(wishRepository.save(any()))
-                .willReturn(wish);
+
+        given(wishLowService.save(any())).willReturn(wish);
 
         WishResponseDto responseDto = wishService.createWish(festival.getId(),
                 user.getId());
@@ -78,13 +73,13 @@ public class WishServiceTest {
                         .isEqualTo(festival.getAreaCode())
         );
 
-        verify(festivalRepository).findFestivalById(any());
-        verify(userLowService).findById(any());
-        verify(wishRepository).findByUserIdAndFestivalId(any(), any());
-        verify(wishRepository).save(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(festivalLowService).findFestivalById(any());
+        verify(userLowService).getReferenceById(any());
+        verify(wishLowService).existsByUserIdAndFestivalId(any(), any());
+        verify(wishLowService).save(any());
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(wishRepository);
+        verifyNoMoreInteractions(wishLowService);
     }
 
     @Test
@@ -94,62 +89,61 @@ public class WishServiceTest {
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(festivalRepository.findFestivalById(any()))
-                .willReturn(Optional.of(festival));
-        given(userLowService.findById(any()))
+        given(festivalLowService.findFestivalById(any()))
+                .willReturn(festival);
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
-        given(wishRepository.findByUserIdAndFestivalId(any(), any()))
-                .willReturn(Optional.of(wish));
+        given(wishLowService.existsByUserIdAndFestivalId(any(), any()))
+                .willReturn(true);
 
         DuplicateEntityException e = Assertions.assertThrows(DuplicateEntityException.class,
                 () -> wishService.createWish(festival.getId(), user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_DUPLICATE);
 
-        verify(festivalRepository).findFestivalById(any());
-        verify(userLowService).findById(any());
-        verify(wishRepository).findByUserIdAndFestivalId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(festivalLowService).findFestivalById(any());
+        verify(userLowService).getReferenceById(any());
+        verify(wishLowService).existsByUserIdAndFestivalId(any(), any());
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(wishRepository);
+        verifyNoMoreInteractions(wishLowService);
     }
 
     @Test
-    @DisplayName("위시 삭제 성공")
-    void deleteWishSuccess() throws NoSuchFieldException, IllegalAccessException {
+    @DisplayName("위시 삭제 성공 (WishId 사용)")
+    void deleteWishSuccessWithWishId() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(wishRepository.findByUserIdAndId(any(), any()))
-                .willReturn(Optional.of(wish));
+        given(wishLowService.findByUserIdAndId(any(), any()))
+                .willReturn(wish);
 
-        wishService.removeWish(wish.getId(), user.getId());
+        wishService.removeWishWithWishId(wish.getId(), user.getId());
 
-        verify(wishRepository).findByUserIdAndId(any(), any());
-        verify(wishRepository).delete(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(wishLowService).findByUserIdAndId(any(), any());
+        verify(wishLowService).delete(any());
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(wishRepository);
+        verifyNoMoreInteractions(wishLowService);
     }
 
     @Test
-    @DisplayName("위시 삭제 실패 (없는 위시 삭제 시도)")
-    void deleteWishFail() throws NoSuchFieldException, IllegalAccessException {
+    @DisplayName("위시 삭제 성공 (FestivalId 사용)")
+    void deleteWishSuccessWithFestivalId() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         Wish wish = new Wish(1L, user, festival);
 
-        given(wishRepository.findByUserIdAndId(any(), any()))
-                .willReturn(Optional.empty());
+        given(wishLowService.findByUserIdAndFestivalId(any(), any()))
+                .willReturn(wish);
 
-        NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> wishService.removeWish(wish.getId(), user.getId()));
-        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.WISH_NOT_FOUND);
+        wishService.removeWishWithFestivalId(festival.getId(), user.getId());
 
-        verify(wishRepository).findByUserIdAndId(any(), any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(wishLowService).findByUserIdAndFestivalId(any(), any());
+        verify(wishLowService).delete(any());
+        verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(wishRepository);
+        verifyNoMoreInteractions(wishLowService);
     }
 
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {

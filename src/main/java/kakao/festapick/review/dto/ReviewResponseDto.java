@@ -6,6 +6,7 @@ import java.util.List;
 
 public record ReviewResponseDto (
         Long reviewId,
+        Long userId,
         String reviewerName,
         String festivalTitle,
         String content,
@@ -16,7 +17,7 @@ public record ReviewResponseDto (
 ) {
 
     public ReviewResponseDto(Review review, List<String> imageUrls, String videoUrl) {
-        this(review.getId(), review.getReviewerName(), review.getFestivalTitle(),
+        this(review.getId(), review.getUser().getId(), review.getReviewerName(), review.getFestivalTitle(),
                 review.getContent(), review.getScore(), imageUrls, videoUrl);
     }
 }

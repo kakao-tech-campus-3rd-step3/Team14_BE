@@ -21,9 +21,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
     Optional<Festival> findFestivalById(Long id);
 
-    @Query("select f from Festival f left join fetch f.manager where f.id= :id")
-    Optional<Festival> findFestivalByIdWithManager(Long id);
-
     Page<Festival> findFestivalByManagerId(Long managerId, Pageable pageable);
 
     List<Festival> findFestivalByManagerId(Long managerId);
@@ -34,5 +31,11 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Modifying(clearAutomatically = true)
     @Query("delete from Festival f where f.manager.id = :userId")
     void deleteByManagerId(Long userId);
+
+    @Query("select f from Festival f where f.state = :state and f.title like concat('%', :title, '%')")
+    Page<Festival> findFestivalByTitle(String title, FestivalState state, Pageable pageable);
+
+    @Query("select f from Festival f left join fetch f.reviews where f.id = :festivalId")
+    Optional<Festival> findByIdWithReviews(Long festivalId);
 
 }

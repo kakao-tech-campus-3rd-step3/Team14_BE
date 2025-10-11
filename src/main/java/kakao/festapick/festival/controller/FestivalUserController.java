@@ -1,7 +1,11 @@
 package kakao.festapick.festival.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kakao.festapick.dto.ApiResponseDto;
+import jakarta.validation.constraints.NotBlank;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponse;
@@ -13,20 +17,24 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
 
-
+@Validated
 @RestController
 @RequestMapping("/api/festivals")
 @RequiredArgsConstructor
+@Tag(name = "Festival API", description = "축제 도메인 API")
 public class FestivalUserController {
 
     private final FestivalService festivalService;
 
-    //축제 등록
+    @Operation(
+            summary = "축제 등록 기능",
+            security = @SecurityRequirement(name = "JWT"))
     @PostMapping
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Void> addFestival(
@@ -37,7 +45,7 @@ public class FestivalUserController {
         return ResponseEntity.created(URI.create("/api/festivals/" + festivalId)).build();
     }
 
-    //해당 지역에서 현재 참여할 수 있는 축제
+    @Operation(summary = "해당 지역에서 현재 참여할 수 있는 축제 조회")
     @GetMapping("/area/{areaCode}")
     public ResponseEntity<Page<FestivalListResponse>> getCurrentFestivalByArea(
             @PathVariable int areaCode,
@@ -48,14 +56,29 @@ public class FestivalUserController {
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
-    //축제 상세 조회
+    @Operation(summary = "축제 상세 조회")
     @GetMapping("/{festivalId}")
-    public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> getFestivalInfo(@PathVariable Long festivalId){
-        FestivalDetailResponseDto festivalDetail = festivalService.findOneById(festivalId);
+    public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> getFestivalInfo(@PathVariable Long festivalId, @AuthenticationPrincipal Long userId) {
+        FestivalDetailResponseDto festivalDetail = festivalService.findOneById(festivalId, userId);
         ApiResponseDto<FestivalDetailResponseDto> responseDto = new ApiResponseDto<>(festivalDetail);
         return ResponseEntity.ok(responseDto);
     }
 
+    @Operation(summary = "축제명으로 축제를 검색하는 기능")
+    @GetMapping
+    public ResponseEntity<Page<FestivalListResponse>> searchFestival(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam @NotBlank(message = "검색어를 필수로 입력해야 합니다.") String keyword
+    ){
+        Page<FestivalListResponse> festivalListResponses = festivalService.findFestivalByTitle(keyword, PageRequest.of(page, size));
+        return ResponseEntity.ok(festivalListResponses);
+    }
+
+    @Operation(
+            summary = "내가 등록한 축제 조회",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<FestivalListResponse>> getMyFestivals(
@@ -67,7 +90,10 @@ public class FestivalUserController {
         return ResponseEntity.ok(myFestivals);
     }
 
-    //자신이 올린 축제에 대해서만 수정 가능
+    @Operation(
+            summary = "내가 등록한 축제 수정",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PatchMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> updateFestivalInfo(
@@ -80,7 +106,10 @@ public class FestivalUserController {
         return ResponseEntity.ok(responseDto);
     }
 
-    //자신이 올린 축제에 대해서만 삭제 가능
+    @Operation(
+            summary = "내가 등록한 축제 삭제",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @DeleteMapping("/{festivalId}")
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Void> removeFestival(

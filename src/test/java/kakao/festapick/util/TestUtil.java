@@ -1,9 +1,12 @@
 package kakao.festapick.util;
 
+import kakao.festapick.ai.domain.RecommendationHistory;
+import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.SocialType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
@@ -46,6 +49,15 @@ public class TestUtil {
         return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, userEntity, null);
     }
 
+    public Festival createTourApiTestFestival() {
+        return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, null, null);
+    }
+
+
+    public ChatRoom createTestChatRoom(Festival festival) {
+        return new ChatRoom("test room", festival);
+    }
+
 
     public LocalDate toLocalDate(String date){
         return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
@@ -70,5 +82,13 @@ public class TestUtil {
         images.add(new FileUploadRequest(999L,"https://festapick.secondimage.com"));
         images.add(new FileUploadRequest(9999L,"https://festapick.thridimage.com"));
         return images;
+    }
+
+    public RecommendationHistory createRecommendationHistory(UserEntity user, Festival festival) {
+        return new RecommendationHistory(festival, user);
+    }
+
+    public Review createReview(UserEntity user, Festival festival) {
+        return new Review(user, festival, "test content", 5);
     }
 }
