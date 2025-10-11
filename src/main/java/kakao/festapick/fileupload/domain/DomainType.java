@@ -3,5 +3,6 @@ package kakao.festapick.fileupload.domain;
 public enum DomainType {
     REVIEW,
     FESTIVAL,
-    PERMISSION
+    FM_PERMISSION,
+    FESTIVAL_PERMISSION
 }

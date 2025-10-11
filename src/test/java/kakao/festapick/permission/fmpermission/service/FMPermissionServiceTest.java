@@ -23,6 +23,7 @@ import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionAdminListResponseDto;
@@ -58,7 +59,7 @@ class FMPermissionServiceTest {
     private TemporalFileRepository temporalFileRepository;
 
     @Mock
-    private S3Service s3Service;
+    private PermissionFileUploader permissionFileUploader;
 
     @InjectMocks
     private FMPermissionService fmPermissionService;
@@ -82,8 +83,8 @@ class FMPermissionServiceTest {
 
     private List<FileEntity> getDocs(Long id){
         List<FileEntity> list = new ArrayList<>();
-        list.add(new FileEntity(1L, "file1.com", FileType.DOCUMENT, DomainType.PERMISSION, id, LocalDateTime.now()));
-        list.add(new FileEntity(2L, "file2.com", FileType.DOCUMENT, DomainType.PERMISSION, id, LocalDateTime.now()));
+        list.add(new FileEntity(1L, "file1.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id, LocalDateTime.now()));
+        list.add(new FileEntity(2L, "file2.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id, LocalDateTime.now()));
         return list;
     }
 
@@ -117,10 +118,9 @@ class FMPermissionServiceTest {
         verify(userLowService).findById(any());
         verify(fmPermissionLowService).existsByUserId(any());
         verify(fmPermissionLowService).saveFMPermission(any());
-        verify(fileService).saveAll(any());
-        verify(temporalFileRepository).deleteByIds(any());
+        verify(permissionFileUploader).saveFiles(any(), any(),any());
 
-        verifyNoMoreInteractions(userLowService, fmPermissionLowService, fileService, temporalFileRepository);
+        verifyNoMoreInteractions(userLowService, fmPermissionLowService, permissionFileUploader);
     }
 
     @Test
@@ -155,15 +155,13 @@ class FMPermissionServiceTest {
         UserEntity user = testUtil.createTestUser();
         FMPermission fmPermission = newFMPermission(user);
 
-        List<FileEntity> originalDocs = getDocs(fmPermission.getId());
         List<FileUploadRequest> updateRequest = updatedDocs();
         List<FileEntity> updatedDocs = updateRequest.stream()
-                .map(req -> new FileEntity(req.presignedUrl(), FileType.DOCUMENT, DomainType.PERMISSION, fmPermission.getId()))
+                .map(req -> new FileEntity(req.presignedUrl(), FileType.DOCUMENT, DomainType.FM_PERMISSION, fmPermission.getId()))
                 .toList();
 
         given(fmPermissionLowService.findFMPermissionByUserId(any())).willReturn(fmPermission);
         given(fileService.findByDomainIdAndDomainType(any(), any()))
-                .willReturn(originalDocs)
                 .willReturn(updatedDocs);
 
         //when
@@ -177,12 +175,9 @@ class FMPermissionServiceTest {
         );
 
         verify(fmPermissionLowService).findFMPermissionByUserId(any());
-        verify(fileService, times(2)).findByDomainIdAndDomainType(any(), any());
-        verify(fileService).saveAll(any());
-        verify(temporalFileRepository).deleteByIds(any());
-        verify(fileService).deleteAllByFileEntity(any());
-        verify(s3Service).deleteFiles(any());
-        verifyNoMoreInteractions(fmPermissionLowService, fileService, temporalFileRepository, s3Service);
+        verify(permissionFileUploader).updateFiles(any(), any(), any());
+        verify(fileService).findByDomainIdAndDomainType(any(), any());
+        verifyNoMoreInteractions(fmPermissionLowService, permissionFileUploader, fileService);
     }
 
     @Test

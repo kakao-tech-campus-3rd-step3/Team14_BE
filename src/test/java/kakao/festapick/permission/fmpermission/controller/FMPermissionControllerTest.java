@@ -155,8 +155,8 @@ class FMPermissionControllerTest {
 
     private List<FileEntity> createAndSaveDocs(Long id){
         List<FileEntity> docs = new ArrayList<>();
-        docs.add(new FileEntity("https://docs1.com", FileType.DOCUMENT, DomainType.PERMISSION, id));
-        docs.add(new FileEntity("https://docs2.com", FileType.DOCUMENT, DomainType.PERMISSION, id));
+        docs.add(new FileEntity("https://docs1.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id));
+        docs.add(new FileEntity("https://docs2.com", FileType.DOCUMENT, DomainType.FM_PERMISSION, id));
         fileService.saveAll(docs);
         return docs;
     }

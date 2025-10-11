@@ -16,6 +16,7 @@ import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionAdminListResponseDto;
@@ -37,9 +38,8 @@ public class FMPermissionService {
     private final FMPermissionLowService fmPermissionLowService;
     private final UserLowService userLowService;
 
+    private final PermissionFileUploader permissionFileUploader;
     private final FileService fileService;
-    private final TemporalFileRepository temporalFileRepository;
-    private final S3Service s3Service;
 
     //신청
     public Long createFMPermission(
@@ -64,7 +64,7 @@ public class FMPermissionService {
         Long fmPermissionId = fmPermissionLowService.saveFMPermission(fmPermission).getId();
 
         //관련 서류 저장
-        saveFiles(documents, fmPermissionId);
+        permissionFileUploader.saveFiles(documents, fmPermissionId, DomainType.FM_PERMISSION);
         return fmPermissionId;
     }
 
@@ -78,33 +78,10 @@ public class FMPermissionService {
             throw new BadRequestException(ExceptionCode.FM_PERMISSION_BAD_REQUEST);
         }
 
-        List<FileEntity> registeredDocs = fileService.findByDomainIdAndDomainType(permissionId, DomainType.PERMISSION);
-        Set<String> registeredDocsUrl = registeredDocs.stream()
-                .map(docs -> docs.getUrl())
-                .collect(Collectors.toSet());
-
-        Set<String> requestDocsUrl = documents.stream()
-                .map(docs -> docs.presignedUrl())
-                .collect(Collectors.toSet());
-
-        Set<String> deleteDocsUrl = new HashSet<>(registeredDocsUrl);
-        deleteDocsUrl.removeAll(requestDocsUrl); //삭제해야할 문서의 링크
-        List<FileEntity> deleteFiles = registeredDocs.stream()
-                .filter(fileEntity -> deleteDocsUrl.contains(fileEntity.getUrl()))
-                .toList();
-
-        Set<String> uploadDocsUrl = new HashSet<>(requestDocsUrl);
-        uploadDocsUrl.removeAll(registeredDocsUrl); //업로드해야할 문서의 링크
-        List<FileUploadRequest> uploadFiles = documents.stream()
-                .filter(fileUploadRequest -> uploadDocsUrl.contains(fileUploadRequest.presignedUrl()))
-                .toList();
-
-        saveFiles(uploadFiles, permissionId); //db에 저장
-        fileService.deleteAllByFileEntity(deleteFiles); //db에서 삭제
-        s3Service.deleteFiles(deleteDocsUrl.stream().toList()); //s3에서 삭제
+        permissionFileUploader.updateFiles(permissionId, DomainType.FM_PERMISSION, documents);
 
         fmPermission.updateState(PermissionState.PENDING);
-        List<String> docsUrl = fileService.findByDomainIdAndDomainType(fmPermission.getId(), DomainType.PERMISSION)
+        List<String> docsUrl = fileService.findByDomainIdAndDomainType(fmPermission.getId(), DomainType.FM_PERMISSION)
                 .stream()
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();
@@ -116,7 +93,7 @@ public class FMPermissionService {
     @Transactional(readOnly = true)
     public FMPermissionResponseDto getFMPermissionByUserId(Long userId){
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
-        List<String> docsUrl = fileService.findByDomainIdAndDomainType(fmPermission.getId(), DomainType.PERMISSION)
+        List<String> docsUrl = fileService.findByDomainIdAndDomainType(fmPermission.getId(), DomainType.FM_PERMISSION)
                 .stream()
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();
@@ -126,7 +103,7 @@ public class FMPermissionService {
     @Transactional(readOnly = true)
     public FMPermissionResponseDto getFMPermissionById(Long id){
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionById(id);
-        List<String> docsUrl = fileService.findByDomainIdAndDomainType(fmPermission.getId(), DomainType.PERMISSION)
+        List<String> docsUrl = fileService.findByDomainIdAndDomainType(fmPermission.getId(), DomainType.FM_PERMISSION)
                 .stream()
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();
@@ -140,13 +117,13 @@ public class FMPermissionService {
         }
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
         fmPermissionLowService.removeFMPermissionByUserId(userId);
-        fileService.deleteByDomainId(fmPermission.getId(), DomainType.PERMISSION);//첨부 했던 모든 문서들 삭제
+        fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION);//첨부 했던 모든 문서들 삭제
     }
 
     //user탈퇴 시, 관련 정보를 모두 삭제
     public void deleteFMPermissionByUserId(Long userId){
         fmPermissionLowService.findFMPermissionByUserIdForWithdraw(userId)
-                .ifPresent(fmPermission -> fileService.deleteByDomainId(fmPermission.getId(), DomainType.PERMISSION));
+                .ifPresent(fmPermission -> fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION));
 
         fmPermissionLowService.removeFMPermissionByUserId(userId);
     }
@@ -166,21 +143,6 @@ public class FMPermissionService {
             UserEntity user = fmPermission.getUser();
             user.changeUserRole(UserRoleType.FESTIVAL_MANAGER); //UserRole 변경
         }
-    }
-
-    private void saveFiles(List<FileUploadRequest> documents, Long id) {
-        List<FileEntity> files = new ArrayList<>();
-        List<Long> temporalFileIds = new ArrayList<>();
-
-        documents.forEach(
-                docInfo -> {
-                    files.add(new FileEntity(docInfo.presignedUrl(), FileType.DOCUMENT, DomainType.PERMISSION, id));
-                    temporalFileIds.add(docInfo.id());
-                }
-        );
-
-        fileService.saveAll(files);
-        temporalFileRepository.deleteByIds(temporalFileIds);
     }
 
 }
