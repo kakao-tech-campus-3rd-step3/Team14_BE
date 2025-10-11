@@ -39,7 +39,7 @@ public class PermissionFileUploader {
     }
 
     public void updateFiles(Long domainId, DomainType domainType, List<FileUploadRequest> documents){
-        List<FileEntity> registeredDocs = fileService.findByDomainIdAndDomainType(domainId, DomainType.FM_PERMISSION);
+        List<FileEntity> registeredDocs = fileService.findByDomainIdAndDomainType(domainId, domainType);
         Set<String> registeredDocsUrl = registeredDocs.stream()
                 .map(docs -> docs.getUrl())
                 .collect(Collectors.toSet());

@@ -216,35 +216,15 @@ class FMPermissionServiceTest {
         UserEntity user = testUtil.createTestUser();
         FMPermission fmPermission = newFMPermission(user);
 
-        given(fmPermissionLowService.existsByUserId(any())).willReturn(true);
         given(fmPermissionLowService.findFMPermissionByUserId(any())).willReturn(fmPermission);
 
         //when
         fmPermissionService.removeFMPermission(user.getId());
 
         //then
-        verify(fmPermissionLowService).existsByUserId(any());
         verify(fmPermissionLowService).removeFMPermissionByUserId(any());
         verify(fileService).deleteByDomainId(any(), any());
         verifyNoMoreInteractions(fmPermissionLowService, fileService);
-    }
-
-    @Test
-    @DisplayName("UserId를 통한 FMPermission 삭제 실패 - 존재하지 않는 FMPermission인 경우")
-    void removeMyFMPermissionFail(){
-        //given
-        Long userId = 1L;
-
-        given(fmPermissionLowService.existsByUserId(any())).willReturn(false);
-
-        NotFoundEntityException e = assertThrows(
-                NotFoundEntityException.class,
-                () -> fmPermissionService.removeFMPermission(userId)
-        );
-
-        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FM_PERMISSION_NOT_FOUND);
-        verify(fmPermissionLowService).existsByUserId(any());
-        verifyNoMoreInteractions(fmPermissionLowService);
     }
 
     @Test

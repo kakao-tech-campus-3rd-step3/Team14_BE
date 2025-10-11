@@ -1,21 +1,12 @@
 package kakao.festapick.permission.fmpermission.service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import kakao.festapick.fileupload.domain.DomainType;
-import kakao.festapick.fileupload.domain.FileEntity;
-import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
-import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
@@ -81,7 +72,7 @@ public class FMPermissionService {
         permissionFileUploader.updateFiles(permissionId, DomainType.FM_PERMISSION, documents);
 
         fmPermission.updateState(PermissionState.PENDING);
-        List<String> docsUrl = fileService.findByDomainIdAndDomainType(fmPermission.getId(), DomainType.FM_PERMISSION)
+        List<String> docsUrl = fileService.findByDomainIdAndDomainType(permissionId, DomainType.FM_PERMISSION)
                 .stream()
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();
@@ -112,12 +103,9 @@ public class FMPermissionService {
 
     //삭제
     public void removeFMPermission(Long userId){
-        if(!fmPermissionLowService.existsByUserId(userId)){
-            throw new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND);
-        }
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
         fmPermissionLowService.removeFMPermissionByUserId(userId);
-        fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION);//첨부 했던 모든 문서들 삭제
+        fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION); //첨부 했던 모든 문서들 삭제
     }
 
     //user탈퇴 시, 관련 정보를 모두 삭제

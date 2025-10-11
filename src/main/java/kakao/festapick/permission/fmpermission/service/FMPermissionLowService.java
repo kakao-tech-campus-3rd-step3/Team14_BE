@@ -1,6 +1,9 @@
 package kakao.festapick.permission.fmpermission.service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
@@ -45,6 +48,17 @@ public class FMPermissionLowService {
 
     public void removeFMPermissionByUserId(Long id){
         fmPermissionRepository.removeFMPermissionByUserId(id);
+    }
+
+    public Map<Long, String> findDepartmentsByUserIds(List<Long> userIds){
+        List<FMPermission> fmPermissionList = fmPermissionRepository.findByUserIds(userIds);
+        return fmPermissionList.stream()
+                .collect(
+                        Collectors.toMap(
+                                fmPermission -> fmPermission.getUser().getId(),
+                                fmPermission -> fmPermission.getDepartment()
+                        )
+                );
     }
 
 }

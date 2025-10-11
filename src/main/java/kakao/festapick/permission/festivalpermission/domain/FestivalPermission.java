@@ -40,6 +40,10 @@ public class FestivalPermission extends BaseTimeEntity {
         this.permissionState = PermissionState.PENDING;
     }
 
+    public void updateState(PermissionState permissionState){
+        this.permissionState = permissionState;
+    }
+
     protected FestivalPermission(){}
 
 }
