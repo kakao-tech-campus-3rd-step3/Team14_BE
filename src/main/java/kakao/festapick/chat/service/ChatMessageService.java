@@ -1,26 +1,19 @@
 package kakao.festapick.chat.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
-import kakao.festapick.fileupload.domain.DomainType;
-import kakao.festapick.fileupload.domain.FileEntity;
-import kakao.festapick.fileupload.domain.FileType;
-import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
-import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +29,10 @@ public class ChatMessageService {
     private final ChatRoomLowService chatRoomLowService;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // 채팅 메시지 보내기
-    public void sendChat(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
+    public void sendChatToRedis(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.findById(userId);
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(chatRoomId);
         String imageUrl = null;
@@ -54,8 +48,13 @@ public class ChatMessageService {
         // db에 저장 후
         ChatMessage savedMessage = chatMessageLowService.save(chatMessage);
         ChatPayload payload = new ChatPayload(savedMessage);
-        // 마지막에 웹소켓 전송
-        webSocket.convertAndSend("/sub/" + chatRoom.getId() + "/messages", payload);
+
+        //마지막에 redis로 전파
+        redisTemplate.convertAndSend("chat." + chatRoom.getId(), payload);
+    }
+
+    public void sendChatToClient(Long chatRoomId, ChatPayload payload) {
+        webSocket.convertAndSend("/sub/" + chatRoomId + "/messages", payload);
     }
 
     // 채팅방에서 최근 메시지 조회 (Pageable)
