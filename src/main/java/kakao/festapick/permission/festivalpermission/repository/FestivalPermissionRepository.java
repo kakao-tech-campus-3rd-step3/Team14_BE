@@ -11,7 +11,10 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface FestivalPermissionRepository extends JpaRepository<FestivalPermission, Long> {
 
-    @Query("select fp from FestivalPermission fp join fetch fp.festival where fp.user.id =:userId")
+    @Query(
+            value = "select fp from FestivalPermission fp join fetch fp.festival where fp.user.id =:userId",
+            countQuery = "select count (fp) from FestivalPermission fp where fp.user.id =:userId"
+    )
     Page<FestivalPermission> findFestivalPermissionsByUserIdWithFestival(Long userId, Pageable pageable);
 
     boolean existsByUserIdAndFestivalId(Long userId, Long festivalId);
@@ -24,8 +27,11 @@ public interface FestivalPermissionRepository extends JpaRepository<FestivalPerm
     @Query("select fp from FestivalPermission fp join fetch fp.festival where fp.id =:id")
     Optional<FestivalPermission> findByIdWithFestival(Long id);
 
-    @Query("select fp from FestivalPermission fp join fetch fp.user join fetch fp.festival")
-    List<FestivalPermission> findAllFestivalPermission();
+    @Query(
+            value = "select fp from FestivalPermission fp join fetch fp.user join fetch fp.festival",
+            countQuery = "select count(fp) from FestivalPermission fp"
+    )
+    Page<FestivalPermission> findAllFestivalPermission(Pageable pageable);
 
     void deleteById(Long id);
 

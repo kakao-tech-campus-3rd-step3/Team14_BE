@@ -56,7 +56,7 @@ class FMPermissionControllerTest {
     private FileService fileService;
 
     @Autowired
-    ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
 
     private final TestUtil testUtil = new TestUtil();
 

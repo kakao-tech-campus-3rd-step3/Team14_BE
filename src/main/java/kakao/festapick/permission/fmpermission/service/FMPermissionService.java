@@ -104,6 +104,9 @@ public class FMPermissionService {
     //삭제
     public void removeFMPermission(Long userId){
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
+        if(fmPermission.getPermissionState().equals(PermissionState.ACCEPTED)){
+            fmPermission.getUser().changeUserRole(UserRoleType.USER);
+        }
         fmPermissionLowService.removeFMPermissionByUserId(userId);
         fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION); //첨부 했던 모든 문서들 삭제
     }
@@ -124,13 +127,15 @@ public class FMPermissionService {
 
     //admin - 승인
     public void updateState(Long id, PermissionState permissionState){
-        FMPermission fmPermission = fmPermissionLowService.findFMPermissionById(id);
+        FMPermission fmPermission = fmPermissionLowService.findFMPermissionByIdWithUser(id);
         fmPermission.updateState(permissionState);
 
+        UserEntity user = fmPermission.getUser();
         if(permissionState.equals(PermissionState.ACCEPTED)){
-            UserEntity user = fmPermission.getUser();
             user.changeUserRole(UserRoleType.FESTIVAL_MANAGER); //UserRole 변경
+            return;
         }
+        user.changeUserRole(UserRoleType.USER);
     }
 
 }

@@ -1,5 +1,7 @@
 package kakao.festapick.permission.festivalpermission.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.net.URI;
 import kakao.festapick.global.dto.ApiResponseDto;
@@ -32,7 +34,10 @@ public class FestivalPermissionController {
 
     private final FestivalPermissionService festivalPermissionService;
 
-    //신청하기
+    @Operation(
+            summary = "기존 축제에 관리자 신청하기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PostMapping("/festival/{festivalId}")
     public ResponseEntity<Void> applyFestivalPermission(
             @AuthenticationPrincipal Long userId,
@@ -43,21 +48,27 @@ public class FestivalPermissionController {
         return ResponseEntity.created(URI.create("/api/festival-permission/" + savedId)).build();
     }
 
-    //신청 목록 가져오기
+    @Operation(
+            summary = "나의 축제 관리 신청 목록 가져오기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @GetMapping("/my")
-    public Page<FestivalPermissionResponseListDto> getFestivalPermissions(
+    public ResponseEntity<Page<FestivalPermissionResponseListDto>> getMyFestivalPermissions(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size
     ){
         Pageable pageable = PageRequest.of(page, size);
-        Page<FestivalPermissionResponseListDto> pagedContent = festivalPermissionService.getFestivalPermissionsByUserId(userId, pageable);
-        return pagedContent;
+        Page<FestivalPermissionResponseListDto> pagedContent = festivalPermissionService.getMyFestivalPermissionsByUserId(userId, pageable);
+        return ResponseEntity.ok(pagedContent);
     }
 
-    //신청서 조회
-    @GetMapping("/my/{id}")
-    public ResponseEntity<ApiResponseDto<FestivalPermissionDetailDto>> getFestivalPermissions(
+    @Operation(
+            summary = "Festival Permission 단건 조회",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponseDto<FestivalPermissionDetailDto>> getFestivalPermission(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long id
     ){
@@ -65,8 +76,11 @@ public class FestivalPermissionController {
         return ResponseEntity.ok(new ApiResponseDto<>(detailDto));
     }
 
-    //신청 업데이트
-    @PatchMapping("/my/{id}")
+    @Operation(
+            summary = "신청서 업데이트 - (증빙 서류 업데이트)",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponseDto<FestivalPermissionDetailDto>> updateFestivalPermission(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long id,
@@ -76,8 +90,11 @@ public class FestivalPermissionController {
         return ResponseEntity.ok(new ApiResponseDto<>(detailDto));
     }
 
-    //신청서를 삭제
-    @DeleteMapping("/my/{id}")
+    @Operation(
+            summary = "신청서 삭제 (ACCEPTED된 경우 삭제 시, 해당 축제 관리자 권한 박탈)",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> removeFestivalPermission(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long id

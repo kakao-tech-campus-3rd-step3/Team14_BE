@@ -28,6 +28,9 @@ public interface FMPermissionRepository extends JpaRepository<FMPermission, Long
 
     Optional<FMPermission> findFMPermissionById(Long id);
 
+    @Query("select fp from FMPermission fp join fetch fp.user where fp.id =:id")
+    Optional<FMPermission> findFMPermissionByIdWithUser(Long id);
+
     @Query("select fp from FMPermission fp where fp.user.id in :userIds")
     List<FMPermission> findByUserIds(List<Long> userIds);
 }

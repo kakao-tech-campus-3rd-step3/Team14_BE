@@ -59,11 +59,13 @@ public class FestivalPermissionService {
         return savedId;
     }
 
-    public Page<FestivalPermissionResponseListDto> getFestivalPermissionsByUserId(Long userId, Pageable pageable){
+    @Transactional(readOnly = true)
+    public Page<FestivalPermissionResponseListDto> getMyFestivalPermissionsByUserId(Long userId, Pageable pageable){
         return festivalPermissionLowService.findFestivalPermissionsByUserIdWithFestival(userId, pageable)
                 .map(FestivalPermissionResponseListDto::new);
     }
 
+    @Transactional(readOnly = true)
     public FestivalPermissionDetailDto getFestivalPermissionByUserId(Long userId, Long id){
         FestivalPermission permission = festivalPermissionLowService.findByIdAndUserIdWithFestival(id, userId);
         List<String> docsUrl = getDocumentsUrlById(id);
@@ -101,13 +103,6 @@ public class FestivalPermissionService {
         fileService.deleteByDomainId(festivalPermission.getId(), DomainType.FESTIVAL_PERMISSION);//첨부 했던 모든 문서들 삭제
     }
 
-    private List<String> getDocumentsUrlById(Long id){
-        return fileService.findByDomainIdAndDomainType(id, DomainType.FESTIVAL_PERMISSION)
-                .stream()
-                .map(FileEntity::getUrl)
-                .toList();
-    }
-
     //user탈퇴 시, 모든 내역을 삭제
     public void deleteFestivalPermissionByUserId(Long userId){
         List<Long> festivalPermissionIds = festivalPermissionLowService.findByUserId(userId)
@@ -127,7 +122,9 @@ public class FestivalPermissionService {
         festivalPermissionLowService.deleteByFestivalId(festivalId);
         fileService.deleteByDomainIds(festivalPermissionIds, DomainType.FESTIVAL_PERMISSION);
     }
+
     //admin
+    @Transactional(readOnly = true)
     public FestivalPermissionDetailDto getFestivalPermissionById(Long id){
         FestivalPermission festivalPermission = festivalPermissionLowService.findByIdWithFestival(id);
         List<String> docsUrl = getDocumentsUrlById(id);
@@ -135,16 +132,17 @@ public class FestivalPermissionService {
     }
 
     //admin
+    @Transactional(readOnly = true)
     public Page<FestivalPermissionAdminListDto> getAllFestivalPermissions(Pageable pageable){
-        List<FestivalPermission> list = festivalPermissionLowService.findAllFestivalPermission();
-        Map<Long, String> departmentsMap = fmPermissionLowService.findDepartmentsByUserIds(list.stream().map(permission -> permission.getUser().getId()).toList());
-        List<FestivalPermissionAdminListDto> festivalPermissionAdminList = list.stream()
+        Page<FestivalPermission> page = festivalPermissionLowService.findAllFestivalPermission(pageable);
+        Map<Long, String> departmentsMap = fmPermissionLowService.findDepartmentsByUserIds(page.map(permission -> permission.getUser().getId()).toList());
+        List<FestivalPermissionAdminListDto> festivalPermissionAdminList = page
                 .map(festivalPermission -> new FestivalPermissionAdminListDto(
                         festivalPermission,
                         departmentsMap.get(festivalPermission.getUser().getId())
                 ))
                 .toList();
-        return new PageImpl<>(festivalPermissionAdminList, pageable, festivalPermissionAdminList.size());
+        return new PageImpl<>(festivalPermissionAdminList, pageable, page.getTotalElements());
     }
 
     //admin
@@ -159,4 +157,12 @@ public class FestivalPermissionService {
         }
         festival.updateManager(null); //관리자로 해제
     }
+
+    private List<String> getDocumentsUrlById(Long id){
+        return fileService.findByDomainIdAndDomainType(id, DomainType.FESTIVAL_PERMISSION)
+                .stream()
+                .map(FileEntity::getUrl)
+                .toList();
+    }
+
 }

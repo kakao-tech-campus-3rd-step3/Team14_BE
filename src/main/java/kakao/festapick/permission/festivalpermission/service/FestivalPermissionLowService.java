@@ -24,8 +24,8 @@ public class FestivalPermissionLowService {
         return festivalPermissionRepository.findFestivalPermissionsByUserIdWithFestival(userId, pageable);
     }
 
-    public List<FestivalPermission> findAllFestivalPermission(){
-        return festivalPermissionRepository.findAllFestivalPermission();
+    public Page<FestivalPermission> findAllFestivalPermission(Pageable pageable){
+        return festivalPermissionRepository.findAllFestivalPermission(pageable);
     }
 
     public FestivalPermission findByIdAndUserId(Long id, Long userId){

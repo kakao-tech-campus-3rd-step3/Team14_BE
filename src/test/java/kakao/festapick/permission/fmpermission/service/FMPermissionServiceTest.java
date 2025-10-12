@@ -15,7 +15,6 @@ import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -259,7 +258,7 @@ class FMPermissionServiceTest {
         UserEntity user = testUtil.createTestUser();
         FMPermission fmPermission = newFMPermission(user);
         PermissionState state = PermissionState.ACCEPTED;
-        given(fmPermissionLowService.findFMPermissionById(any())).willReturn(fmPermission);
+        given(fmPermissionLowService.findFMPermissionByIdWithUser(any())).willReturn(fmPermission);
 
         assertThat(user.getRoleType()).isEqualTo(UserRoleType.USER);
 
@@ -272,7 +271,7 @@ class FMPermissionServiceTest {
                 () -> assertThat(fmPermission.getPermissionState()).isEqualTo(state)
         );
 
-        verify(fmPermissionLowService).findFMPermissionById(any());
+        verify(fmPermissionLowService).findFMPermissionByIdWithUser(any());
         verifyNoMoreInteractions(fmPermissionLowService);
     }
 
@@ -283,7 +282,7 @@ class FMPermissionServiceTest {
         UserEntity user = testUtil.createTestUser();
         FMPermission fmPermission = newFMPermission(user);
         PermissionState state = PermissionState.DENIED;
-        given(fmPermissionLowService.findFMPermissionById(any())).willReturn(fmPermission);
+        given(fmPermissionLowService.findFMPermissionByIdWithUser(any())).willReturn(fmPermission);
 
         assertThat(user.getRoleType()).isEqualTo(UserRoleType.USER);
 
@@ -296,7 +295,7 @@ class FMPermissionServiceTest {
                 () -> assertThat(fmPermission.getPermissionState()).isEqualTo(state)
         );
 
-        verify(fmPermissionLowService).findFMPermissionById(any());
+        verify(fmPermissionLowService).findFMPermissionByIdWithUser(any());
         verifyNoMoreInteractions(fmPermissionLowService);
     }
 }

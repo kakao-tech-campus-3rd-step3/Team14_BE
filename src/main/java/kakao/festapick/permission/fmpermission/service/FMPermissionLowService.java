@@ -32,6 +32,11 @@ public class FMPermissionLowService {
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND));
     }
 
+    public FMPermission findFMPermissionByIdWithUser(Long id){
+        return fmPermissionRepository.findFMPermissionByIdWithUser(id)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND));
+    }
+
     public FMPermission findFMPermissionByUserId(Long userId){
         return fmPermissionRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND));
@@ -40,7 +45,6 @@ public class FMPermissionLowService {
     public Optional<FMPermission> findFMPermissionByUserIdForWithdraw(Long userId){
         return fmPermissionRepository.findByUserId(userId);
     }
-
 
     public Page<FMPermission> findAll(Pageable pageable){
         return fmPermissionRepository.findAllFMPermissionsWithUser(pageable);
