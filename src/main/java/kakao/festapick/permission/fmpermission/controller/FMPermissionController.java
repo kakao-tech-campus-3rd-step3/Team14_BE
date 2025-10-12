@@ -2,6 +2,7 @@ package kakao.festapick.permission.fmpermission.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import kakao.festapick.global.dto.ApiResponseDto;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/fm-permissions")
+@Tag(name = "FestivalManager Permission API", description = "축제 관리자(role 변경)신청을 위한 API")
 public class FMPermissionController {
 
     private final FMPermissionService fmPermissionService;
