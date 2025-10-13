@@ -113,9 +113,8 @@ public class FMPermissionService {
 
     //user탈퇴 시, 관련 정보를 모두 삭제
     public void deleteFMPermissionByUserId(Long userId){
-        fmPermissionLowService.findFMPermissionByUserIdForWithdraw(userId)
+        fmPermissionLowService.getOptionalFMPermissionByUserId(userId)
                 .ifPresent(fmPermission -> fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION));
-
         fmPermissionLowService.removeFMPermissionByUserId(userId);
     }
 

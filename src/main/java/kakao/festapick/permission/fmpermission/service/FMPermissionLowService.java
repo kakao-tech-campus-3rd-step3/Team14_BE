@@ -42,7 +42,7 @@ public class FMPermissionLowService {
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND));
     }
 
-    public Optional<FMPermission> findFMPermissionByUserIdForWithdraw(Long userId){
+    public Optional<FMPermission> getOptionalFMPermissionByUserId(Long userId){
         return fmPermissionRepository.findByUserId(userId);
     }
 

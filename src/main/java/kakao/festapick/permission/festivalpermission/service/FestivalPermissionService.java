@@ -156,12 +156,12 @@ public class FestivalPermissionService {
             if (festival.getManager() != null) { // 이미 매니저가 존재하는 경우
                 throw new BadRequestException(ExceptionCode.FESTIVAL_PERMISSION_BAD_REQUEST);
             }
-            festivalPermission.updateState(permissionState);
             festival.updateManager(festivalPermission.getUser()); //관리자로 등록
-            return;
         }
-        if (festival.getManager() != null && festival.getManager().equals(festivalPermission.getUser())) {
-            festival.updateManager(null); //관리자로 해제
+        else{ //PENDING 또는 DENIED인 경우
+            if (festival.getManager() != null && festival.getManager().equals(festivalPermission.getUser())) {
+                festival.updateManager(null); //관리자로 해제
+            }
         }
         festivalPermission.updateState(permissionState);
     }

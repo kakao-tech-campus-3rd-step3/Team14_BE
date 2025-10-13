@@ -1,6 +1,7 @@
 package kakao.festapick.permission.festivalpermission.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -235,6 +236,31 @@ class FestivalPermissionServiceTest {
                 ()-> assertThat(festival.getManager()).isEqualTo(manager),
                 () -> assertThat(festivalPermission.getPermissionState()).isEqualTo(PermissionState.DENIED)
         );
+        verify(festivalPermissionLowService).findByIdWithFestival(any());
+        verifyNoMoreInteractions(festivalPermissionLowService);
+    }
+
+    @Test
+    @DisplayName("특정 축제의 매니저인 경우에서 Festival Manager Permission을 Deny로 변경")
+    void updateFestivalPermissionStateDenyManager(){
+
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO-191736");
+        Festival festival = testUtil.createTourApiTestFestival();
+        festival.updateManager(user);
+
+        FestivalPermission festivalPermission = new FestivalPermission(user, festival);
+        given(festivalPermissionLowService.findByIdWithFestival(any())).willReturn(festivalPermission);
+
+        //when
+        assertThat(festival.getManager()).isEqualTo(user);
+        festivalPermissionService.updateFestivalPermissionState(festivalPermission.getId(), PermissionState.DENIED);
+
+        //then
+        assertSoftly(softly ->{
+                        softly.assertThat(festival.getManager()).isNull();
+                        softly.assertThat(festivalPermission.getPermissionState()).isEqualTo(PermissionState.DENIED);
+        });
         verify(festivalPermissionLowService).findByIdWithFestival(any());
         verifyNoMoreInteractions(festivalPermissionLowService);
     }
