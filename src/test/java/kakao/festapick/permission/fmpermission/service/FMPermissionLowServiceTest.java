@@ -51,17 +51,17 @@ class FMPermissionLowServiceTest {
     void findFMPermissionByUserId(){
         //given
         Long userId = 1L;
-        given(fmPermissionRepository.findFMPermissionById(userId)).willReturn(Optional.empty());
+        given(fmPermissionRepository.findByUserId(userId)).willReturn(Optional.empty());
 
         //when
         NotFoundEntityException e = assertThrows(
                 NotFoundEntityException.class,
-                () -> fmPermissionLowService.findFMPermissionById(userId)
+                () -> fmPermissionLowService.findFMPermissionByUserId(userId)
         );
 
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FM_PERMISSION_NOT_FOUND);
-        verify(fmPermissionRepository).findFMPermissionById(any());
+        verify(fmPermissionRepository).findByUserId(any());
         verifyNoMoreInteractions(fmPermissionRepository);
     }
 }
