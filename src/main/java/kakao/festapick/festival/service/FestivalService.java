@@ -80,6 +80,7 @@ public class FestivalService {
 
         // 좋아요 개수 반환
         long wishCount = festival.getWishCount();
+        // userId가 null 이라면 인증되지 않은 사용자이기 때문에 항상 isMyWish가 항상 false
         boolean isMyWish = festival.checkIsMyWish(userId);
 
         return new FestivalDetailResponseDto(festival, images, averageScore, wishCount, isMyWish);

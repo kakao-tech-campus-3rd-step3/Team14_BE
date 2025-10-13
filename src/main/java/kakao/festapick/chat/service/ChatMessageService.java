@@ -1,20 +1,12 @@
 package kakao.festapick.chat.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
-import kakao.festapick.fileupload.domain.DomainType;
-import kakao.festapick.fileupload.domain.FileEntity;
-import kakao.festapick.fileupload.domain.FileType;
-import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
-import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
@@ -38,7 +30,7 @@ public class ChatMessageService {
     private final TemporalFileRepository temporalFileRepository;
 
     // 채팅 메시지 보내기
-    public void sendChat(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
+    public void sendChatMessage(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.getReferenceById(userId);
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(chatRoomId);
         String imageUrl = null;
