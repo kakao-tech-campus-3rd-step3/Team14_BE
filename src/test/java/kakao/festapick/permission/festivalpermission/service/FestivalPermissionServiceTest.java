@@ -43,9 +43,6 @@ class FestivalPermissionServiceTest {
     private FestivalPermissionLowService festivalPermissionLowService;
 
     @Mock
-    private FMPermissionLowService fmPermissionLowService;
-
-    @Mock
     private FestivalLowService festivalLowService;
 
     @Mock
@@ -186,6 +183,60 @@ class FestivalPermissionServiceTest {
         verify(festivalPermissionLowService).findByIdWithFestival(any());
         verifyNoMoreInteractions(festivalPermissionLowService);
 
+    }
+
+    @Test
+    @DisplayName("축제 관리자로 승인 - 이미 축제 관리자가 존재하는 경우에는 예외 발생")
+    void updateFestivalPermissionStateDuplicateFail(){
+
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO-191736");
+        Festival festival = testUtil.createTourApiTestFestival();
+
+        UserEntity manager = testUtil.createTestManager("KAKAO-20251013");
+        festival.updateManager(manager);
+
+        FestivalPermission festivalPermission = new FestivalPermission(user, festival);
+        given(festivalPermissionLowService.findByIdWithFestival(any())).willReturn(festivalPermission);
+
+        //when
+        assertThat(festival.getManager()).isEqualTo(manager);
+        BadRequestException e = assertThrows(
+                BadRequestException.class,
+                () -> festivalPermissionService.updateFestivalPermissionState(festivalPermission.getId(), PermissionState.ACCEPTED)
+        );
+
+        //then
+        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_PERMISSION_BAD_REQUEST);
+        verify(festivalPermissionLowService).findByIdWithFestival(any());
+        verifyNoMoreInteractions(festivalPermissionLowService);
+    }
+
+    @Test
+    @DisplayName("축제 관리자로 거절 - 축제 매니저는 유지 되어야함")
+    void updateFestivalPermissionStateDeny(){
+
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO-191736");
+        Festival festival = testUtil.createTourApiTestFestival();
+
+        UserEntity manager = testUtil.createTestManager("KAKAO-20251013");
+        festival.updateManager(manager);
+
+        FestivalPermission festivalPermission = new FestivalPermission(user, festival);
+        given(festivalPermissionLowService.findByIdWithFestival(any())).willReturn(festivalPermission);
+
+        //when
+        assertThat(festival.getManager()).isEqualTo(manager);
+        festivalPermissionService.updateFestivalPermissionState(festivalPermission.getId(), PermissionState.DENIED);
+
+        //then
+        assertAll(
+                ()-> assertThat(festival.getManager()).isEqualTo(manager),
+                () -> assertThat(festivalPermission.getPermissionState()).isEqualTo(PermissionState.DENIED)
+        );
+        verify(festivalPermissionLowService).findByIdWithFestival(any());
+        verifyNoMoreInteractions(festivalPermissionLowService);
     }
 
     @Test
