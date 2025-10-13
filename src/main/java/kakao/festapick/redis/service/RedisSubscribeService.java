@@ -24,7 +24,7 @@ public class RedisSubscribeService implements MessageListener{
         Long chatRoomId = Long.valueOf(channel.replaceAll("\\D+", ""));
         try {
             ChatPayload payload = objectMapper.readValue(body, ChatPayload.class);
-            chatMessageService.sendChatToClient(chatRoomId, payload);
+            chatMessageService.sendChatMessageToClient(chatRoomId, payload);
         } catch (JsonProcessingException e) {
             throw new JsonParsingException("redis payload 파싱 실패");
         }

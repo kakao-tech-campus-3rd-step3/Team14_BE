@@ -34,7 +34,7 @@ public class ChatRoomService {
     // 축제에 해당하는 채팅방이 존재하는지 확인 후 채팅방 정보 반환, 없으면 생성 후 반환
     public ChatRoomResponseDto getExistChatRoomOrMakeByFestivalId(Long festivalId) {
         Optional<ChatRoom> chatRoomOptional = chatRoomLowService.findByFestivalId(festivalId);
-        // 조회 결과 채팅방이 없으면 축제에 해당하는 채팅망 생성후 반환
+        // 조회 결과 채팅방이 없으면 축제에 해당하는 채팅방 생성후 반환
         if (chatRoomOptional.isEmpty()) {
             Festival festival = festivalLowService.findFestivalById(festivalId);
             ChatRoom newChatRoom = new ChatRoom(festival.getTitle() + " 채팅방", festival);

@@ -32,7 +32,7 @@ public class ChatMessageService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     // 채팅 메시지 보내기
-    public void sendChatToRedis(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
+    public void sendChatMessageToRedis(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.getReferenceById(userId);
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(chatRoomId);
         String imageUrl = null;
@@ -53,7 +53,7 @@ public class ChatMessageService {
         redisTemplate.convertAndSend("chat." + chatRoom.getId(), payload);
     }
 
-    public void sendChatToClient(Long chatRoomId, ChatPayload payload) {
+    public void sendChatMessageToClient(Long chatRoomId, ChatPayload payload) {
         webSocket.convertAndSend("/sub/" + chatRoomId + "/messages", payload);
     }
 

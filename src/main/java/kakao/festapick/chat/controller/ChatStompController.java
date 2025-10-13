@@ -27,6 +27,6 @@ public class ChatStompController {
     ) {
         Long userId = Long.valueOf(principal.getName());
         ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
-        chatMessageService.sendChatToRedis(chatRoomResponseDto.roomId(), requestDto, userId);
+        chatMessageService.sendChatMessageToRedis(chatRoomResponseDto.roomId(), requestDto, userId);
     }
 }
