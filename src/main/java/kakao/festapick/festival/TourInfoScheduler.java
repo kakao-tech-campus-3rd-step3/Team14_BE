@@ -7,6 +7,7 @@ import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalJdbcTemplateRepository;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festival.tourapi.TourApiMaxRows;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.festival.tourapi.TourImagesResponse;
@@ -49,7 +50,7 @@ public class TourInfoScheduler {
 
     private final FestivalJdbcTemplateRepository festivalJdbcTemplateRepository;
 
-    private final FestivalRepository festivalRepository;
+    private final FestivalLowService festivalLowService;
 
     private final FileJdbcTemplateRepository fileJdbcTemplateRepository;
 
@@ -78,7 +79,7 @@ public class TourInfoScheduler {
             //이미지 저장을 위해서는 축제의 id가 필요함
             Map<String, Long> idMap = new HashMap<>();
             List<String> contentIds = festivals.stream().map(festival -> festival.getContentId()).toList();
-            festivalRepository.findFestivalsByContentIds(contentIds)
+            festivalLowService.findFestivalsByContentIds(contentIds)
                     .forEach(festival -> idMap.put(festival.getContentId(), festival.getId()));
 
             saveImages(idMap);

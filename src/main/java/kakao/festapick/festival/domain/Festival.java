@@ -1,23 +1,29 @@
 package kakao.festapick.festival.domain;
 
 import jakarta.persistence.*;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.wish.domain.Wish;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.OptionalDouble;
 
 @Entity
 @Getter
 @Slf4j
 @Table(indexes = @Index(name = "idx_festival_area_state_startdate_id", columnList= "areaCode, state, startDate, id"))
-public class Festival {
+public class Festival extends BaseTimeEntity {
 
     private static String defaultImage;
 
@@ -60,6 +66,12 @@ public class Festival {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private UserEntity manager;
+
+    @OneToMany(mappedBy = "festival")
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "festival")
+    private List<Wish> wishes = new ArrayList<>();
 
     protected Festival() { }
 
@@ -137,6 +149,31 @@ public class Festival {
 
     public static void setDefaultImage(String url) {
         defaultImage = url;
+    }
+
+    public boolean checkIsMyWish(Long userId) {
+        if (userId == null) return false;
+
+        for (Wish wish : this.wishes) {
+            if (userId.equals(wish.getUser().getId())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Double calculateReviewScore() {
+        // 리뷰 별점 평균 계산
+        OptionalDouble averageCalc = this.getReviews()
+                .stream().mapToDouble(Review::getScore).average();
+
+        // 존재하는 리뷰가 없으면 null 반환
+        return averageCalc.isPresent() ? averageCalc.getAsDouble() : null;
+    }
+
+    public long getWishCount() {
+        return this.getWishes().size();
     }
 
     private static String resolveImage(String url) {

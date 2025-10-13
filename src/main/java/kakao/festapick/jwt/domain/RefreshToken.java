@@ -1,6 +1,7 @@
 package kakao.festapick.jwt.domain;
 
 import jakarta.persistence.*;
+import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,10 +14,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@EntityListeners(AuditingEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class RefreshToken {
+public class RefreshToken extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,10 +29,6 @@ public class RefreshToken {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private UserEntity user;
-
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
 
     public RefreshToken(UserEntity user, String token) {
         this.user = user;

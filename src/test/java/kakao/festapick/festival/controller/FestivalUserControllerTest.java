@@ -2,7 +2,13 @@ package kakao.festapick.festival.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.domain.ChatParticipant;
+import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.repository.ChatMessageRepository;
+import kakao.festapick.chat.repository.ChatParticipantRepository;
+import kakao.festapick.chat.repository.ChatRoomRepository;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -51,6 +57,12 @@ class FestivalUserControllerTest {
     @Autowired private UserRepository userRepository;
 
     @Autowired private WishRepository wishRepository;
+
+    @Autowired private ChatRoomRepository chatRoomRepository;
+
+    @Autowired private ChatParticipantRepository chatParticipantRepository;
+
+    @Autowired private ChatMessageRepository chatMessageRepository;
 
     @Autowired private ObjectMapper objectMapper;
 
@@ -299,6 +311,48 @@ class FestivalUserControllerTest {
     }
 
     @Test
+    @DisplayName("축제 삭제 성공 (채팅방 있는 경우)")
+    void removeFestivalSuccess2() throws Exception {
+        //given
+        UserEntity user = testUtil.createTestManager("KAKAO_123456");
+        userRepository.save(user);
+        TestSecurityContextHolderInjection.inject(user.getId(), user.getRoleType());
+
+        Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
+        Festival savedFestival = festivalRepository.save(festival);
+
+        ChatRoom chatRoom = testUtil.createTestChatRoom(savedFestival);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        Long chatRooomId = savedChatRoom.getId();
+
+        for (int i=0; i<10; i++) {
+            UserEntity testUser = testUtil.createTestUser("KAKAO_" + i);
+            userRepository.save(testUser);
+            wishRepository.save(new Wish(testUser, savedFestival));
+            chatParticipantRepository.save(new ChatParticipant(testUser, savedChatRoom));
+            chatMessageRepository.save(new ChatMessage("test message", "image url",savedChatRoom, testUser));
+        }
+
+        //when-then
+        mockMvc.perform(delete("/api/festivals/{festivalId}", savedFestival.getId()))
+                .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
+
+        boolean festivalIsEmpty = festivalRepository.findFestivalById(savedFestival.getId()).isEmpty();
+        boolean chatRoomIsEmpty = chatRoomRepository.findByFestivalId(savedFestival.getId()).isEmpty();
+        List<Wish> wishes = wishRepository.findByFestivalId(savedFestival.getId());
+        List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoomId(chatRooomId);
+        List<ChatMessage> messages = chatMessageRepository.findAllByChatRoomId(chatRooomId);
+
+        assertSoftly(softly -> {
+            softly.assertThat(festivalIsEmpty).isTrue();
+            softly.assertThat(chatRoomIsEmpty).isTrue();
+            softly.assertThat(wishes).isEmpty();
+            softly.assertThat(chatParticipants).isEmpty();
+            softly.assertThat(messages).isEmpty();
+        });
+    }
+
+    @Test
     @DisplayName("User가 축제를 삭제하려고 하는 경우 - 삭제 실패")
     void removeFestivalFail() throws Exception {
         //given
@@ -310,6 +364,39 @@ class FestivalUserControllerTest {
         //when-then
         mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId()))
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
+    }
+
+    @Test
+    @DisplayName("축제 title로 축제를 검색")
+    void searchFestival() throws Exception {
+
+        //given
+        String keyword = "정컴인";
+
+        //when
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals").param("keyword", keyword))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andReturn();
+        String response = mvcResult.getResponse().getContentAsString();
+        List<Map<String, String>> festivals = read(response, "$.content");
+
+        //then
+        assertAll(
+                () -> assertThat(festivals.size()).isEqualTo(1),
+                () -> assertThat(festivals.getFirst().get("title")).isEqualTo("정컴인축제")
+        );
+    }
+
+    @Test
+    @DisplayName("축제 title로 축제를 검색 - 공백은 허용하지 않음")
+    void searchFestivalFail() throws Exception {
+
+        //given
+        String keyword = "  ";
+
+        //when - then
+        mockMvc.perform(get("/api/festivals").param("keyword", keyword))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
 
     private FestivalRequestDto FestivalRequest(String contentId, String title, int areaCode, LocalDate startDate, LocalDate endDate){

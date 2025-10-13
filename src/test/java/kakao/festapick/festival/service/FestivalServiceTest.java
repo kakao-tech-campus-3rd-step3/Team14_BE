@@ -1,9 +1,9 @@
 package kakao.festapick.festival.service;
 
+import kakao.festapick.ai.service.RecommendationHistoryLowService;
+import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.*;
-import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -17,7 +17,7 @@ import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
-import kakao.festapick.wish.repository.WishRepository;
+import kakao.festapick.wish.service.WishLowService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +32,6 @@ import org.springframework.data.domain.Pageable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,20 +39,16 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalServiceTest {
 
     @Mock
-    private FestivalRepository festivalRepository;
+    private FestivalLowService festivalLowService;
 
     @Mock
     private UserLowService userLowService;
-
-    @Mock
-    private QFestivalRepository qFestivalRepository;
 
     @Mock
     private S3Service s3Service;
@@ -65,10 +60,16 @@ class FestivalServiceTest {
     private FileService fileService;
 
     @Mock
-    private WishRepository wishRepository;
+    private WishLowService wishLowService;
 
     @Mock
     private ReviewService reviewService;
+
+    @Mock
+    private ChatRoomService chatRoomService;
+
+    @Mock
+    private RecommendationHistoryLowService recommendationHistoryLowService;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -85,8 +86,8 @@ class FestivalServiceTest {
         Festival festival = createCustomFestival(requestDto, user);
         Long festivalId = 1L;
 
-        given(userLowService.findById(any())).willReturn(user);
-        given(festivalRepository.save(any())).willReturn(festival);
+        given(userLowService.getReferenceById(any())).willReturn(user);
+        given(festivalLowService.save(any())).willReturn(festival);
         setFestivalId(festival, festivalId);
 
         //when
@@ -98,11 +99,11 @@ class FestivalServiceTest {
                 () -> assertThat(Id).isEqualTo(festival.getId())
         );
 
-        verify(userLowService).findById(any());
-        verify(festivalRepository).save(any());
+        verify(userLowService).getReferenceById(any());
+        verify(festivalLowService).save(any());
         verify(temporalFileRepository).deleteById(any());
         verify(temporalFileRepository).deleteByIds(any());
-        verifyNoMoreInteractions(userLowService, qFestivalRepository, s3Service, temporalFileRepository);
+        verifyNoMoreInteractions(userLowService, festivalLowService, s3Service, temporalFileRepository);
     }
 
     @Test
@@ -113,7 +114,7 @@ class FestivalServiceTest {
         UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
 
-        given(userLowService.findById(any())).willThrow(new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
+        given(userLowService.getReferenceById(any())).willThrow(new NotFoundEntityException(ExceptionCode.USER_NOT_FOUND));
 
         //when
         NotFoundEntityException e = assertThrows(
@@ -122,8 +123,8 @@ class FestivalServiceTest {
 
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.USER_NOT_FOUND);
 
-        verify(userLowService).findById(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(userLowService).getReferenceById(any());
+        verifyNoMoreInteractions(festivalLowService);
     }
 
 
@@ -138,7 +139,7 @@ class FestivalServiceTest {
                         new FileUploadRequest(1L,"imageUrl"), null, testUtil.toLocalDate("20250827"), testUtil.toLocalDate("20250825"),
                         "homepageUrl", "축제에 대한 개요");
 
-        given(userLowService.findById(any()))
+        given(userLowService.getReferenceById(any()))
                 .willReturn(user);
 
         // when & then
@@ -147,9 +148,9 @@ class FestivalServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(ExceptionCode.FESTIVAL_BAD_DATE.getErrorMessage());
 
-        verify(userLowService).findById(any());
+        verify(userLowService).getReferenceById(any());
         verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(festivalRepository);
+        verifyNoMoreInteractions(festivalLowService);
     }
 
     @Test
@@ -158,10 +159,11 @@ class FestivalServiceTest {
 
         //given
         Festival festival = createFestival();
-        given(festivalRepository.findFestivalById(any())).willReturn(Optional.of(festival));
+
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
-        FestivalDetailResponseDto response = festivalService.findOneById(festival.getId());
+        FestivalDetailResponseDto response = festivalService.findOneById(festival.getId(), null);
 
         //then
         assertAll(
@@ -171,26 +173,8 @@ class FestivalServiceTest {
                 () -> assertThat(response.imageInfos()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
         );
 
-        verify(festivalRepository).findFestivalById(any());
-        verifyNoMoreInteractions(festivalRepository);
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 축제를 검색한 경우")
-    void findOneByIdFail() {
-
-        //given
-        Festival festival = createFestival();
-        given(festivalRepository.findFestivalById(any())).willReturn(Optional.empty());
-
-        //when - then
-        NotFoundEntityException e = assertThrows(
-                NotFoundEntityException.class, () -> festivalService.findOneById(festival.getId())
-        );
-        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_NOT_FOUND);
-
-        verify(festivalRepository).findFestivalById(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(festivalLowService).findByIdWithReviews(any());
+        verifyNoMoreInteractions(festivalLowService,wishLowService);
     }
 
     @Test
@@ -203,7 +187,7 @@ class FestivalServiceTest {
         List<Festival> festivals = getFestivals();
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(festivalRepository.findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponse> festivalList = festivalService.findApprovedAreaAndDate(areaCode, pageable);
@@ -215,8 +199,8 @@ class FestivalServiceTest {
                 () -> assertThat(festivalList.getContent().getFirst()).isInstanceOf(FestivalListResponse.class)
         );
 
-        verify(festivalRepository).findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any());
+        verifyNoMoreInteractions(festivalLowService, wishLowService);
     }
 
     @Test
@@ -236,7 +220,7 @@ class FestivalServiceTest {
         Pageable pageable = PageRequest.of(0,2);
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(festivalRepository.findFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponse> result = festivalService.findMyFestivals(user.getId(), pageable);
@@ -245,8 +229,8 @@ class FestivalServiceTest {
         assertThat(result.getContent().size()).isEqualTo(2);
         assertThat(result.getTotalElements()).isEqualTo(10);
 
-        verify(festivalRepository).findFestivalByManagerId(any(), any());
-        verifyNoMoreInteractions(userLowService, festivalRepository);
+        verify(festivalLowService).findFestivalByManagerId(any(), any());
+        verifyNoMoreInteractions(userLowService, festivalLowService, wishLowService);
     }
 
     @Test
@@ -258,7 +242,7 @@ class FestivalServiceTest {
         List<Festival> festivals = getFestivals();
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(qFestivalRepository.findByStateAndTitleLike(any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findByStateAndTitleLike(any(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponseForAdmin> result = festivalService.findAllWithPage(cond, pageable);
@@ -269,8 +253,8 @@ class FestivalServiceTest {
                 () -> assertThat(result.getContent().size()).isEqualTo(festivals.size()),
                 () -> assertThat(result.getContent().getFirst()).isInstanceOf(FestivalListResponseForAdmin.class)
         );
-        verify(qFestivalRepository).findByStateAndTitleLike(any(), any());
-        verifyNoMoreInteractions(qFestivalRepository);
+        verify(festivalLowService).findByStateAndTitleLike(any(), any());
+        verifyNoMoreInteractions(festivalLowService);
 
     }
 
@@ -283,7 +267,7 @@ class FestivalServiceTest {
         Festival festival = createCustomFestival(requestDto, user);
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
-        given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         FestivalDetailResponseDto updated = festivalService.updateFestival(user.getId(), any(), updateInfo);
@@ -293,11 +277,11 @@ class FestivalServiceTest {
                 () -> assertThat(updated.title()).isEqualTo(updateInfo.title()),
                 () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
-        verify(festivalRepository).findFestivalByIdWithManager(any());
+        verify(festivalLowService).findByIdWithReviews(any());
         verify(temporalFileRepository).deleteByIds(anyList());
         verify(s3Service).deleteFiles(any());
 
-        verifyNoMoreInteractions(festivalRepository, temporalFileRepository,s3Service);
+        verifyNoMoreInteractions(festivalLowService, temporalFileRepository,s3Service, wishLowService);
     }
 
     @Test
@@ -309,7 +293,7 @@ class FestivalServiceTest {
 
         FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
 
-        given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         ForbiddenException e = assertThrows(
@@ -318,29 +302,8 @@ class FestivalServiceTest {
 
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
-        verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository, temporalFileRepository, s3Service);
-    }
-
-    @Test
-    @DisplayName("등록되어 있지 않은 축제의 상태를 변경하려는 경우")
-    void updateStateFestivalNotFound() {
-
-        //given
-        UserEntity user = testUtil.createTestUserWithId();
-        FestivalUpdateRequestDto updateInfo = createUpdateRequestDto();
-
-        given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.empty());
-
-        //when
-        NotFoundEntityException e = assertThrows(
-                NotFoundEntityException.class, () -> festivalService.updateFestival(user.getId(), any(), updateInfo)
-        );
-
-        //then
-        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_NOT_FOUND);
-        verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository);
+        verify(festivalLowService).findByIdWithReviews(any());
+        verifyNoMoreInteractions(festivalLowService, temporalFileRepository, s3Service);
     }
 
     @Test
@@ -352,18 +315,19 @@ class FestivalServiceTest {
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
 
-        given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         festivalService.deleteFestivalForManager(user.getId(), any());
 
         //then
-        verify(festivalRepository).findFestivalByIdWithManager(any());
-        verify(festivalRepository).deleteById(any()); //행위 검증
+        verify(festivalLowService).findByIdWithReviews(any());
+        verify(festivalLowService).deleteById(any()); //행위 검증
+        verify(recommendationHistoryLowService).deleteByFestivalId(festival.getId());
         verify(fileService).deleteByDomainId(any(), any());
         verify(reviewService).deleteReviewByFestivalId(festival.getId());
-        verify(wishRepository).deleteByFestivalId(festival.getId());
-        verifyNoMoreInteractions(festivalRepository,fileService,reviewService,wishRepository);
+        verify(wishLowService).deleteByFestivalId(festival.getId());
+        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService);
     }
 
     @Test
@@ -374,7 +338,7 @@ class FestivalServiceTest {
         UserEntity user = testUtil.createTestUserWithId();
         FestivalCustomRequestDto requestDto = createCustomRequestDto();
         Festival festival = new Festival(requestDto, user);
-        given(festivalRepository.findFestivalByIdWithManager(any())).willReturn(Optional.of(festival));
+        given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
 
         //when
         ForbiddenException e = assertThrows(
@@ -383,8 +347,8 @@ class FestivalServiceTest {
 
         //then
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.FESTIVAL_ACCESS_FORBIDDEN);
-        verify(festivalRepository).findFestivalByIdWithManager(any());
-        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService);
+        verify(festivalLowService).findByIdWithReviews(any());
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService,recommendationHistoryLowService);
     }
 
     @Test
@@ -395,18 +359,20 @@ class FestivalServiceTest {
         Festival festival = createFestival();
         setFestivalId(festival, festivalId);
 
-        given(festivalRepository.findFestivalById(any())).willReturn(Optional.of(festival));
+        given(festivalLowService.findFestivalById(any())).willReturn(festival);
 
         //when
         festivalService.deleteFestivalForAdmin(festivalId);
 
 
         //then: 행위만을 검증
-        verify(festivalRepository).deleteById(festivalId);
-        verify(festivalRepository).findFestivalById(festivalId);
-        verify(wishRepository).deleteByFestivalId(festivalId);
+        verify(festivalLowService).deleteById(festivalId);
+        verify(festivalLowService).findFestivalById(festivalId);
+        verify(recommendationHistoryLowService).deleteByFestivalId(festivalId);
+        verify(wishLowService).deleteByFestivalId(festivalId);
         verify(reviewService).deleteReviewByFestivalId(festivalId);
-        verifyNoMoreInteractions(festivalRepository, wishRepository, reviewService);
+        verify(chatRoomService).deleteChatRoomByfestivalIdIfExist(festivalId);
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {

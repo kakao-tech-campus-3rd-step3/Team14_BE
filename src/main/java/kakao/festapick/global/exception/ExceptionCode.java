@@ -11,12 +11,16 @@ public enum ExceptionCode {
     COOKIE_NOT_EXIST("쿠키가 존재하지 않습니다."),
     REFRESH_TOKEN_NOT_EXIST("리프레시 토큰이 존재하지 않습니다."),
     INVALID_REFRESH_TOKEN("리프레시 토큰이 유효하지 않습니다."),
+    INVALID_ACCESS_TOKEN("액세스 토큰이 유효하지 않습니다."),
+    ACCESS_TOKEN_NOT_EXIST("액세스 토큰이 존재하지 않습니다."),
+    NO_LOGIN("유효한 로그인이 아닙니다."),
 
     //NotFound
     FESTIVAL_NOT_FOUND("존재하지 않는 축제입니다."),
     USER_NOT_FOUND("존재하지 않는 회원입니다."),
     WISH_NOT_FOUND("존재하지 않는 좋아요입니다."),
     REVIEW_NOT_FOUND("존재하지 않는 리뷰입니다."),
+    CHATROOM_NOT_FOUND("존재하지 않는 채팅방입니다."),
 
     //CONFLICT
     WISH_DUPLICATE("이미 좋아요한 축제입니다."),
@@ -30,7 +34,12 @@ public enum ExceptionCode {
     FESTIVAL_BAD_IMAGE("이미 등록되어 있는 이미지 입니다."),
 
     //INTERNAL_SERVER_ERROR
-    FAST_API_CONNECTION_ERROR("AI 추천 기능 호출 실패");
+    FAST_API_CONNECTION_ERROR("AI 추천 기능 호출 실패"),
+
+    //WEB_SOCKET_EXCEPTION
+    MISSING_DESTINATION("destination이 없습니다."),
+    MISSING_COMMAND("command가 없습니다."),
+    INVALID_DESTINATION("유효하지 않은 destination입니다.");
 
     private final String errorMessage;
 

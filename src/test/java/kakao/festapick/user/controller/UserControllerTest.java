@@ -2,7 +2,13 @@ package kakao.festapick.user.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.domain.ChatParticipant;
+import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.repository.ChatMessageRepository;
+import kakao.festapick.chat.repository.ChatParticipantRepository;
+import kakao.festapick.chat.repository.ChatRoomRepository;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.TemporalFile;
@@ -19,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +63,15 @@ class UserControllerTest {
     @Autowired
     private TestUtil testUtil;
 
+    @Autowired
+    private ChatRoomRepository chatRoomRepository;
+
+    @Autowired
+    private ChatParticipantRepository chatParticipantRepository;
+
+    @Autowired
+    private ChatMessageRepository chatMessageRepository;
+
     @Test
     @DisplayName("회원 탈퇴 성공")
     void withDrawSuccess() throws Exception {
@@ -83,6 +99,43 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("회원 탈퇴 시 작성한 모든 메세지 삭제 성공")
+    void withDrawSuccess2() throws Exception {
+
+        // given
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+
+        Festival savedFestival1 =  festivalRepository.save(testUtil.createTourApiTestFestival());
+        ChatRoom savedChatRoom1 = chatRoomRepository.save(testUtil.createTestChatRoom(savedFestival1));
+        chatParticipantRepository.save(new ChatParticipant(userEntity, savedChatRoom1));
+
+        Festival savedFestival2 =  festivalRepository.save(testUtil.createTourApiTestFestival());
+        ChatRoom savedChatRoom2 = chatRoomRepository.save(testUtil.createTestChatRoom(savedFestival2));
+        chatParticipantRepository.save(new ChatParticipant(userEntity, savedChatRoom2));
+
+        for (int i=0; i<5; i++) {
+            chatMessageRepository.save(new ChatMessage("test message " + i, "image url", savedChatRoom1, userEntity));
+            chatMessageRepository.save(new ChatMessage("test message " + i, "image url", savedChatRoom2, userEntity));
+        }
+
+        // when & then
+        mockMvc.perform(delete("/api/users"))
+                .andExpect(status().isNoContent());
+
+        Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
+        List<ChatMessage> messages1 = chatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), Pageable.unpaged()).getContent();
+        List<ChatMessage> messages2 = chatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), Pageable.unpaged()).getContent();
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(findUser.isPresent()).isEqualTo(false);
+            softly.assertThat(messages1.size()).isEqualTo(0);
+            softly.assertThat(messages2.size()).isEqualTo(0);
+        });
+
+    }
+
+    @Test
     @DisplayName("본인 정보 조회 성공")
     void getMyInfoSuccess() throws Exception {
 
@@ -100,6 +153,7 @@ class UserControllerTest {
         UserResponseDto content = result.content();
 
         assertSoftly(softly -> {
+            softly.assertThat(content.userId()).isEqualTo(userEntity.getId());
             softly.assertThat(content.email()).isEqualTo(userEntity.getEmail());
             softly.assertThat(content.profileImageUrl()).isEqualTo(userEntity.getProfileImageUrl());
             softly.assertThat(content.username()).isEqualTo(userEntity.getUsername());

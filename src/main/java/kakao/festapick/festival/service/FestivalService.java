@@ -1,10 +1,10 @@
 package kakao.festapick.festival.service;
 
+import kakao.festapick.ai.service.RecommendationHistoryLowService;
+import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.*;
-import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.festival.repository.QFestivalRepository;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -14,11 +14,12 @@ import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
-import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
-import kakao.festapick.wish.repository.WishRepository;
+import kakao.festapick.wish.domain.Wish;
+import kakao.festapick.wish.service.WishLowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,22 +37,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FestivalService {
 
-    private final FestivalRepository festivalRepository;
-    private final WishRepository wishRepository;
+    private final FestivalLowService festivalLowService;
+    private final WishLowService wishLowService;
     private final ReviewService reviewService;
     private final UserLowService userLowService;
-    private final QFestivalRepository qFestivalRepository;
+    private final RecommendationHistoryLowService recommendationHistoryLowService;
     private final S3Service s3Service;
     private final TemporalFileRepository temporalFileRepository;
     private final FileService fileService;
+    private final ChatRoomService chatRoomService;
 
     //CREATE
     @Transactional
     public Long addCustomizedFestival(FestivalCustomRequestDto requestDto, Long userId) {
-        UserEntity user = userLowService.findById(userId);
+        UserEntity user = userLowService.getReferenceById(userId);
 
         Festival festival = new Festival(requestDto, user);
-        Festival savedFestival = festivalRepository.save(festival);
+        Festival savedFestival = festivalLowService.save(festival);
         
         temporalFileRepository.deleteById(requestDto.posterInfo().id());
 
@@ -67,34 +69,59 @@ public class FestivalService {
     }
 
     //Id를 통한 축제 조회
-    public FestivalDetailResponseDto findOneById(Long festivalId) {
-        Festival festival = festivalRepository.findFestivalById(festivalId)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+    public FestivalDetailResponseDto findOneById(Long festivalId, Long userId) {
+        Festival festival = festivalLowService.findByIdWithReviews(festivalId);
         List<String> images = fileService.findByDomainIdAndDomainType(festivalId, DomainType.FESTIVAL)
                 .stream()
                 .map(fileEntity -> fileEntity.getUrl())
                 .toList();
-        return new FestivalDetailResponseDto(festival, images);
+
+        Double averageScore = festival.calculateReviewScore();
+
+        // 좋아요 개수 반환
+        long wishCount = festival.getWishCount();
+        // userId가 null 이라면 인증되지 않은 사용자이기 때문에 항상 isMyWish가 항상 false
+        boolean isMyWish = festival.checkIsMyWish(userId);
+
+        return new FestivalDetailResponseDto(festival, images, averageScore, wishCount, isMyWish);
     }
+
 
     //내가 등록한 축제를 조회
     public Page<FestivalListResponse> findMyFestivals(Long userId, Pageable pageable){
 
-        return festivalRepository.findFestivalByManagerId(userId, pageable)
-                .map(FestivalListResponse::new);
+        return festivalLowService.findFestivalByManagerId(userId, pageable)
+                .map(festival -> {
+                    Double averageScore = festival.calculateReviewScore();
+                    long wishCount = festival.getWishCount();
+                    return new FestivalListResponse(festival, averageScore, wishCount);
+                });
     }
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
     public Page<FestivalListResponse> findApprovedAreaAndDate(int areaCode, Pageable pageable) {
-        Page<Festival> festivalList = festivalRepository.findFestivalByAreaCodeAndDate(areaCode,
+        Page<Festival> festivalList = festivalLowService.findFestivalByAreaCodeAndDate(areaCode,
                 LocalDate.now(), FestivalState.APPROVED, pageable);
-        return festivalList.map(FestivalListResponse::new);
+        return festivalList.map(festival -> {
+            Double averageScore = festival.calculateReviewScore();
+            long wishCount = festival.getWishCount();
+            return new FestivalListResponse(festival, averageScore, wishCount);
+        });
+    }
+
+    public Page<FestivalListResponse> findFestivalByTitle(String keyWord, Pageable pageable){
+        Page<Festival> festivals = festivalLowService.findFestivalByTitle(keyWord, FestivalState.APPROVED, pageable);
+        return festivals.map(festival -> {
+            Double averageScore = festival.calculateReviewScore();
+            long wishCount = festival.getWishCount();
+            return new FestivalListResponse(festival, averageScore, wishCount);
+        });
     }
 
     //모든 축제 검색 기능(관리자)
     public Page<FestivalListResponseForAdmin> findAllWithPage(FestivalSearchCondForAdmin cond,
             Pageable pageable) {
-        return qFestivalRepository.findByStateAndTitleLike(cond, pageable)
+        return festivalLowService.findByStateAndTitleLike(cond, pageable)
                 .map(FestivalListResponseForAdmin::new);
     }
 
@@ -157,17 +184,24 @@ public class FestivalService {
                 .toList();
 
         s3Service.deleteFiles(deleteImgUrl.stream().toList()); // s3에서 삭제
-        return new FestivalDetailResponseDto(festival, festivalImgs);
+
+        Double averageScore = festival.calculateReviewScore();
+        long wishCount = festival.getWishCount();
+
+        boolean isMyWish = festival.checkIsMyWish(userId);
+
+        return new FestivalDetailResponseDto(festival, festivalImgs, averageScore, wishCount, isMyWish);
     }
 
     //축제 상태 변경(admin이 사용자가 등록한 축제를 허용, 관리자)
     @Transactional
     public FestivalListResponse updateState(Long id, FestivalStateDto stateDto) {
-        Festival festival = festivalRepository.findFestivalById(id).orElseThrow(
-                () -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND)
-        );
+        Festival festival = festivalLowService.findByIdWithReviews(id);
         festival.updateState(FestivalState.valueOf(stateDto.state()));
-        return new FestivalListResponse(festival);
+
+        Double averageScore = festival.calculateReviewScore();
+        long wishCount = festival.getWishCount();
+        return new FestivalListResponse(festival, averageScore, wishCount);
     }
 
     //DELETE
@@ -177,7 +211,7 @@ public class FestivalService {
 
         deleteRelatedEntity(festival.getId()); // 연관된 엔티티 벌크 쿼리로 모두 삭제
 
-        festivalRepository.deleteById(festival.getId());
+        festivalLowService.deleteById(festival.getId());
 
         //축제 삭제 시 관련 이미지를 모두 삭제
         fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
@@ -185,30 +219,28 @@ public class FestivalService {
 
     @Transactional
     public void deleteFestivalForAdmin(Long id) {
-        Festival festival = festivalRepository.findFestivalById(id)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+        Festival festival = festivalLowService.findFestivalById(id);
 
         deleteRelatedEntity(festival.getId()); // 연관된 엔티티 벌크 쿼리로 모두 삭제
 
-        festivalRepository.deleteById(festival.getId());
+        festivalLowService.deleteById(festival.getId());
 
         fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
     }
 
     @Transactional
     public void deleteFestivalByManagerId(Long id) {
-        List<Long> festivalIds = festivalRepository.findFestivalByManagerId(id)
+        List<Long> festivalIds = festivalLowService.findFestivalByManagerId(id)
                 .stream().map(Festival::getId).toList();
 
-        festivalRepository.deleteByManagerId(id);
+        festivalLowService.deleteByManagerId(id);
 
         fileService.deleteByDomainIds(festivalIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
     //수정 권한을 확인하기 위한 메서드
     private Festival checkMyFestival(Long userId, Long id) {
-        Festival festival = festivalRepository.findFestivalByIdWithManager(id)
-                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+        Festival festival = festivalLowService.findByIdWithReviews(id);
         UserEntity manager = festival.getManager();
         if (manager != null && userId.equals(manager.getId())) {
             return festival;
@@ -218,8 +250,12 @@ public class FestivalService {
 
     //모든 승인된 축제 검색 기능 - for view
     public List<FestivalListResponse> findApproved() {
-        List<Festival> festivalList = festivalRepository.findAllByState(FestivalState.APPROVED);
-        return festivalList.stream().map(FestivalListResponse::new).toList();
+        List<Festival> festivalList = festivalLowService.findAllByState(FestivalState.APPROVED);
+        return festivalList.stream().map(festival -> {
+            Double averageScore = festival.calculateReviewScore();
+            long wishCount = festival.getWishCount();
+            return new FestivalListResponse(festival, averageScore, wishCount);
+        }).toList();
     }
 
     private void saveFiles(List<FileUploadRequest> images, Long id) {
@@ -238,8 +274,10 @@ public class FestivalService {
     }
 
     private void deleteRelatedEntity(Long festivalId) {
-        wishRepository.deleteByFestivalId(festivalId);
+        recommendationHistoryLowService.deleteByFestivalId(festivalId);
+        wishLowService.deleteByFestivalId(festivalId);
         reviewService.deleteReviewByFestivalId(festivalId);
+        chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
     }
 
 }

@@ -2,7 +2,7 @@ package kakao.festapick.review.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kakao.festapick.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -30,7 +30,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -142,9 +144,27 @@ public class ReviewControllerTest {
     void getReviewsSuccess2() throws Exception {
 
         Festival festival = saveFestival();
+        UserEntity testUser = userRepository.save(testUtil.createTestUser());
+        Review review = reviewRepository.save(testUtil.createReview(testUser, festival));
 
-        mockMvc.perform(get(String.format("/api/festivals/%s/reviews", festival.getId())))
-                .andExpect(status().isOk());
+        String response = mockMvc.perform(get(String.format("/api/festivals/%s/reviews", festival.getId())))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        Map<String, Object> mapResponse = objectMapper.readValue(response, new TypeReference<Map<String, Object>>() {
+        });
+
+        List<ReviewResponseDto> content = objectMapper.convertValue(mapResponse.get("content"), new TypeReference<List<ReviewResponseDto>>() {});
+
+        ReviewResponseDto reviewResponseDto = content.get(0);
+
+        assertSoftly(softly -> {
+            softly.assertThat(reviewResponseDto.reviewId()).isEqualTo(review.getId());
+            softly.assertThat(reviewResponseDto.userId()).isEqualTo(testUser.getId());
+            softly.assertThat(reviewResponseDto.content()).isEqualTo(review.getContent());
+            softly.assertThat(reviewResponseDto.score()).isEqualTo(review.getScore());
+            softly.assertThat(reviewResponseDto.festivalTitle()).isEqualTo(review.getFestival().getTitle());
+        });
+
     }
 
     @Test
