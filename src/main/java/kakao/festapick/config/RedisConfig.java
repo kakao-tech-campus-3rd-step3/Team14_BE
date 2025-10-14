@@ -1,7 +1,7 @@
 package kakao.festapick.config;
 
 import kakao.festapick.chat.dto.ChatPayload;
-import kakao.festapick.redis.service.RedisSubscribeService;
+import kakao.festapick.redis.service.RedisPubSubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -44,11 +44,11 @@ public class RedisConfig {
 
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer(
-            RedisSubscribeService redisSubscribeService
+            RedisPubSubService redisPubSubService
     ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(redisConnectionFactory());
-        container.addMessageListener(redisSubscribeService, new PatternTopic("chat.*"));
+        container.addMessageListener(redisPubSubService, new PatternTopic("chat.*"));
         return container;
     }
 

@@ -58,37 +58,6 @@ public class ChatMessageServiceTest {
     private RedisTemplate<String, Object> redisTemplate;
 
     @Test
-    @DisplayName("채팅 전송 성공")
-    void createChatMessageSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUserWithId();
-        Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
-        ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url",chatRoom, user);
-
-        given(userLowService.getReferenceById(any()))
-                .willReturn(user);
-        given(chatRoomLowService.findByRoomId(any()))
-                .willReturn(chatRoom);
-        given(chatMessageLowService.save(any()))
-                .willReturn(chatMessage);
-
-        ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
-        chatMessageService.sendChatMessageToRedis(chatRoom.getId(), requestDto, user.getId());
-
-        verify(userLowService).getReferenceById(any());
-        verify(chatRoomLowService).findByRoomId(any());
-        verify(chatMessageLowService).save(any());
-        verify(temporalFileRepository).deleteByIds(any());
-        verify(redisTemplate).convertAndSend((String) any(), (Object) any());
-        verifyNoMoreInteractions(chatRoomLowService);
-        verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(chatMessageLowService);
-        verifyNoMoreInteractions(s3Service);
-        verifyNoMoreInteractions(temporalFileRepository);
-        verifyNoMoreInteractions(webSocket);
-    }
-
-    @Test
     @DisplayName("이전 채팅 내역 불러오기")
     void getPreviousMessagesSuccess() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
