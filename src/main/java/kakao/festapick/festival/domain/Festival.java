@@ -147,6 +147,10 @@ public class Festival extends BaseTimeEntity {
         this.state = festivalState;
     }
 
+    public void updateManager(UserEntity user){
+        this.manager = user;
+    }
+
     public static void setDefaultImage(String url) {
         defaultImage = url;
     }
