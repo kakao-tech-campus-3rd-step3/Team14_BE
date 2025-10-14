@@ -1,14 +1,27 @@
 package kakao.festapick.festival.controller;
 
+import static com.jayway.jsonpath.JsonPath.read;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.chat.repository.ChatRoomRepository;
-import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -16,6 +29,7 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestSecurityContextHolderInjection;

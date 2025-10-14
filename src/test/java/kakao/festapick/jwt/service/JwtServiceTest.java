@@ -1,8 +1,19 @@
 package kakao.festapick.jwt.service;
 
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.mock;
+import static org.mockito.BDDMockito.times;
+import static org.mockito.BDDMockito.verify;
+import static org.mockito.BDDMockito.verifyNoMoreInteractions;
+
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
+import java.util.Optional;
+import java.util.UUID;
 import kakao.festapick.global.component.CookieComponent;
 import kakao.festapick.global.component.HmacUtil;
 import kakao.festapick.global.exception.AuthenticationException;
@@ -22,13 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtServiceTest {
