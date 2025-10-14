@@ -1,0 +1,68 @@
+package kakao.festapick.permission.fmpermission.service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.permission.fmpermission.domain.FMPermission;
+import kakao.festapick.permission.fmpermission.repository.FMPermissionRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class FMPermissionLowService {
+
+    private final FMPermissionRepository fmPermissionRepository;
+
+    public FMPermission saveFMPermission(FMPermission fmPermission){
+        return fmPermissionRepository.save(fmPermission);
+    }
+
+    public boolean existsByUserId(Long userId){
+        return fmPermissionRepository.existsFMPermissionByUserId(userId);
+    }
+
+    public FMPermission findFMPermissionById(Long id){
+        return fmPermissionRepository.findFMPermissionById(id)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND));
+    }
+
+    public FMPermission findFMPermissionByIdWithUser(Long id){
+        return fmPermissionRepository.findFMPermissionByIdWithUser(id)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND));
+    }
+
+    public FMPermission findFMPermissionByUserId(Long userId){
+        return fmPermissionRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FM_PERMISSION_NOT_FOUND));
+    }
+
+    public Optional<FMPermission> getOptionalFMPermissionByUserId(Long userId){
+        return fmPermissionRepository.findByUserId(userId);
+    }
+
+    public Page<FMPermission> findAll(Pageable pageable){
+        return fmPermissionRepository.findAllFMPermissionsWithUser(pageable);
+    }
+
+    public void removeFMPermissionByUserId(Long id){
+        fmPermissionRepository.deleteFMPermissionByUserId(id);
+    }
+
+    public Map<Long, String> findDepartmentsByUserIds(List<Long> userIds){
+        List<FMPermission> fmPermissionList = fmPermissionRepository.findByUserIds(userIds);
+        return fmPermissionList.stream()
+                .collect(
+                        Collectors.toMap(
+                                fmPermission -> fmPermission.getUser().getId(),
+                                fmPermission -> fmPermission.getDepartment()
+                        )
+                );
+    }
+
+}

@@ -200,8 +200,6 @@ public class ReviewService {
         fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
-
-    //review의 id만 넘기는건 어떤지?
     private void saveFiles(List<FileUploadRequest> imageInfos, FileUploadRequest videoInfo, Long id) {
         List<FileEntity> files = new ArrayList<>();
         List<Long> temporalFileIds = new ArrayList<>();
