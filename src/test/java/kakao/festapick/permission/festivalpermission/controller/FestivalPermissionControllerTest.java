@@ -3,6 +3,7 @@ package kakao.festapick.permission.festivalpermission.controller;
 import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -35,6 +36,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +81,7 @@ class FestivalPermissionControllerTest {
 
         //when - then
         mockMvc.perform(post("/api/festival-permissions/festival/" + festival.getId())
+                .with(securityContext(SecurityContextHolder.getContext()))
                 .content(requestString)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(HttpStatus.CREATED.value()));
@@ -98,7 +101,9 @@ class FestivalPermissionControllerTest {
         festivalPermissionRepository.save(new FestivalPermission(user, festival2));
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/api/festival-permissions/my"))
+        MvcResult mvcResult = mockMvc.perform(get("/api/festival-permissions/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
@@ -122,7 +127,9 @@ class FestivalPermissionControllerTest {
         Long id = createFestivalPermission(user);
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/api/festival-permissions/" + id))
+        MvcResult mvcResult = mockMvc.perform(get("/api/festival-permissions/" + id)
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
@@ -149,6 +156,7 @@ class FestivalPermissionControllerTest {
 
         //when
         MvcResult mvcResult = mockMvc.perform(patch("/api/festival-permissions/" + id)
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -175,7 +183,9 @@ class FestivalPermissionControllerTest {
         Long id = createFestivalPermission(user);
 
         //when - then
-        mockMvc.perform(delete("/api/festival-permissions/" + id))
+        mockMvc.perform(delete("/api/festival-permissions/" + id)
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
