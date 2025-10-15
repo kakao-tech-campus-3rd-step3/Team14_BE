@@ -85,30 +85,6 @@ class FestivalRepositoryTest {
         );
     }
 
-    @Test
-    void findFestivalByAreaCodeAndDate() throws Exception {
-
-        //given
-        int areaCode = 1;
-
-        Festival festival1 = createFestival("FESTAPICK_111" , "카테캠축제", areaCode, testUtil.toLocalDate("20250815"), testUtil.toLocalDate("20250820"));
-        festivalRepository.save(festival1);
-
-        Festival festival2 = createFestival("FESTAPICK_222" , "스파르타축제", areaCode, testUtil.toLocalDate("20250810"), testUtil.toLocalDate("20250814"));
-        festivalRepository.save(festival2);
-
-        //when
-        Pageable pageable = PageRequest.of(0,10);
-        Page<Festival> festivals = festivalRepository.findFestivalByAreaCodeAndDate(areaCode, testUtil.toLocalDate("20250816"), FestivalState.APPROVED, pageable);
-
-        //then
-        assertAll(
-                () -> assertThat(festivals.getTotalElements()).isGreaterThan(1),
-                () -> assertThat(festivals).contains(festival1),
-                () -> assertThat(festivals).doesNotContain(festival2),
-                () -> assertThat(festivals.getContent().getFirst().getAreaCode()).isEqualTo(areaCode)
-        );
-    }
 
     @Test
     void findFestivalById() throws Exception {

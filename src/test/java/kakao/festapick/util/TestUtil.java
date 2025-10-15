@@ -56,6 +56,10 @@ public class TestUtil {
         return new Festival("카테캠축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, null, null);
     }
 
+    public Festival createTestFestivalByAreaCode(int areaCode) {
+        return new Festival("축제", areaCode,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, null, null);
+    }
+
     public ChatRoom createTestChatRoom(Festival festival) {
         return new ChatRoom("test room", festival);
     }
