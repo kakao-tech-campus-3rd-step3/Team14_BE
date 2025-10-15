@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -19,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
@@ -85,7 +87,7 @@ public class ChatMessageRepositoryTest {
 
         chatMessageRepository.save(new ChatMessage("test message", "image url", chatRoom, userEntity));
 
-        Page<ChatMessage> find = chatMessageRepository.findByChatRoomId(chatRoom.getId(), PageRequest.of(0, 1));
+        Slice<ChatMessage> find = chatMessageRepository.findByChatRoomId(chatRoom.getId(), PageRequest.of(0, 1));
         ChatMessage actual = find.getContent().get(0);
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),

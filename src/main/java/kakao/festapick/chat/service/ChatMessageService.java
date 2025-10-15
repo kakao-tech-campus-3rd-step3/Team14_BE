@@ -1,18 +1,22 @@
 package kakao.festapick.chat.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
+import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,11 +54,26 @@ public class ChatMessageService {
         webSocket.convertAndSend("/sub/" + chatRoom.getId() + "/messages", payload);
     }
 
-    // 채팅방에서 최근 메시지 조회 (Pageable)
-    public Page<ChatPayload> getPreviousMessages(Long chatRoomId, Pageable pageable) {
-        Page<ChatMessage> previousMessages = chatMessageLowService.findByChatRoomId(chatRoomId,
-                pageable);
-        return previousMessages.map(ChatPayload::new);
+    // 채팅방에서 최근 메시지 조회
+    public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long beforeId) {
+        Slice<ChatMessage> prevMessageSlice;
+        Pageable pageable = PageRequest.of(0, size);
+        // beforeId가 없으면 채팅방 최신의 메시지를 size 만큼 가져온다
+        if (beforeId == null) {
+            prevMessageSlice = chatMessageLowService.findByChatRoomId(chatRoomId, pageable);
+        }
+        // beforeId가 있으면 beforeId 보다 id 값이 작은 메시지들 중 id 값이 큰 메시지 부터 size 만큼 가져온다
+        else {
+            prevMessageSlice = chatMessageLowService.findByChatRoomIdAndBeforeId(chatRoomId, beforeId, pageable);
+        }
+        List<ChatMessage> prevMessageList = new ArrayList<>(prevMessageSlice.getContent());
+        // 프론트에 전달하기 위해 역전, 프론트에는 id 기준 오름 차순으로 전달
+        Collections.reverse(prevMessageList);
+        return new PreviousMessagesResponseDto(prevMessageList
+                .stream()
+                .map(ChatPayload::new)
+                .toList()
+        );
     }
 
     // 유저가 작성한 메시지 전체 삭제 기능

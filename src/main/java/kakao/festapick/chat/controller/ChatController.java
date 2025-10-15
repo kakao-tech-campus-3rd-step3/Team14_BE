@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
+import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.chat.service.ChatMessageService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.global.dto.ApiResponseDto;
@@ -48,13 +49,12 @@ public class ChatController {
     )
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/chatRooms/{chatRoomId}/messages")
-    public ResponseEntity<Page<ChatPayload>> getPreviousMessages(
+    public ResponseEntity<PreviousMessagesResponseDto> getPreviousMessages(
             @PathVariable Long chatRoomId,
             @RequestParam(defaultValue = "30", required = false) int size,
-            @RequestParam(defaultValue = "0", required = false) int page
+            @RequestParam(required = false) Long beforeId
     ) {
-        Page<ChatPayload> payloads = chatMessageService.getPreviousMessages(chatRoomId,
-                PageRequest.of(page, size));
+        PreviousMessagesResponseDto payloads = chatMessageService.getPreviousMessages(chatRoomId, size, beforeId);
 
         return new ResponseEntity<>(payloads, HttpStatus.OK);
     }
