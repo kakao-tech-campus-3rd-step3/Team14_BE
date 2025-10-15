@@ -1,5 +1,6 @@
 package kakao.festapick.chat.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,23 +56,14 @@ public class ChatMessageService {
     }
 
     // 채팅방에서 최근 메시지 조회
-    public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long cursor) {
-        Slice<ChatMessage> prevMessageSlice;
+    public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long cursorId, LocalDateTime cursorTime) {
         Pageable pageable = PageRequest.of(0, size);
-        // cursor 없으면 채팅방 최신의 메시지를 size 만큼 가져온다
-        if (cursor == null) {
-            prevMessageSlice = chatMessageLowService.findByChatRoomId(chatRoomId, pageable);
-        }
-        // cursor 있으면 cursor 보다 id 값이 작은 메시지들 중 id 값이 큰 메시지 부터 size 만큼 가져온다
-        else {
-            prevMessageSlice = chatMessageLowService.findByChatRoomIdAndCursor(chatRoomId, cursor, pageable);
-        }
+        Slice<ChatMessage> prevMessageSlice = chatMessageLowService.findByChatRoomId(chatRoomId, cursorId, cursorTime, pageable);
+        Boolean hasMoreList = prevMessageSlice.hasNext();
         List<ChatMessage> prevMessageList = new ArrayList<>(prevMessageSlice.getContent());
         // 프론트에 전달하기 위해 역전, 프론트에는 id 기준 오름 차순으로 전달
         Collections.reverse(prevMessageList);
-        List<ChatPayload> prevMessagePayloads = prevMessageList.stream().map(ChatPayload::new).toList();
-        Boolean hasMoreList = prevMessageSlice.hasNext();
-        return new PreviousMessagesResponseDto(prevMessagePayloads, hasMoreList);
+        return new PreviousMessagesResponseDto(prevMessageList, hasMoreList);
     }
 
     // 유저가 작성한 메시지 전체 삭제 기능

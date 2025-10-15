@@ -1,8 +1,10 @@
 package kakao.festapick.chat.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.repository.ChatMessageRepository;
+import kakao.festapick.chat.repository.QChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -15,17 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChatMessageLowService {
 
     private final ChatMessageRepository chatMessageRepository;
+    private final QChatMessageRepository qChatMessageRepository;
 
     public ChatMessage save(ChatMessage chatMessage) {
         return chatMessageRepository.save(chatMessage);
     }
 
-    public Slice<ChatMessage> findByChatRoomId(Long chatRoomId, Pageable pageable) {
-        return chatMessageRepository.findByChatRoomId(chatRoomId, pageable);
-    }
-
-    public Slice<ChatMessage> findByChatRoomIdAndCursor(Long chatRoomId, Long cursor,Pageable pageable) {
-        return chatMessageRepository.findByChatRoomIdAndCursor(chatRoomId, cursor, pageable);
+    public Slice<ChatMessage> findByChatRoomId(Long chatRoomId, Long cursorId, LocalDateTime cursorTime, Pageable pageable) {
+        return qChatMessageRepository.findByChatRoomId(chatRoomId, cursorId, cursorTime, pageable);
     }
 
     public List<ChatMessage> findAllByChatRoomId(Long chatRoomId) {

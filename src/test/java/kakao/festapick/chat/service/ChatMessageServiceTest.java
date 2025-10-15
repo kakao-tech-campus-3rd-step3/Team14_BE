@@ -104,19 +104,20 @@ public class ChatMessageServiceTest {
         }
 
         List<ChatMessage> reversedMessageList = new ArrayList<>(messageList.reversed());
-        Slice<ChatMessage> slice = new SliceImpl<>(reversedMessageList);
+        Pageable pageable = PageRequest.of(0, 1);
+        Slice<ChatMessage> slice = new SliceImpl<>(reversedMessageList, pageable, true);
 
-        given(chatMessageLowService.findByChatRoomId(any(), any()))
+        given(chatMessageLowService.findByChatRoomId(any(), any(),any(), any()))
                 .willReturn(slice);
 
-        PreviousMessagesResponseDto response = chatMessageService.getPreviousMessages(1L, 1, null);
+        PreviousMessagesResponseDto response = chatMessageService.getPreviousMessages(1L, 1, null, null);
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(response.content())
                         .isEqualTo(messageList.stream().map(ChatPayload::new).toList())
         );
 
-        verify(chatMessageLowService).findByChatRoomId(any(), any());
+        verify(chatMessageLowService).findByChatRoomId(any(), any(),any(), any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);
