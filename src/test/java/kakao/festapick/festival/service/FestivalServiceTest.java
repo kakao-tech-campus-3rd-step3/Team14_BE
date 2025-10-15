@@ -199,7 +199,7 @@ class FestivalServiceTest {
         List<Festival> festivals = getFestivals();
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), any(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponse> festivalList = festivalService.findApprovedAreaAndDate(areaCode, pageable);
@@ -211,7 +211,7 @@ class FestivalServiceTest {
                 () -> assertThat(festivalList.getContent().getFirst()).isInstanceOf(FestivalListResponse.class)
         );
 
-        verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any());
+        verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), any(), any());
         verifyNoMoreInteractions(festivalLowService, wishLowService);
     }
 

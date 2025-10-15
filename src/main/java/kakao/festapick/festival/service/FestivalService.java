@@ -102,8 +102,11 @@ public class FestivalService {
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
     public Page<FestivalListResponse> findApprovedAreaAndDate(int areaCode, Pageable pageable) {
-        Page<Festival> festivalList = festivalLowService.findFestivalByAreaCodeAndDate(areaCode,
-                LocalDate.now(), FestivalState.APPROVED, pageable);
+
+        //전국이면 null(조건 없음)
+        Integer areaCodeSearch = areaCode == 0 ? null : areaCode;
+        Page<Festival> festivalList = festivalLowService.findFestivalByAreaCodeAndDate(areaCodeSearch, LocalDate.now(), pageable);
+
         return festivalList.map(festival -> {
             Double averageScore = festival.calculateReviewScore();
             long wishCount = festival.getWishCount();
