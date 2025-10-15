@@ -4,7 +4,6 @@ import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -25,8 +24,8 @@ public class ChatMessageLowService {
         return chatMessageRepository.findByChatRoomId(chatRoomId, pageable);
     }
 
-    public Slice<ChatMessage> findByChatRoomIdAndBeforeId(Long chatRoomId, Long beforeId,Pageable pageable) {
-        return chatMessageRepository.findByChatRoomIdAndBeforeId(chatRoomId, beforeId, pageable);
+    public Slice<ChatMessage> findByChatRoomIdAndCursor(Long chatRoomId, Long cursor,Pageable pageable) {
+        return chatMessageRepository.findByChatRoomIdAndCursor(chatRoomId, cursor, pageable);
     }
 
     public List<ChatMessage> findAllByChatRoomId(Long chatRoomId) {

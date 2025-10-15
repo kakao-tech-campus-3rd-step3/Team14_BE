@@ -4,9 +4,10 @@ import java.util.List;
 
 public record PreviousMessagesResponseDto(
         List<ChatPayload> content,
-        Long nextBeforeId
+        Long cursor,
+        Boolean hasMoreList
 ) {
-    public PreviousMessagesResponseDto(List<ChatPayload> content) {
-        this(content, content.isEmpty() ? null : content.getFirst().id());
+    public PreviousMessagesResponseDto(List<ChatPayload> content, Boolean hasMoreList) {
+        this(content, content.isEmpty() ? null : content.getFirst().id(), hasMoreList);
     }
 }

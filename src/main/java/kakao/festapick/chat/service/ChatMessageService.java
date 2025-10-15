@@ -55,25 +55,23 @@ public class ChatMessageService {
     }
 
     // 채팅방에서 최근 메시지 조회
-    public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long beforeId) {
+    public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long cursor) {
         Slice<ChatMessage> prevMessageSlice;
         Pageable pageable = PageRequest.of(0, size);
-        // beforeId가 없으면 채팅방 최신의 메시지를 size 만큼 가져온다
-        if (beforeId == null) {
+        // cursor 없으면 채팅방 최신의 메시지를 size 만큼 가져온다
+        if (cursor == null) {
             prevMessageSlice = chatMessageLowService.findByChatRoomId(chatRoomId, pageable);
         }
-        // beforeId가 있으면 beforeId 보다 id 값이 작은 메시지들 중 id 값이 큰 메시지 부터 size 만큼 가져온다
+        // cursor 있으면 cursor 보다 id 값이 작은 메시지들 중 id 값이 큰 메시지 부터 size 만큼 가져온다
         else {
-            prevMessageSlice = chatMessageLowService.findByChatRoomIdAndBeforeId(chatRoomId, beforeId, pageable);
+            prevMessageSlice = chatMessageLowService.findByChatRoomIdAndCursor(chatRoomId, cursor, pageable);
         }
         List<ChatMessage> prevMessageList = new ArrayList<>(prevMessageSlice.getContent());
         // 프론트에 전달하기 위해 역전, 프론트에는 id 기준 오름 차순으로 전달
         Collections.reverse(prevMessageList);
-        return new PreviousMessagesResponseDto(prevMessageList
-                .stream()
-                .map(ChatPayload::new)
-                .toList()
-        );
+        List<ChatPayload> prevMessagePayloads = prevMessageList.stream().map(ChatPayload::new).toList();
+        Boolean hasMoreList = prevMessageSlice.hasNext();
+        return new PreviousMessagesResponseDto(prevMessagePayloads, hasMoreList);
     }
 
     // 유저가 작성한 메시지 전체 삭제 기능

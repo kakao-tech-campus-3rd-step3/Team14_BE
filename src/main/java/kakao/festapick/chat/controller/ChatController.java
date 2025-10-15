@@ -52,9 +52,9 @@ public class ChatController {
     public ResponseEntity<PreviousMessagesResponseDto> getPreviousMessages(
             @PathVariable Long chatRoomId,
             @RequestParam(defaultValue = "30", required = false) int size,
-            @RequestParam(required = false) Long beforeId
+            @RequestParam(required = false) Long cursor
     ) {
-        PreviousMessagesResponseDto payloads = chatMessageService.getPreviousMessages(chatRoomId, size, beforeId);
+        PreviousMessagesResponseDto payloads = chatMessageService.getPreviousMessages(chatRoomId, size, cursor);
 
         return new ResponseEntity<>(payloads, HttpStatus.OK);
     }

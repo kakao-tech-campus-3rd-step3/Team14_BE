@@ -2,7 +2,6 @@ package kakao.festapick.chat.repository;
 
 import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,8 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
-    @Query(value = "select c from ChatMessage c join fetch c.user u where c.chatRoom.id = :chatRoomId and c.id < :beforeId order by c.id desc")
-    Slice<ChatMessage> findByChatRoomIdAndBeforeId(Long chatRoomId, Long beforeId, Pageable pageable);
+    @Query(value = "select c from ChatMessage c join fetch c.user u where c.chatRoom.id = :chatRoomId and c.id < :cursor order by c.id desc")
+    Slice<ChatMessage> findByChatRoomIdAndCursor(Long chatRoomId, Long cursor, Pageable pageable);
 
     @Query(value = "select c from ChatMessage c join fetch c.user u where c.chatRoom.id = :chatRoomId order by c.id desc")
     Slice<ChatMessage> findByChatRoomId(Long chatRoomId, Pageable pageable);
