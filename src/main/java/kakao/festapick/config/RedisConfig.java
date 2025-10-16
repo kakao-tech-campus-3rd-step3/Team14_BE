@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.redis.service.RedisPubSubService;
+import kakao.festapick.redis.util.RedisKeyNameConst;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -30,6 +31,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+
+import static kakao.festapick.redis.util.RedisKeyNameConst.*;
 
 @Configuration
 @EnableCaching
@@ -94,9 +97,9 @@ public class RedisConfig {
                 );
 
         Map<String, RedisCacheConfiguration> redisCacheConfigurationMap = new HashMap<>();
-        redisCacheConfigurationMap.put("festival:reviewAvgScore", redisCacheConfig.entryTtl(Duration.ofMinutes(30)));
-        redisCacheConfigurationMap.put("festival:wishCount",  redisCacheConfig.entryTtl(Duration.ofMinutes(10)));
-        redisCacheConfigurationMap.put("festival:IsMyWish",   redisCacheConfig.entryTtl(Duration.ofMinutes(30)));
+        redisCacheConfigurationMap.put(FESTIVAL_REVIEW_SCORE, redisCacheConfig.entryTtl(Duration.ofMinutes(30)));
+        redisCacheConfigurationMap.put(FESTIVAL_WISH_COUNT,  redisCacheConfig.entryTtl(Duration.ofMinutes(10)));
+        redisCacheConfigurationMap.put(FESTIVAL_IS_MY_WISH,   redisCacheConfig.entryTtl(Duration.ofMinutes(30)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(redisCacheConfig)

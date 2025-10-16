@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.redis.util.RedisKeyNameConst;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +14,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import static kakao.festapick.redis.util.RedisKeyNameConst.*;
+
 @Service
 @RequiredArgsConstructor
 public class WishLowService {
 
     private final WishRepository wishRepository;
 
-    @CacheEvict(value = "festival:wishCount", key = "#wish.festival.id")
+    @CacheEvict(value = FESTIVAL_WISH_COUNT, key = "#wish.festival.id")
     public Wish save(Wish wish){
         return wishRepository.save(wish);
     }
@@ -46,8 +49,8 @@ public class WishLowService {
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "festival:IsMyWish", key = "#wish.user.id + ':' + #wish.festival.id"),
-                    @CacheEvict(value = "festival:wishCount", key = "#wish.festival.id")
+                    @CacheEvict(value = FESTIVAL_IS_MY_WISH, key = "#wish.user.id + ':' + #wish.festival.id"),
+                    @CacheEvict(value = FESTIVAL_WISH_COUNT, key = "#wish.festival.id")
             }
     )
     public void delete(Wish wish){
@@ -56,8 +59,8 @@ public class WishLowService {
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "festival:IsMyWish", allEntries = true),
-                    @CacheEvict(value = "festival:wishCount", allEntries = true)
+                    @CacheEvict(value = FESTIVAL_IS_MY_WISH, allEntries = true),
+                    @CacheEvict(value = FESTIVAL_WISH_COUNT, allEntries = true)
             }
     )
     public void deleteByUserId(Long userId){
@@ -66,8 +69,8 @@ public class WishLowService {
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "festival:IsMyWish", allEntries = true),
-                    @CacheEvict(value = "festival:wishCount", allEntries = true)
+                    @CacheEvict(value = FESTIVAL_IS_MY_WISH, allEntries = true),
+                    @CacheEvict(value = FESTIVAL_WISH_COUNT, allEntries = true)
             }
     )
     public void deleteByFestivalId(Long festivalId){
