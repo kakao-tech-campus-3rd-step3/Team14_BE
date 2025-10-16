@@ -14,7 +14,7 @@ echo "현재 서비스: $CURRENT → 신규 서비스: $IDLE ($PORT)"
 
 docker pull $1
 docker rm -f festa-pick-$IDLE || true
-docker run -d --restart=always -e  TZ=Asia/Seoul --name festa-pick-$IDLE -p $PORT:8080 $1
+docker run -d --net=host --restart=always -e TZ=Asia/Seoul -e SERVER_PORT=$PORT --name festa-pick-$IDLE $1
 
 for i in {1..20}; do
   echo "$i START (health check)"
