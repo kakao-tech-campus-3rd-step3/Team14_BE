@@ -13,6 +13,7 @@ import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
+import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -33,6 +34,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,8 +57,41 @@ public class ChatMessageServiceTest {
     private S3Service s3Service;
     @Mock
     private TemporalFileRepository temporalFileRepository;
+
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Test
+    @DisplayName("채팅 전송 성공")
+    void createChatMessageSuccess() throws NoSuchFieldException, IllegalAccessException {
+        UserEntity user = testUtil.createTestUserWithId();
+        Festival festival = testFestival();
+        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url", chatRoom, user);
+
+        given(userLowService.getReferenceById(any()))
+                .willReturn(user);
+        given(chatRoomLowService.findByRoomId(any()))
+                .willReturn(chatRoom);
+        given(chatMessageLowService.save(any()))
+                .willReturn(chatMessage);
+
+        ChatRequestDto requestDto = new ChatRequestDto("test message",
+                new FileUploadRequest(1L, "image"));
+        chatMessageService.sendChatMessage(chatRoom.getId(), requestDto, user.getId());
+
+        verify(userLowService).getReferenceById(any());
+        verify(chatRoomLowService).findByRoomId(any());
+        verify(chatMessageLowService).save(any());
+        verify(temporalFileRepository).deleteByIds(any());
+        verify(webSocket).convertAndSend((String) any(), (Object) any());
+        verifyNoMoreInteractions(chatRoomLowService);
+        verifyNoMoreInteractions(userLowService);
+        verifyNoMoreInteractions(chatMessageLowService);
+        verifyNoMoreInteractions(s3Service);
+        verifyNoMoreInteractions(temporalFileRepository);
+        verifyNoMoreInteractions(webSocket);
+    }
 
     @Test
     @DisplayName("이전 채팅 내역 불러오기")
@@ -62,24 +99,29 @@ public class ChatMessageServiceTest {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
         ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
-        ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url",chatRoom, user);
 
         List<ChatMessage> messageList = new ArrayList<>();
-        messageList.add(chatMessage);
+        for (int i = 1; i <= 5; i++) {
+            ChatMessage chatMessage = new ChatMessage((long) i, "test message" + i, "image url" + i,
+                    chatRoom, user);
+            messageList.add(chatMessage);
+        }
 
-        Page<ChatMessage> page = new PageImpl<>(messageList);
+        List<ChatMessage> reversedMessageList = new ArrayList<>(messageList.reversed());
+        Pageable pageable = PageRequest.of(0, 1);
+        Slice<ChatMessage> slice = new SliceImpl<>(reversedMessageList, pageable, true);
 
-        given(chatMessageLowService.findByChatRoomId(any(), any()))
-                .willReturn(page);
+        given(chatMessageLowService.findByChatRoomId(any(), any(),any(), any()))
+                .willReturn(slice);
 
-        Page<ChatPayload> response = chatMessageService.getPreviousMessages(1L,
-                PageRequest.of(0, 1));
+        PreviousMessagesResponseDto response = chatMessageService.getPreviousMessages(1L, 1, null, null);
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(response.getContent().get(0)).isNotNull()
+                () -> AssertionsForClassTypes.assertThat(response.content())
+                        .isEqualTo(messageList.stream().map(ChatPayload::new).toList())
         );
 
-        verify(chatMessageLowService).findByChatRoomId(any(), any());
+        verify(chatMessageLowService).findByChatRoomId(any(), any(),any(), any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);

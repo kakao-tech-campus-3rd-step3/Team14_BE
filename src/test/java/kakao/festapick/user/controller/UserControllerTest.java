@@ -17,6 +17,7 @@ import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.chat.repository.ChatRoomRepository;
+import kakao.festapick.chat.repository.QChatMessageRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.TemporalFile;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -82,6 +84,9 @@ class UserControllerTest {
 
     @Autowired
     private ChatMessageRepository chatMessageRepository;
+
+    @Autowired
+    private QChatMessageRepository qChatMessageRepository;
 
     @Test
     @DisplayName("회원 탈퇴 성공")
@@ -139,8 +144,8 @@ class UserControllerTest {
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
-        List<ChatMessage> messages1 = chatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), Pageable.unpaged()).getContent();
-        List<ChatMessage> messages2 = chatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), Pageable.unpaged()).getContent();
+        List<ChatMessage> messages1 = qChatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), null, null, PageRequest.of(0, 1)).getContent();
+        List<ChatMessage> messages2 = qChatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), null, null, PageRequest.of(0, 1)).getContent();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(findUser.isPresent()).isEqualTo(false);

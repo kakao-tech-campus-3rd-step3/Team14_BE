@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
-import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -18,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Page;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Transactional
-public class ChatMessageRepositoryTest {
+@Import(QChatMessageRepository.class)
+public class QChatMessageRepositoryTest {
 
     private static final String identifier = "GOOGLE-1234";
     private final TestUtil testUtil = new TestUtil();
@@ -34,6 +34,8 @@ public class ChatMessageRepositoryTest {
             11, "test addr1", "test addr2", "http://asd.test.com/example.jpg",
             testUtil.toLocalDate("20250823"), testUtil.toLocalDate("20251231"));
 
+    @Autowired
+    private QChatMessageRepository qChatMessageRepository;
     @Autowired
     private ChatMessageRepository chatMessageRepository;
     @Autowired
@@ -57,23 +59,59 @@ public class ChatMessageRepositoryTest {
     }
 
     @Test
-    @DisplayName("메세지 등록 성공 테스트")
-    void createMessageSuccess() throws Exception {
+    @DisplayName("채팅방 메세지 초기 조회 성공 테스트")
+    void getPreviousMessageSuccess() throws Exception {
 
         UserEntity userEntity = saveUserEntity();
-
         Festival festival = saveFestival();
-
         ChatRoom chatRoom = saveChatRoom(festival);
 
-        ChatMessage actual = chatMessageRepository.save(
-                new ChatMessage("test message", "image url",chatRoom, userEntity));
+        ChatMessage savedMessage = chatMessageRepository.save(
+                new ChatMessage("test message", "image url", chatRoom, userEntity)
+        );
+
+        Slice<ChatMessage> find = qChatMessageRepository.findByChatRoomId(
+                chatRoom.getId(), null, null, PageRequest.of(0, 1)
+        );
+
+
+        ChatMessage actual = find.getContent().get(0);
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),
-                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(userEntity),
+                () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(savedMessage.getId()),
+                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(savedMessage.getUser()),
                 () -> AssertionsForClassTypes.assertThat(actual.getContent())
-                        .isEqualTo("test message")
+                        .isEqualTo(savedMessage.getContent())
+        );
+    }
+
+    @Test
+    @DisplayName("이전 채팅방 메세지 조회 성공 테스트")
+    void getPreviousMessageSuccess2() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = saveChatRoom(festival);
+
+        ChatMessage firstSavedMessage = chatMessageRepository.save(
+                new ChatMessage("test message 1", "image url 1", chatRoom, userEntity)
+        );
+
+        ChatMessage secondSavedMessage = chatMessageRepository.save(
+                new ChatMessage("test message 2", "image url 2", chatRoom, userEntity)
+        );
+
+        Slice<ChatMessage> find = qChatMessageRepository.findByChatRoomId(
+                chatRoom.getId(), secondSavedMessage.getId(), secondSavedMessage.getCreatedDate(), PageRequest.of(0, 1)
+        );
+
+        ChatMessage actual = find.getContent().get(0);
+
+        assertAll(
+                () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(firstSavedMessage.getId()),
+                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(firstSavedMessage.getUser()),
+                () -> AssertionsForClassTypes.assertThat(actual.getContent())
+                        .isEqualTo(firstSavedMessage.getContent())
         );
     }
 }
