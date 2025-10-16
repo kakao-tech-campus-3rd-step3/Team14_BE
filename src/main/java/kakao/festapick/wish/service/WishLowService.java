@@ -7,6 +7,8 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.wish.domain.Wish;
 import kakao.festapick.wish.repository.WishRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,12 @@ public class WishLowService {
 
     private final WishRepository wishRepository;
 
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "festival:IsMyWish", key = "#wish.user.id + ':' + #wish.festival.id"),
+                    @CacheEvict(value = "festival:wishCount", key = "#wish.festival.id")
+            }
+    )
     public Wish save(Wish wish){
         return wishRepository.save(wish);
     }
@@ -41,14 +49,32 @@ public class WishLowService {
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.WISH_NOT_FOUND));
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "festival:IsMyWish", key = "#wish.user.id + ':' + #wish.festival.id"),
+                    @CacheEvict(value = "festival:wishCount", key = "#wish.festival.id")
+            }
+    )
     public void delete(Wish wish){
         wishRepository.delete(wish);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "festival:IsMyWish", allEntries = true),
+                    @CacheEvict(value = "festival:wishCount", allEntries = true)
+            }
+    )
     public void deleteByUserId(Long userId){
         wishRepository.deleteByUserId(userId);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "festival:IsMyWish", allEntries = true),
+                    @CacheEvict(value = "festival:wishCount", allEntries = true)
+            }
+    )
     public void deleteByFestivalId(Long festivalId){
         wishRepository.deleteByFestivalId(festivalId);
     }

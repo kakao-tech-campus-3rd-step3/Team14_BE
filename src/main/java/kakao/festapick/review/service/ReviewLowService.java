@@ -6,6 +6,8 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ public class ReviewLowService {
 
     private final ReviewRepository reviewRepository;
 
+
+    @CacheEvict(value = "festival:reviewAvgScore", key = "#review.festival.id")
     public Review save(Review review){
         return reviewRepository.save(review);
     }
@@ -42,14 +46,17 @@ public class ReviewLowService {
                 .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND));
     }
 
-    public int deleteByUserIdAndId(Long userId, Long reviewId){
-        return reviewRepository.deleteByUserIdAndId(userId, reviewId);
+    @CacheEvict(value = "festival:reviewAvgScore", key = "#review.festival.id")
+    public void delete(Review review){
+        reviewRepository.delete(review);
     }
 
+    @CacheEvict(value = "festival:reviewAvgScore", allEntries = true)
     public void deleteByUserId(Long userId){
         reviewRepository.deleteByUserId(userId);
     }
 
+    @CacheEvict(value = "festival:reviewAvgScore", allEntries = true)
     public void deleteByFestivalId(Long festivalId){
         reviewRepository.deleteByFestivalId(festivalId);
     }

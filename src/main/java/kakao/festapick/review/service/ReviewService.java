@@ -171,9 +171,8 @@ public class ReviewService {
     public void removeReview(Long reviewId, Long userId) {
 
         // 해당하는 리뷰 가 없는 경우 예외 반환
-        if (reviewLowService.deleteByUserIdAndId(userId, reviewId) == 0) {
-            throw new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND);
-        }
+        Review findReview = reviewLowService.findByUserIdAndId(userId, reviewId);
+        reviewLowService.delete(findReview);
 
         fileService.deleteByDomainId(reviewId, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
