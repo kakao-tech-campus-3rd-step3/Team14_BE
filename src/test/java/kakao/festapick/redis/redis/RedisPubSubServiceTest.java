@@ -8,6 +8,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
@@ -109,7 +111,7 @@ public class RedisPubSubServiceTest {
                 }
                 """.formatted(chatMessageId, userId, senderName, profileImgUrl, content, imgUrl);
 
-        ChatPayload chatPayload = new ChatPayload(chatMessageId, userId, senderName, profileImgUrl, content, imgUrl);
+        ChatPayload chatPayload = new ChatPayload(chatMessageId, userId, senderName, profileImgUrl, content, imgUrl, LocalDateTime.now());
 
         Message message = new DefaultMessage(
                 channel.getBytes(),
