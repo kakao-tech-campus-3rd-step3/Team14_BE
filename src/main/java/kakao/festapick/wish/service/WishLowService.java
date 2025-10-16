@@ -19,12 +19,7 @@ public class WishLowService {
 
     private final WishRepository wishRepository;
 
-    @Caching(
-            evict = {
-                    @CacheEvict(value = "festival:IsMyWish", key = "#wish.user.id + ':' + #wish.festival.id"),
-                    @CacheEvict(value = "festival:wishCount", key = "#wish.festival.id")
-            }
-    )
+    @CacheEvict(value = "festival:wishCount", key = "#wish.festival.id")
     public Wish save(Wish wish){
         return wishRepository.save(wish);
     }
