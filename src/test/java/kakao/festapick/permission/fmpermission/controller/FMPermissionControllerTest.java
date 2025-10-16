@@ -2,6 +2,7 @@ package kakao.festapick.permission.fmpermission.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -34,6 +35,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +75,7 @@ class FMPermissionControllerTest {
 
         //when-then
         mockMvc.perform(post("/api/fm-permissions")
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -90,7 +93,9 @@ class FMPermissionControllerTest {
         createAndSaveDocs(fmPermission.getId());
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/api/fm-permissions/my"))
+        MvcResult mvcResult = mockMvc.perform(get("/api/fm-permissions/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
@@ -119,6 +124,7 @@ class FMPermissionControllerTest {
 
         //when
         MvcResult mvcResult = mockMvc.perform(patch("/api/fm-permissions/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -145,7 +151,9 @@ class FMPermissionControllerTest {
         FMPermission fmPermission = fmPermissionRepository.save(new FMPermission(user, "부산대학교"));
         createAndSaveDocs(fmPermission.getId());
 
-        mockMvc.perform(delete("/api/fm-permissions/my"))
+        mockMvc.perform(delete("/api/fm-permissions/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()))
                 .andReturn();
 

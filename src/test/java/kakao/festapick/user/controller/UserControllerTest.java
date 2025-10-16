@@ -38,8 +38,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -91,7 +101,9 @@ class UserControllerTest {
         }
 
         // when & then
-        mockMvc.perform(delete("/api/users"))
+        mockMvc.perform(delete("/api/users")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
@@ -126,7 +138,9 @@ class UserControllerTest {
         }
 
         // when & then
-        mockMvc.perform(delete("/api/users"))
+        mockMvc.perform(delete("/api/users")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
@@ -150,7 +164,9 @@ class UserControllerTest {
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         // when
-        String response = mockMvc.perform(get("/api/users/my"))
+        String response = mockMvc.perform(get("/api/users/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -184,6 +200,7 @@ class UserControllerTest {
 
         // when
         mockMvc.perform(patch("/api/users/profileImage")
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .content(request)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

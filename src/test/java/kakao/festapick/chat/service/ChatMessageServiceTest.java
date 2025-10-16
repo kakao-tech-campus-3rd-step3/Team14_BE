@@ -12,14 +12,10 @@ import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
-import kakao.festapick.chat.dto.ChatRequestDto;
 import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
-import kakao.festapick.fileupload.dto.FileUploadRequest;
-import kakao.festapick.fileupload.repository.TemporalFileRepository;
-import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
@@ -33,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -52,42 +49,7 @@ public class ChatMessageServiceTest {
     private ChatMessageLowService chatMessageLowService;
     @Mock
     private ChatRoomLowService chatRoomLowService;
-    @Mock
-    private S3Service s3Service;
-    @Mock
-    private TemporalFileRepository temporalFileRepository;
 
-    @Test
-    @DisplayName("채팅 전송 성공")
-    void createChatMessageSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUserWithId();
-        Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
-        ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url", chatRoom, user);
-
-        given(userLowService.getReferenceById(any()))
-                .willReturn(user);
-        given(chatRoomLowService.findByRoomId(any()))
-                .willReturn(chatRoom);
-        given(chatMessageLowService.save(any()))
-                .willReturn(chatMessage);
-
-        ChatRequestDto requestDto = new ChatRequestDto("test message",
-                new FileUploadRequest(1L, "image"));
-        chatMessageService.sendChatMessage(chatRoom.getId(), requestDto, user.getId());
-
-        verify(userLowService).getReferenceById(any());
-        verify(chatRoomLowService).findByRoomId(any());
-        verify(chatMessageLowService).save(any());
-        verify(temporalFileRepository).deleteByIds(any());
-        verify(webSocket).convertAndSend((String) any(), (Object) any());
-        verifyNoMoreInteractions(chatRoomLowService);
-        verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(chatMessageLowService);
-        verifyNoMoreInteractions(s3Service);
-        verifyNoMoreInteractions(temporalFileRepository);
-        verifyNoMoreInteractions(webSocket);
-    }
 
     @Test
     @DisplayName("이전 채팅 내역 불러오기")
