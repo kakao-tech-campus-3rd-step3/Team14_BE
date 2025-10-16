@@ -34,6 +34,11 @@ jobs:
       - name: 테스트 환경변수 주입
         run: echo "${{ secrets.APPLICATION_TEST_PROPERTIES }}" > ./src/test/resources/application.properties
 
+      - name: 레디스 서버 git action 환경에서 시작
+        uses: supercharge/redis-github-action@1.1.0
+        with:
+          redis-version: 6
+
       - name: 테스트 및 빌드하기
         run: ./gradlew clean build
 
