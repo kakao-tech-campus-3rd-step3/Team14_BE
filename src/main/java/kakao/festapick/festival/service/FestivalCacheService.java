@@ -13,7 +13,7 @@ import java.util.OptionalDouble;
 @Transactional(readOnly = true)
 public class FestivalCacheService {
 
-    @Cacheable(value = "festival:IsMyWish", key = "#userId + ':' + #festival.getId()", condition = "#userId != null")
+    @Cacheable(value = "festival:IsMyWish", key = "#userId + ':' + #festival.id", condition = "#userId != null")
     public boolean checkIsMyWish(Long userId, Festival festival) {
         if (userId == null) return false;
 
@@ -26,7 +26,7 @@ public class FestivalCacheService {
         return false;
     }
 
-    @Cacheable(value = "festival:reviewAvgScore", key = "#festival.getId()")
+    @Cacheable(value = "festival:reviewAvgScore", key = "#festival.id")
     public Double calculateReviewScore(Festival festival) {
         // 리뷰 별점 평균 계산
         OptionalDouble averageCalc = festival.getReviews()
@@ -36,7 +36,7 @@ public class FestivalCacheService {
         return averageCalc.isPresent() ? averageCalc.getAsDouble() : null;
     }
 
-    @Cacheable(value = "festival:wishCount", key = "#festival.getId()")
+    @Cacheable(value = "festival:wishCount", key = "#festival.id")
     public long getWishCount(Festival festival) {
         return festival.getWishes().size();
     }
