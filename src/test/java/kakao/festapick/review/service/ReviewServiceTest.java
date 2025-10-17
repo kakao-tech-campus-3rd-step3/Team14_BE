@@ -131,13 +131,14 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewLowService.deleteByUserIdAndId(any(), any()))
-                .willReturn(1);
+        given(reviewLowService.findByUserIdAndId(any(), any()))
+                .willReturn(review);
 
         reviewService.removeReview(review.getId(), user.getId());
 
-        verify(reviewLowService).deleteByUserIdAndId(any(), any());
+        verify(reviewLowService).findByUserIdAndId(any(), any());
         verify(fileService).deleteByDomainId(any(),any());
+        verify(reviewLowService).delete(any());
         verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService);
     }
 
@@ -152,14 +153,14 @@ public class ReviewServiceTest {
         Integer score = 1;
         Review review = new Review(1L, user, festival, content, score);
 
-        given(reviewLowService.deleteByUserIdAndId(any(), any()))
-                .willReturn(0);
+        given(reviewLowService.findByUserIdAndId(any(), any()))
+                .willThrow(new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND));
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
                 () -> reviewService.removeReview(review.getId(), user.getId()));
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.REVIEW_NOT_FOUND);
 
-        verify(reviewLowService).deleteByUserIdAndId(any(), any());
+        verify(reviewLowService).findByUserIdAndId(any(), any());
         verifyNoMoreInteractions(festivalLowService,userLowService,reviewLowService,fileService);
     }
 

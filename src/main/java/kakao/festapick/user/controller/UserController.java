@@ -13,12 +13,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final OAuth2UserService oAuth2UserService;
     private final UserService userService;
 
     @DeleteMapping
@@ -45,6 +46,17 @@ public class UserController {
         UserResponseDto response = userService.findMyInfo(userId);
         ApiResponseDto<UserResponseDto> responseDto = new ApiResponseDto<>(response);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/role")
+    public ResponseEntity<ApiResponseDto<Map<String, Boolean>>> checkFestivalManagerOrAdmin(@AuthenticationPrincipal Long userId) {
+
+
+        boolean isFestivalManagerOrAdmin = userService.isManagerOrAdmin(userId);
+
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto(Map.of("isFestivalManagerOrAdmin", isFestivalManagerOrAdmin)));
+
     }
 
 }

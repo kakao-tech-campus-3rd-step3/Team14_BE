@@ -171,9 +171,8 @@ public class ReviewService {
     public void removeReview(Long reviewId, Long userId) {
 
         // 해당하는 리뷰 가 없는 경우 예외 반환
-        if (reviewLowService.deleteByUserIdAndId(userId, reviewId) == 0) {
-            throw new NotFoundEntityException(ExceptionCode.REVIEW_NOT_FOUND);
-        }
+        Review findReview = reviewLowService.findByUserIdAndId(userId, reviewId);
+        reviewLowService.delete(findReview);
 
         fileService.deleteByDomainId(reviewId, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
@@ -200,8 +199,6 @@ public class ReviewService {
         fileService.deleteByDomainIds(reviewIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
-
-    //review의 id만 넘기는건 어떤지?
     private void saveFiles(List<FileUploadRequest> imageInfos, FileUploadRequest videoInfo, Long id) {
         List<FileEntity> files = new ArrayList<>();
         List<Long> temporalFileIds = new ArrayList<>();

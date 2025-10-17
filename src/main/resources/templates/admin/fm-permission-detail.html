@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FM 신청 상세 정보</title>
+  <style>
+    :root { --blue:#2563eb; --blue-dark:#1e40af; --gray:#e5e7eb; --text:#111827; }
+    *{box-sizing:border-box}
+    tourApiBody{margin:0;background:#fff;font-family:system-ui,-apple-system,sans-serif;color:#333;padding:24px}
+    h1{margin-bottom:18px;font-size:1.8rem;color:var(--text)}
+    .container{max-width:960px;margin:0 auto;}
+    .card{background:#fff;border:1px solid var(--gray);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.08);padding:24px;}
+    .image{width:100%;max-height:400px;object-fit:cover;border-radius:8px;border:1px solid var(--gray);margin-bottom:20px}
+    .info{margin-bottom:12px}
+    .label{font-weight:600;color:var(--blue-dark);margin-right:6px}
+    .muted{color:#6b7280}
+
+    /* 버튼 기본 스타일 */
+    a.btn, button.btn{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+      appearance:none;
+      border:0;
+      cursor:pointer;
+      background:var(--blue);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:8px;
+      font-weight:600;
+      text-decoration:none;
+      transition:background 0.2s;
+    }
+    a.btn:hover, button.btn:hover{background:var(--blue-dark)}
+
+    /* select 스타일 */
+    .state-form select{
+      border:1px solid var(--blue);
+      border-radius:8px;
+      padding:10px 12px;
+      background:#fff;
+      color:#111827;
+      font-weight:400; /* bold 제거 */
+      outline:none;
+    }
+
+    /* select와 버튼 사이에 gap을 둘 수 있도록 */
+    .state-form{
+      display:flex;
+      gap:8px; /* 버튼과 select 사이의 간격 */
+      align-items:center;
+      margin:0;
+    }
+  </style>
+</head>
+<tourApiBody>
+  <div class="container">
+    <h1 th:text="${permission.department}">신청 id</h1>
+    <div class="card">
+      <div class="info"><span class="label">ID:</span><span th:text="${permission.id}">1</span></div>
+      <div class="info"><span class="label">신청 날짜:</span><span th:text="${permission.updatedDate}">2025-10-01</span></div>
+      <div class="info"><span class="label">상태: </span><span th:text="${permission.state}">PENDING</span> </div>
+
+      <!-- 첨부파일 목록 -->
+      <div class="info">
+        <span class="label">첨부파일:</span>
+        <div th:each="doc, iterStat : ${permission.docsUrls}" style="margin-top: 4px;">
+          <a th:href="${doc}" target="_blank" style="text-decoration: none; font-size: 18px;">
+            📄 첨부파일 <span th:text="${iterStat.index + 1}"></span>
+          </a>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center; margin-top:20px; flex-wrap:wrap;">
+        <!-- 목록 버튼 -->
+        <a class="btn" th:href="@{/admin/fm-permissions}">목록으로 돌아가기</a>
+
+        <!-- 상태 변경 폼 -->
+        <form th:action="@{|/admin/fm-permissions/${permission.id}/state|}" method="post" class="state-form">
+          <select name="permissionState" th:value="${permission.state}">
+            <option value="PENDING" th:selected="${permission.state?.name() == 'PENDING'}">PENDING</option>
+            <option value="ACCEPTED" th:selected="${permission.state?.name() == 'ACCEPTED'}">ACCEPTED</option>
+            <option value="DENIED" th:selected="${permission.state?.name() == 'DENIED'}">DENIED</option>
+          </select>
+          <button class="btn" type="submit">변경</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</tourApiBody>
+</html>

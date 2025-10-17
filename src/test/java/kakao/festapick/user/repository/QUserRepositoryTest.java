@@ -1,29 +1,30 @@
 package kakao.festapick.user.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import jakarta.persistence.EntityManager;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserSearchCond;
 import kakao.festapick.util.TestUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
-@Import(QUserRepository.class)
 class QUserRepositoryTest {
 
-
     @Autowired
+    private EntityManager entityManager;
+
     private QUserRepository qUserRepository;
 
     @Autowired
@@ -32,6 +33,11 @@ class QUserRepositoryTest {
     private static final String identifier = "GOOGLE-1234";
 
     private final TestUtil testUtil = new TestUtil();
+
+    @BeforeEach
+    void init() {
+        qUserRepository = new QUserRepository(entityManager);
+    }
 
     @Test
     @DisplayName("회원 검색 동적 쿼리")

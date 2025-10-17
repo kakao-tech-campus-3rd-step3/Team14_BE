@@ -1,14 +1,27 @@
 package kakao.festapick.festival.controller;
 
+import static com.jayway.jsonpath.JsonPath.read;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.chat.repository.ChatRoomRepository;
-import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -16,6 +29,7 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestSecurityContextHolderInjection;
@@ -30,6 +44,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +58,7 @@ import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -105,6 +121,7 @@ class FestivalUserControllerTest {
 
         //when-then
         mockMvc.perform(post("/api/festivals")
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .content(customRequestDto)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -126,6 +143,7 @@ class FestivalUserControllerTest {
 
         //when-then
         mockMvc.perform(post("/api/festivals")
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .content(customRequestDto)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -197,7 +215,9 @@ class FestivalUserControllerTest {
         festivalRepository.save(festival2);
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/my"))
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andReturn();
 
@@ -226,6 +246,7 @@ class FestivalUserControllerTest {
 
         //when-then
         MvcResult mvcResult = mockMvc.perform(patch("/api/festivals/{festivalId}", saved.getId())
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequest))
                 .andExpect(status().is(HttpStatus.OK.value()))
@@ -262,6 +283,7 @@ class FestivalUserControllerTest {
 
         //when-then
         MvcResult mvcResult = mockMvc.perform(patch("/api/festivals/{festivalId}", saved.getId())
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequest))
                 .andExpect(status().is(HttpStatus.OK.value()))
@@ -297,7 +319,9 @@ class FestivalUserControllerTest {
         }
 
         //when-then
-        mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId()))
+        mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId())
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
         boolean isEmpty = festivalRepository.findFestivalById(saved.getId()).isEmpty();
@@ -334,7 +358,9 @@ class FestivalUserControllerTest {
         }
 
         //when-then
-        mockMvc.perform(delete("/api/festivals/{festivalId}", savedFestival.getId()))
+        mockMvc.perform(delete("/api/festivals/{festivalId}", savedFestival.getId())
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
         boolean festivalIsEmpty = festivalRepository.findFestivalById(savedFestival.getId()).isEmpty();
@@ -362,7 +388,9 @@ class FestivalUserControllerTest {
         Festival saved = festivalRepository.save(festival);
 
         //when-then
-        mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId()))
+        mockMvc.perform(delete("/api/festivals/{festivalId}", saved.getId())
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
     }
 

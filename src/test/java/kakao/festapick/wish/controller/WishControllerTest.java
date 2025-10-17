@@ -2,6 +2,7 @@ package kakao.festapick.wish.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +57,9 @@ public class WishControllerTest {
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
         Festival festival = saveFestival();
 
-        mockMvc.perform(post(String.format("/api/festivals/%s/wishes", festival.getId())))
+        mockMvc.perform(post(String.format("/api/festivals/%s/wishes", festival.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isCreated());
 
         Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(),
@@ -77,7 +81,9 @@ public class WishControllerTest {
         UserEntity userEntity = saveUserEntity();
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
-        mockMvc.perform(post(String.format("/api/festivals/%s/wishes", 999L)))
+        mockMvc.perform(post(String.format("/api/festivals/%s/wishes", 999L))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNotFound());
     }
 
@@ -87,7 +93,9 @@ public class WishControllerTest {
         UserEntity userEntity = saveUserEntity();
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
-        mockMvc.perform(get("/api/wishes/my"))
+        mockMvc.perform(get("/api/wishes/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isOk());
     }
 
@@ -101,7 +109,9 @@ public class WishControllerTest {
 
         Wish target = wishRepository.save(new Wish(userEntity, festival));
 
-        mockMvc.perform(delete(String.format("/api/wishes/%s", target.getId())))
+        mockMvc.perform(delete(String.format("/api/wishes/%s", target.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNoContent());
 
         Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(), festival.getId());
@@ -118,7 +128,9 @@ public class WishControllerTest {
 
         Wish target = wishRepository.save(new Wish(userEntity, festival));
 
-        mockMvc.perform(delete(String.format("/api/festivals/%s/wishes/my", festival.getId())))
+        mockMvc.perform(delete(String.format("/api/festivals/%s/wishes/my", festival.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNoContent());
 
         Optional<Wish> find = wishRepository.findByUserIdAndFestivalId(userEntity.getId(), festival.getId());

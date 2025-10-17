@@ -108,9 +108,11 @@ public class SecurityConfig {
             "/login",
             "/view/**", //view 확인용
             "/management/health_check",
+            "/management/prometheus",
             "/stomp/**",
             "/api/login/status",
             "/swagger-ui/**", // swagger
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/api/users/role"
     };
 }
