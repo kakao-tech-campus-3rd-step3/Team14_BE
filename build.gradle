@@ -79,6 +79,8 @@ dependencies {
 
 	// prometheus
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	testImplementation("com.h2database:h2")
 }
 
 tasks.named('test') {
