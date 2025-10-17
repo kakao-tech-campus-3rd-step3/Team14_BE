@@ -83,6 +83,9 @@ class FestivalServiceTest {
     @Mock
     private FestivalPermissionService festivalPermissionService;
 
+    @Mock
+    private FestivalCacheService festivalCacheService;
+
     @InjectMocks
     private FestivalService festivalService;
 
@@ -173,6 +176,9 @@ class FestivalServiceTest {
         Festival festival = createFestival();
 
         given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
+        given(festivalCacheService.calculateReviewScore(any())).willReturn(null);
+        given(festivalCacheService.getWishCount(any())).willReturn(0L);
+        given(festivalCacheService.checkIsMyWish(any(),any())).willReturn(false);
 
         //when
         FestivalDetailResponseDto response = festivalService.findOneById(festival.getId(), null);
@@ -182,11 +188,17 @@ class FestivalServiceTest {
                 () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(response.contentId()).isEqualTo(festival.getContentId()),
                 () -> assertThat(response.overView()).isEqualTo(festival.getOverView()),
-                () -> assertThat(response.imageInfos()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
+                () -> assertThat(response.imageInfos()).isInstanceOf(List.class), //축제 관련 이미지가 List의 형태로 반환
+                () -> assertThat(response.isMyWish()).isFalse(),
+                () -> assertThat(response.averageScore()).isEqualTo(null),
+                () -> assertThat(response.wishCount()).isEqualTo(0L)
         );
 
         verify(festivalLowService).findByIdWithReviews(any());
-        verifyNoMoreInteractions(festivalLowService,wishLowService);
+        verify(festivalCacheService).calculateReviewScore(any());
+        verify(festivalCacheService).checkIsMyWish(any(), any());
+        verify(festivalCacheService).getWishCount(any());
+        verifyNoMoreInteractions(festivalLowService,wishLowService, festivalCacheService);
     }
 
     @Test
