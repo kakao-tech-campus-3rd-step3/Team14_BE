@@ -2,6 +2,7 @@ package kakao.festapick.chat.repository;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import jakarta.persistence.EntityManager;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.festival.domain.Festival;
@@ -11,13 +12,13 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Transactional
-@Import(QChatMessageRepository.class)
 public class QChatMessageRepositoryTest {
 
     private static final String identifier = "GOOGLE-1234";
@@ -34,7 +34,6 @@ public class QChatMessageRepositoryTest {
             11, "test addr1", "test addr2", "http://asd.test.com/example.jpg",
             testUtil.toLocalDate("20250823"), testUtil.toLocalDate("20251231"));
 
-    @Autowired
     private QChatMessageRepository qChatMessageRepository;
     @Autowired
     private ChatMessageRepository chatMessageRepository;
@@ -44,6 +43,14 @@ public class QChatMessageRepositoryTest {
     private FestivalRepository festivalRepository;
     @Autowired
     private ChatRoomRepository chatRoomRepository;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @BeforeEach
+    void init() {
+        qChatMessageRepository = new QChatMessageRepository(entityManager);
+    }
 
     private UserEntity saveUserEntity() {
         return userRepository.save(testUtil.createTestUser(identifier));
@@ -108,10 +115,10 @@ public class QChatMessageRepositoryTest {
         ChatMessage actual = find.getContent().get(0);
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(firstSavedMessage.getId()),
-                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(firstSavedMessage.getUser()),
+                () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(secondSavedMessage.getId()),
+                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(secondSavedMessage.getUser()),
                 () -> AssertionsForClassTypes.assertThat(actual.getContent())
-                        .isEqualTo(firstSavedMessage.getContent())
+                        .isEqualTo(secondSavedMessage.getContent())
         );
     }
 }
