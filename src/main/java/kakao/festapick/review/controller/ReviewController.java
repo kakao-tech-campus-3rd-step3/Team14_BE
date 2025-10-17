@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
@@ -71,6 +72,23 @@ public class ReviewController {
     ) {
         return new ResponseEntity<>(
                 reviewService.getMyReviews(userId, PageRequest.of(page, size)),
+                HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "내가 리뷰한 축제 조회",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @PreAuthorize("isAuthenticated()") // 내가 리뷰한 축제 조회는 인증 필요
+    @GetMapping("/users/reviewed-festivals")
+    public ResponseEntity<Page<FestivalListResponse>> getMyReviewedFestivals(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(defaultValue = "0", required = false) int page,
+            @Max(value = 1000)
+            @RequestParam(defaultValue = "5", required = false) int size
+    ) {
+        return new ResponseEntity<>(
+                reviewService.getMyReviewedFestivals(userId, PageRequest.of(page, size)),
                 HttpStatus.OK);
     }
 

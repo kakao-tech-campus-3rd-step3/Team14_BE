@@ -1,6 +1,7 @@
 package kakao.festapick.wish.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -8,12 +9,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.festival.service.FestivalCacheService;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
@@ -27,6 +33,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class WishServiceTest {
@@ -42,6 +51,9 @@ public class WishServiceTest {
 
     @Mock
     private WishLowService wishLowService;
+
+    @Mock
+    private FestivalCacheService festivalCacheService;
 
     private final TestUtil testUtil = new TestUtil();
 
@@ -79,6 +91,7 @@ public class WishServiceTest {
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishLowService);
+        verifyNoMoreInteractions(festivalCacheService);
     }
 
     @Test
@@ -105,6 +118,7 @@ public class WishServiceTest {
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishLowService);
+        verifyNoMoreInteractions(festivalCacheService);
     }
 
     @Test
@@ -124,6 +138,7 @@ public class WishServiceTest {
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishLowService);
+        verifyNoMoreInteractions(festivalCacheService);
     }
 
     @Test
@@ -143,6 +158,48 @@ public class WishServiceTest {
         verifyNoMoreInteractions(festivalLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(wishLowService);
+        verifyNoMoreInteractions(festivalCacheService);
+    }
+
+    @Test
+    @DisplayName("내가 위시한 축제 조회 성공 테스트")
+    void getWishedFestivalsSuccess() throws NoSuchFieldException, IllegalAccessException {
+
+        // given
+        UserEntity user = testUtil.createTestUser();
+        List<Festival> festivalList = getTestFestivals();
+        String content = "test content";
+        Integer score = 1;
+        List<Wish> wishList = new ArrayList<>();
+
+        for (Festival festival: festivalList) {
+            wishList.add(new Wish(1L, user, festival));
+        }
+
+        given(wishLowService.findByUserIdWithFestivalPage(any(), any()))
+                .willReturn(new PageImpl<>(wishList));
+
+        given(festivalCacheService.calculateReviewScore(any()))
+                .willReturn(null);
+
+        given(festivalCacheService.getWishCount(any()))
+                .willReturn(1L);
+
+        // when
+        Page<FestivalListResponse> responseDto = wishService.getWishedFestivals(user.getId(),
+                PageRequest.of(0, 3));
+
+        // then
+        for (int i = 0; i < 3; i++) {
+            FestivalListResponse actucal = responseDto.getContent().get(i);
+            Festival festival = festivalList.get(i);
+            assertSoftly(softly-> {
+                softly.assertThat(actucal.title()).isEqualTo(festival.getTitle());
+                softly.assertThat(actucal.addr1()).isEqualTo(festival.getAddr1());
+                softly.assertThat(actucal.addr2()).isEqualTo(festival.getAddr2());
+                softly.assertThat(actucal.posterInfo()).isEqualTo(festival.getPosterInfo());
+            });
+        }
     }
 
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
@@ -156,6 +213,14 @@ public class WishServiceTest {
         idField.set(festival, 1L);
 
         return festival;
+    }
+
+    private List<Festival> getTestFestivals() throws NoSuchFieldException, IllegalAccessException {
+        List<Festival> festivalList = new ArrayList<>();
+        festivalList.add(testFestival());
+        festivalList.add(testFestival());
+        festivalList.add(testFestival());
+        return festivalList;
     }
 
 }
