@@ -108,6 +108,10 @@ public class QChatMessageRepositoryTest {
                 new ChatMessage("test message 2", "image url 2", chatRoom, userEntity)
         );
 
+        entityManager.flush();
+        entityManager.refresh(firstSavedMessage);
+        entityManager.refresh(secondSavedMessage);
+
         Slice<ChatMessage> find = qChatMessageRepository.findByChatRoomId(
                 chatRoom.getId(), secondSavedMessage.getId(), secondSavedMessage.getCreatedDate(), PageRequest.of(0, 1)
         );
@@ -115,10 +119,10 @@ public class QChatMessageRepositoryTest {
         ChatMessage actual = find.getContent().get(0);
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(secondSavedMessage.getId()),
-                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(secondSavedMessage.getUser()),
+                () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(firstSavedMessage.getId()),
+                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(firstSavedMessage.getUser()),
                 () -> AssertionsForClassTypes.assertThat(actual.getContent())
-                        .isEqualTo(secondSavedMessage.getContent())
+                        .isEqualTo(firstSavedMessage.getContent())
         );
     }
 }
