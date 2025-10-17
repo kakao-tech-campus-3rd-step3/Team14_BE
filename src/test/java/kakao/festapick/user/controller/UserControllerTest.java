@@ -9,8 +9,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
-import java.util.Optional;
+
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
@@ -25,6 +27,7 @@ import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestSecurityContextHolderInjection;
@@ -208,6 +211,50 @@ class UserControllerTest {
         UserEntity findUser = userRepository.findById(userEntity.getId()).get();
 
         assertThat(findUser.getProfileImageUrl()).isEqualTo(updateImageUrl.presignedUrl());
+    }
+
+    @Test
+    @DisplayName("축제 관리자 or 어드민인지 조회 - 인증X")
+    void checkIsFMOrAdminFalse() throws Exception {
+
+        // when
+        String response = mockMvc.perform(get("/api/users/role")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        ApiResponseDto<Map<String, Boolean>> apiResponseDto = objectMapper.readValue(response, new TypeReference<ApiResponseDto<Map<String, Boolean>>>() {
+        });
+
+        Boolean isFestivalManagerOrAdmin = apiResponseDto.content().get("isFestivalManagerOrAdmin");
+
+
+        assertThat(isFestivalManagerOrAdmin).isFalse();
+    }
+
+    @Test
+    @DisplayName("축제 관리자 or 어드민인지 조회 - 축제 관리자")
+    void checkIsFMOrAdminTrue() throws Exception {
+
+        // given
+        UserEntity userEntity = saveUserEntity();
+        userEntity.changeUserRole(UserRoleType.FESTIVAL_MANAGER);
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+
+        // when
+        String response = mockMvc.perform(get("/api/users/role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                .with(securityContext(SecurityContextHolder.getContext())))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        ApiResponseDto<Map<String, Boolean>> apiResponseDto = objectMapper.readValue(response, new TypeReference<ApiResponseDto<Map<String, Boolean>>>() {
+        });
+
+        Boolean isFestivalManagerOrAdmin = apiResponseDto.content().get("isFestivalManagerOrAdmin");
+
+
+        assertThat(isFestivalManagerOrAdmin).isTrue();
     }
 
     private UserEntity saveUserEntity() {

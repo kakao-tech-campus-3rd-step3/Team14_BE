@@ -112,6 +112,7 @@ public class SecurityConfig {
             "/stomp/**",
             "/api/login/status",
             "/swagger-ui/**", // swagger
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/api/users/role"
     };
 }

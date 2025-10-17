@@ -82,6 +82,13 @@ public class UserService {
         return new UserResponseDto(findUser);
     }
 
+    public boolean isManagerOrAdmin(Long userId) {
+        if (userId == null) return false;
+        UserEntity findUser = userLowService.findById(userId);
+
+        return findUser.getRoleType() != UserRoleType.USER;
+    }
+
     public void deleteUser(Long id) {
         UserEntity findUser = userLowService.findById(id);
 
