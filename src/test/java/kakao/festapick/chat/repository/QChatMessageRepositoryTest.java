@@ -21,11 +21,13 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Transactional
+@EnableJpaAuditing
 public class QChatMessageRepositoryTest {
 
     private static final String identifier = "GOOGLE-1234";
@@ -120,7 +122,7 @@ public class QChatMessageRepositoryTest {
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(firstSavedMessage.getId()),
-                () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(firstSavedMessage.getUser()),
+                () -> AssertionsForClassTypes.assertThat(actual.getUser().getId()).isEqualTo(firstSavedMessage.getUser().getId()),
                 () -> AssertionsForClassTypes.assertThat(actual.getContent())
                         .isEqualTo(firstSavedMessage.getContent())
         );
