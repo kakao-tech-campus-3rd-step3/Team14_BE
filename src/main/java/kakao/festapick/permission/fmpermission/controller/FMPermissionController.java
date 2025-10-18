@@ -84,4 +84,17 @@ public class FMPermissionController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+            summary = "나의 축제 매니저 승급 신청 중복 확인을 위한 API",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @GetMapping("/check")
+    public ResponseEntity<ApiResponseDto<Boolean>> checkDuplicateFMPermission(
+            @AuthenticationPrincipal Long userId
+    ){
+        Boolean checkDuplicate = fmPermissionService.checkFMPermission(userId);
+        return ResponseEntity.ok(new ApiResponseDto<>(checkDuplicate));
+    }
+
+
 }

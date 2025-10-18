@@ -105,4 +105,17 @@ public class FestivalPermissionController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+            summary = "나의 축제 관리 신청 중복 확인을 위한 API",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @GetMapping("/festival/{festivalId}/check")
+    public ResponseEntity<ApiResponseDto<Boolean>> checkDuplicateFestivalPermission(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long festivalId
+    ){
+        Boolean checkDuplicate = festivalPermissionService.checkFestivalPermission(userId, festivalId);
+        return ResponseEntity.ok(new ApiResponseDto<>(checkDuplicate));
+    }
+
 }
