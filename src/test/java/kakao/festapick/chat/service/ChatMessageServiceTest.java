@@ -60,7 +60,7 @@ public class ChatMessageServiceTest {
 
         List<ChatMessage> messageList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
-            ChatMessage chatMessage = new ChatMessage((long) i, "test message" + i, "image url" + i,
+            ChatMessage chatMessage = new ChatMessage("test message" + i, "image url" + i,
                     chatRoom, user);
             messageList.add(chatMessage);
         }

@@ -62,8 +62,8 @@ public class RedisPubSubServiceTest {
     void sendChatMessageToRedisSuccess() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
-        ChatMessage chatMessage = new ChatMessage(1L, "test message", "image url",chatRoom, user);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatMessage chatMessage = new ChatMessage("test message", "image url",chatRoom, user);
 
         given(userLowService.getReferenceById(any()))
                 .willReturn(user);
