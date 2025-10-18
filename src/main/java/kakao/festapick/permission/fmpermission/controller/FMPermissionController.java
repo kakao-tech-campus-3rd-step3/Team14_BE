@@ -15,8 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,7 +63,7 @@ public class FMPermissionController {
             summary = "신청 시, 제출한 서류 변경하기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PatchMapping("/my")
+    @PutMapping("/my")
     public ResponseEntity<ApiResponseDto<FMPermissionResponseDto>> updateDocument(
             @AuthenticationPrincipal Long userId,
             @RequestBody @Valid FMPermissionRequestDto requestDto
