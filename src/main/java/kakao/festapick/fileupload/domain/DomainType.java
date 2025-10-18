@@ -4,5 +4,6 @@ public enum DomainType {
     REVIEW,
     FESTIVAL,
     FM_PERMISSION,
-    FESTIVAL_PERMISSION
+    FESTIVAL_PERMISSION,
+    FESTIVAL_NOTICE
 }
