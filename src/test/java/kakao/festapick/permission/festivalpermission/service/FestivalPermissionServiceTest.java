@@ -19,14 +19,13 @@ import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.festivalpermission.domain.FestivalPermission;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionDetailDto;
-import kakao.festapick.permission.fmpermission.service.FMPermissionLowService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
@@ -53,7 +52,7 @@ class FestivalPermissionServiceTest {
     private FileService fileService;
 
     @Mock
-    private PermissionFileUploader permissionFileUploader;
+    private FileUploadHelper fileUploadHelper;
 
     @InjectMocks
     private FestivalPermissionService festivalPermissionService;
@@ -158,7 +157,7 @@ class FestivalPermissionServiceTest {
                 () -> assertThat(detailDto.docs().size()).isEqualTo(fileEntities.size()),
                 () -> assertThat(festivalPermission.getPermissionState()).isEqualTo(PermissionState.PENDING)
         );
-        verify(permissionFileUploader).updateFiles(any(), any(), any());
+        verify(fileUploadHelper).updateFiles(any(), any(), any(), any());
         verifyNoMoreInteractions(festivalPermissionLowService);
     }
 

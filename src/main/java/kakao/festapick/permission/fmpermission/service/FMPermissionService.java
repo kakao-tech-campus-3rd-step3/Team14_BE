@@ -2,12 +2,13 @@ package kakao.festapick.permission.fmpermission.service;
 
 import java.util.List;
 import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionAdminListResponseDto;
@@ -29,7 +30,7 @@ public class FMPermissionService {
     private final FMPermissionLowService fmPermissionLowService;
     private final UserLowService userLowService;
 
-    private final PermissionFileUploader permissionFileUploader;
+    private final FileUploadHelper fileUploadHelper;
     private final FileService fileService;
 
     //신청
@@ -55,7 +56,7 @@ public class FMPermissionService {
         Long fmPermissionId = fmPermissionLowService.saveFMPermission(fmPermission).getId();
 
         //관련 서류 저장
-        permissionFileUploader.saveFiles(documents, fmPermissionId, DomainType.FM_PERMISSION);
+        fileUploadHelper.saveFiles(documents, fmPermissionId, FileType.DOCUMENT, DomainType.FM_PERMISSION);
         return fmPermissionId;
     }
 
@@ -69,7 +70,7 @@ public class FMPermissionService {
             throw new BadRequestException(ExceptionCode.FM_PERMISSION_BAD_REQUEST);
         }
 
-        permissionFileUploader.updateFiles(permissionId, DomainType.FM_PERMISSION, documents);
+        fileUploadHelper.updateFiles(permissionId, DomainType.FM_PERMISSION, FileType.DOCUMENT, documents);
 
         fmPermission.updateState(PermissionState.PENDING);
         List<String> docsUrl = fileService.findByDomainIdAndDomainType(permissionId, DomainType.FM_PERMISSION)

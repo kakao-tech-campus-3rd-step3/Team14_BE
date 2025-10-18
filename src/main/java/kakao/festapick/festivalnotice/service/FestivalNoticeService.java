@@ -9,7 +9,9 @@ import kakao.festapick.festivalnotice.dto.FestivalNoticeRequestDto;
 import kakao.festapick.festivalnotice.dto.FestivalNoticeResponseDto;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
@@ -28,15 +30,16 @@ public class FestivalNoticeService {
     private final FestivalNoticeLowService festivalNoticeLowService;
 
     private final FileService fileService;
+    private final FileUploadHelper fileUploadHelper;
 
     public Long addFestivalNotice(Long festivalId, Long userId, FestivalNoticeRequestDto requestDto){
         Festival festival = checkMyFestival(festivalId, userId);
         UserEntity user = userLowService.getReferenceById(userId);
-        FestivalNotice festivalNotice = festivalNoticeLowService.save(new FestivalNotice(requestDto, festival, user));
+        Long festivalNoticeId = festivalNoticeLowService.save(new FestivalNotice(requestDto, festival, user)).getId();
         if(!requestDto.images().isEmpty()){
-            //TODO: 연관된 파일을 업로드
+            fileUploadHelper.saveFiles(requestDto.images(), festivalNoticeId, FileType.IMAGE, DomainType.FESTIVAL_NOTICE);
         }
-        return festivalNotice.getId();
+        return festivalNoticeId;
     }
 
     public FestivalNoticeResponseDto getOne(Long id){
@@ -55,7 +58,7 @@ public class FestivalNoticeService {
         festivalNotice.updateTitle(requestDto.title());
         festivalNotice.updateContent(requestDto.content());
         if(!requestDto.images().isEmpty()){
-            //파일 업로드 수정
+            fileUploadHelper.updateFiles(id, DomainType.FESTIVAL_NOTICE, FileType.IMAGE, requestDto.images());
         }
         return new FestivalNoticeResponseDto(festivalNotice, getFestivalNoticeImages(id));
     }
