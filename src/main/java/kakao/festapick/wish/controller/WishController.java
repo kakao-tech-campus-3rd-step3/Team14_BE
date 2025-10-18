@@ -3,6 +3,7 @@ package kakao.festapick.wish.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Max;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.wish.dto.WishResponseDto;
 import kakao.festapick.wish.service.WishService;
@@ -48,6 +49,21 @@ public class WishController {
             @RequestParam(defaultValue = "5", required = false) int size
             ) {
         return new ResponseEntity<>(wishService.getWishes(userId, PageRequest.of(page, size)),
+                HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "내가 좋아요한 축제 목록 가져오기",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @GetMapping("/users/wished-festivals")
+    public ResponseEntity<Page<FestivalListResponse>> getWishedFestivals(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(defaultValue = "0", required = false) int page,
+            @Max(value = 1000)
+            @RequestParam(defaultValue = "5", required = false) int size
+    ) {
+        return new ResponseEntity<>(wishService.getWishedFestivals(userId, PageRequest.of(page, size)),
                 HttpStatus.OK);
     }
 

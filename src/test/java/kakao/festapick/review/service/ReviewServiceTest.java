@@ -9,9 +9,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.festival.service.FestivalCacheService;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
@@ -34,6 +37,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class ReviewServiceTest {
@@ -58,6 +64,9 @@ public class ReviewServiceTest {
 
     @Mock
     private S3Service s3Service;
+
+    @Mock
+    private FestivalCacheService festivalCacheService;
 
     private final TestUtil testUtil = new TestUtil();
 
@@ -222,6 +231,48 @@ public class ReviewServiceTest {
 
     }
 
+    @Test
+    @DisplayName("내가 리뷰한 축제 조회 성공 테스트")
+    void getReviewedFestivalsSuccess() throws NoSuchFieldException, IllegalAccessException {
+
+        // given
+        UserEntity user = testUtil.createTestUser();
+        List<Festival> festivalList = getTestFestivals();
+        String content = "test content";
+        Integer score = 1;
+        List<Review> reviewList = new ArrayList<>();
+
+        for (Festival festival: festivalList) {
+            reviewList.add(new Review(1L, user, festival, content, score));
+        }
+
+        given(reviewLowService.findByUserIdWithAll(any(), any()))
+                .willReturn(new PageImpl<>(reviewList));
+
+        given(festivalCacheService.calculateReviewScore(any()))
+                .willReturn(1.0);
+
+        given(festivalCacheService.getWishCount(any()))
+                .willReturn(0L);
+
+        // when
+        Page<FestivalListResponse> responseDto = reviewService.getMyReviewedFestivals(user.getId(),
+                PageRequest.of(0, 3));
+
+        // then
+        for (int i = 0; i < 3; i++) {
+            FestivalListResponse actucal = responseDto.getContent().get(i);
+            Festival festival = festivalList.get(i);
+            assertSoftly(softly-> {
+                softly.assertThat(actucal.title()).isEqualTo(festival.getTitle());
+                softly.assertThat(actucal.addr1()).isEqualTo(festival.getAddr1());
+                softly.assertThat(actucal.addr2()).isEqualTo(festival.getAddr2());
+                softly.assertThat(actucal.posterInfo()).isEqualTo(festival.getPosterInfo());
+            });
+        }
+
+    }
+
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 11, "test area1", "test area2", "http://asd.example.com/test.jpg", testUtil.toLocalDate("20250823"),
@@ -233,6 +284,14 @@ public class ReviewServiceTest {
         idField.set(festival, 1L);
 
         return festival;
+    }
+
+    private List<Festival> getTestFestivals() throws NoSuchFieldException, IllegalAccessException {
+        List<Festival> festivalList = new ArrayList<>();
+        festivalList.add(testFestival());
+        festivalList.add(testFestival());
+        festivalList.add(testFestival());
+        return festivalList;
     }
 
 }
