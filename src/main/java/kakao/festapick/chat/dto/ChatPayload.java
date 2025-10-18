@@ -1,7 +1,8 @@
 package kakao.festapick.chat.dto;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import kakao.festapick.chat.domain.ChatMessage;
 
 public record ChatPayload(
@@ -11,6 +12,7 @@ public record ChatPayload(
         String profileImgUrl,
         String content,
         String imageUrl,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
         LocalDateTime createdDate
 ) {
 
