@@ -72,7 +72,7 @@ public class FestivalNoticeController {
     }
 
     //삭제
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/notices/{id}")
     public ResponseEntity<Void> removeFestivalNotice(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long id

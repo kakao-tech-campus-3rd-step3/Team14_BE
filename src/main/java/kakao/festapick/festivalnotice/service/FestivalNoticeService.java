@@ -54,7 +54,7 @@ public class FestivalNoticeService {
     }
 
     public FestivalNoticeResponseDto updateFestivalNotice(Long id, Long userId, FestivalNoticeRequestDto requestDto){
-        FestivalNotice festivalNotice = festivalNoticeLowService.findByIdAndUserId(id, userId);
+        FestivalNotice festivalNotice = festivalNoticeLowService.findByIdAndAuthorId(id, userId);
         festivalNotice.updateTitle(requestDto.title());
         festivalNotice.updateContent(requestDto.content());
         if(!requestDto.images().isEmpty()){

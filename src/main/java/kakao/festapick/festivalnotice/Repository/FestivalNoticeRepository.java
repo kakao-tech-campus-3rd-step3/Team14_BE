@@ -12,10 +12,10 @@ import org.springframework.data.jpa.repository.Query;
 public interface FestivalNoticeRepository extends JpaRepository<FestivalNotice, Id> {
 
     @Modifying(clearAutomatically = true)
-    @Query("delete from FestivalNotice fn where fn.id =:id and fn.user.id =:userId")
+    @Query("delete from FestivalNotice fn where fn.id =:id and fn.author.id =:userId")
     void deleteByIdAndUserId(Long id, Long userId);
 
-    Optional<FestivalNotice> findByIdAndUserId(Long id, Long userId);
+    Optional<FestivalNotice> findByIdAndAuthorId(Long id, Long authorId);
 
     Optional<FestivalNotice> findById(Long id);
 

@@ -19,8 +19,8 @@ public class FestivalNoticeLowService {
         return festivalNoticeRepository.save(festivalNotice);
     }
 
-    public FestivalNotice findByIdAndUserId(Long id, Long userId){
-        return festivalNoticeRepository.findByIdAndUserId(id, userId)
+    public FestivalNotice findByIdAndAuthorId(Long id, Long userId){
+        return festivalNoticeRepository.findByIdAndAuthorId(id, userId)
                 .orElseThrow(() ->  new IllegalStateException("내가 작성한 공지사항이 아닙니다."));
     }
 
