@@ -2,6 +2,7 @@ package kakao.festapick.redis.redis;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import kakao.festapick.chat.dto.ChatPayload;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,9 +17,6 @@ public class RedisConfigTest {
     @Autowired
     private RedisTemplate<String,Object> redisTemplate;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @BeforeEach
     void setUp() {
         redisTemplate.delete("testObjectKey");
@@ -30,6 +28,9 @@ public class RedisConfigTest {
 
         redisTemplate.opsForValue().set("testObjectKey", payload);
         Object value = redisTemplate.opsForValue().get("testObjectKey");
+
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule());
 
         ChatPayload result = objectMapper.convertValue(value, ChatPayload.class);
 

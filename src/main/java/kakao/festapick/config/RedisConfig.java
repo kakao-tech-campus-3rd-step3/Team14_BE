@@ -46,7 +46,9 @@ public class RedisConfig {
 
     @Value("${spring.data.redis.ssl.enabled}")
     private boolean ssl;
-    private final ObjectMapper objectMapper;
+
+    private final ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule());
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
@@ -88,7 +90,6 @@ public class RedisConfig {
 
     @Bean
     public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
-
 
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
         RedisCacheConfiguration redisCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
