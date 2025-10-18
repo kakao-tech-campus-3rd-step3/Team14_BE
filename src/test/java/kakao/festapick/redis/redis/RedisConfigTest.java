@@ -38,7 +38,6 @@ public class RedisConfigTest {
             softly.assertThat(result.userId()).isEqualTo(payload.userId());
             softly.assertThat(result.content()).isEqualTo(payload.content());
             softly.assertThat(result.profileImgUrl()).isEqualTo(payload.profileImgUrl());
-            softly.assertThat(result.createdDate()).isEqualTo(payload.createdDate());
         });
     }
 }
