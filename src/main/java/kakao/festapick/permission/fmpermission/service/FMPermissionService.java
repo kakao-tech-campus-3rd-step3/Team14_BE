@@ -80,6 +80,12 @@ public class FMPermissionService {
         return new FMPermissionResponseDto(fmPermission, docsUrl);
     }
 
+    //중복 조회
+    @Transactional(readOnly = true)
+    public Boolean checkFMPermission(Long userId){
+        return fmPermissionLowService.existsByUserId(userId);
+    }
+
     //조회
     @Transactional(readOnly = true)
     public FMPermissionResponseDto getFMPermissionByUserId(Long userId){

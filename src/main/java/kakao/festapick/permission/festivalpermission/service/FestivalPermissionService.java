@@ -2,7 +2,6 @@ package kakao.festapick.permission.festivalpermission.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.fileupload.domain.DomainType;
@@ -58,6 +57,11 @@ public class FestivalPermissionService {
 
         permissionFileUploader.saveFiles(documents, savedId, DomainType.FESTIVAL_PERMISSION);
         return savedId;
+    }
+
+    @Transactional(readOnly = true)
+    public Boolean checkFestivalPermission(Long userId, Long festivalId){
+        return festivalPermissionLowService.existsByUserIdAndFestivalId(userId, festivalId);
     }
 
     @Transactional(readOnly = true)
