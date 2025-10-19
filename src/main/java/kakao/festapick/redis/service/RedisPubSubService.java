@@ -59,6 +59,7 @@ public class RedisPubSubService implements MessageListener{
     // pubsub으로 메시지 받으면
     @Override
     public void onMessage(Message message, byte[] pattern) {
+        // channel의 경우 chat.XXX로 . 뒤는 양수 숫자 (. 다음 첫 문자 1 - 9, 첫 문자가 아니면  0 - 9 가능)만 존재해야 한다
         String channel = new String(message.getChannel());
         String body = new String(message.getBody());
         Long chatRoomId = Long.valueOf(channel.replaceAll("\\D+", ""));
