@@ -46,7 +46,7 @@ public class QChatMessageRepository {
             hasNext = true;
         }
 
-        return new ChatMessageSliceDto(content,  hasNext);
+        return new ChatMessageSliceDto(content, hasNext);
     }
 
     private BooleanExpression cursorCond(Long cursorId, LocalDateTime cursorTime) {
