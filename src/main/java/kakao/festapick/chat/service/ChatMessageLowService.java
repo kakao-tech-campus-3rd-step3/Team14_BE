@@ -3,6 +3,7 @@ package kakao.festapick.chat.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.dto.ChatMessageSliceDto;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.QChatMessageRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,8 @@ public class ChatMessageLowService {
         return chatMessageRepository.save(chatMessage);
     }
 
-    public Slice<ChatMessage> findByChatRoomId(Long chatRoomId, Long cursorId, LocalDateTime cursorTime, Pageable pageable) {
-        return qChatMessageRepository.findByChatRoomId(chatRoomId, cursorId, cursorTime, pageable);
+    public ChatMessageSliceDto findByChatRoomId(Long chatRoomId, Long cursorId, LocalDateTime cursorTime, int size) {
+        return qChatMessageRepository.findByChatRoomId(chatRoomId, cursorId, cursorTime, size);
     }
 
     public List<ChatMessage> findAllByChatRoomId(Long chatRoomId) {
