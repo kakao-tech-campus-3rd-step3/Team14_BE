@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.dto.ChatMessageSliceDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -24,9 +25,8 @@ public class QChatMessageRepository {
         this.queryFactory = new JPAQueryFactory(em);
     }
 
-    public Slice<ChatMessage> findByChatRoomId(Long chatRoomId, Long cursorId,
-            LocalDateTime cursorTime, Pageable pageable) {
-        int pageSize = pageable.getPageSize();
+    public ChatMessageSliceDto findByChatRoomId(Long chatRoomId, Long cursorId,
+            LocalDateTime cursorTime, int size) {
         List<ChatMessage> content = queryFactory
                 .selectFrom(chatMessage)
                 .where(
@@ -36,22 +36,23 @@ public class QChatMessageRepository {
                                 )
                 )
                 .orderBy(chatMessage.createdDate.desc(), chatMessage.id.desc())
-                .limit(pageSize + 1)
+                .limit(size + 1)
                 .fetch();
 
         boolean hasNext = false;
 
-        if (content.size() > pageSize) {
-            content.remove(pageSize);
+        if (content.size() > size) {
+            content.remove(size);
             hasNext = true;
         }
 
-        return new SliceImpl<>(content, pageable, hasNext);
+        return new ChatMessageSliceDto(content, hasNext);
     }
 
     private BooleanExpression cursorCond(Long cursorId, LocalDateTime cursorTime) {
-        if (cursorId == null || cursorTime == null)
+        if (cursorId == null || cursorTime == null) {
             return null;
+        }
 
         return chatMessage.createdDate.lt(cursorTime)
                 .or(

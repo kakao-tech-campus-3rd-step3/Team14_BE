@@ -2,6 +2,7 @@ package kakao.festapick.chat.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.dto.ChatMessageSliceDto;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.festival.domain.Festival;
@@ -60,16 +62,15 @@ public class ChatMessageServiceTest {
 
         List<ChatMessage> messageList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
-            ChatMessage chatMessage = new ChatMessage((long) i, "test message" + i, "image url" + i,
+            ChatMessage chatMessage = new ChatMessage("test message" + i, "image url" + i,
                     chatRoom, user);
             messageList.add(chatMessage);
         }
 
         List<ChatMessage> reversedMessageList = new ArrayList<>(messageList.reversed());
-        Pageable pageable = PageRequest.of(0, 1);
-        Slice<ChatMessage> slice = new SliceImpl<>(reversedMessageList, pageable, true);
+        ChatMessageSliceDto slice = new ChatMessageSliceDto(reversedMessageList, true);
 
-        given(chatMessageLowService.findByChatRoomId(any(), any(),any(), any()))
+        given(chatMessageLowService.findByChatRoomId(any(), any(), any(), anyInt()))
                 .willReturn(slice);
 
         PreviousMessagesResponseDto response = chatMessageService.getPreviousMessages(1L, 1, null, null);
@@ -79,7 +80,7 @@ public class ChatMessageServiceTest {
                         .isEqualTo(messageList.stream().map(ChatPayload::new).toList())
         );
 
-        verify(chatMessageLowService).findByChatRoomId(any(), any(),any(), any());
+        verify(chatMessageLowService).findByChatRoomId(any(), any(),any(), anyInt());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);

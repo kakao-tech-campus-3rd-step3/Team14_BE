@@ -147,8 +147,8 @@ class UserControllerTest {
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
-        List<ChatMessage> messages1 = qChatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), null, null, PageRequest.of(0, 1)).getContent();
-        List<ChatMessage> messages2 = qChatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), null, null, PageRequest.of(0, 1)).getContent();
+        List<ChatMessage> messages1 = qChatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), null, null, 1).content();
+        List<ChatMessage> messages2 = qChatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), null, null, 1).content();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(findUser.isPresent()).isEqualTo(false);

@@ -6,17 +6,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import kakao.festapick.chat.domain.ChatMessage;
-import kakao.festapick.chat.dto.ChatPayload;
-import kakao.festapick.chat.dto.ChatRequestDto;
+import kakao.festapick.chat.dto.ChatMessageSliceDto;
 import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
-import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
-import org.springframework.data.domain.Slice;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +24,9 @@ public class ChatMessageService {
 
     // 채팅방에서 최근 메시지 조회
     public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long cursorId, LocalDateTime cursorTime) {
-        Pageable pageable = PageRequest.of(0, size);
-        Slice<ChatMessage> prevMessageSlice = chatMessageLowService.findByChatRoomId(chatRoomId, cursorId, cursorTime, pageable);
+        ChatMessageSliceDto prevMessageSlice = chatMessageLowService.findByChatRoomId(chatRoomId, cursorId, cursorTime, size);
         Boolean hasMoreList = prevMessageSlice.hasNext();
-        List<ChatMessage> prevMessageList = new ArrayList<>(prevMessageSlice.getContent());
+        List<ChatMessage> prevMessageList = new ArrayList<>(prevMessageSlice.content());
         // 프론트에 전달하기 위해 역전, 프론트에는 id 기준 오름 차순으로 전달
         Collections.reverse(prevMessageList);
         return new PreviousMessagesResponseDto(prevMessageList, hasMoreList);
