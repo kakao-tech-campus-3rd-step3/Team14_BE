@@ -1,6 +1,5 @@
 package kakao.festapick.festivalnotice.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
@@ -12,6 +11,8 @@ import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.FileUploadHelper;
+import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
@@ -36,16 +37,10 @@ public class FestivalNoticeService {
         Festival festival = checkMyFestival(festivalId, userId);
         UserEntity user = userLowService.getReferenceById(userId);
         Long festivalNoticeId = festivalNoticeLowService.save(new FestivalNotice(requestDto, festival, user)).getId();
-        if(!requestDto.images().isEmpty()){
+        if(requestDto.images() != null && !(requestDto.images().isEmpty())){
             fileUploadHelper.saveFiles(requestDto.images(), festivalNoticeId, FileType.IMAGE, DomainType.FESTIVAL_NOTICE);
         }
         return festivalNoticeId;
-    }
-
-    public FestivalNoticeResponseDto getOne(Long id){
-        FestivalNotice festivalNotice = festivalNoticeLowService.findById(id);
-        List<String> imageUrls = getFestivalNoticeImages(id);
-        return new FestivalNoticeResponseDto(festivalNotice, imageUrls);
     }
 
     public Page<FestivalNoticeResponseDto> getFestivalNotices(Long festivalId, Pageable pageable){
@@ -57,7 +52,7 @@ public class FestivalNoticeService {
         FestivalNotice festivalNotice = festivalNoticeLowService.findByIdAndAuthorId(id, userId);
         festivalNotice.updateTitle(requestDto.title());
         festivalNotice.updateContent(requestDto.content());
-        if(!requestDto.images().isEmpty()){
+        if(requestDto.images() != null && !(requestDto.images().isEmpty())){
             fileUploadHelper.updateFiles(id, DomainType.FESTIVAL_NOTICE, FileType.IMAGE, requestDto.images());
         }
         return new FestivalNoticeResponseDto(festivalNotice, getFestivalNoticeImages(id));
@@ -70,10 +65,10 @@ public class FestivalNoticeService {
 
     private Festival checkMyFestival(Long festivalId, Long userId){
         Festival festival = festivalLowService.findFestivalById(festivalId);
-        if(festival.getManager().getId().equals(userId)){
+        if(festival.getManager() != null && festival.getManager().getId().equals(userId)){
             return festival;
         }
-        throw new IllegalStateException("해당 축제에 대해 관리자 권한을 갖고 있지 않습니다.");
+        throw new ForbiddenException(ExceptionCode.FESTIVAL_NOTICE_ACCESS_FORBIDDEN);
     }
 
     private List<String> getFestivalNoticeImages(Long id){

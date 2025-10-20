@@ -32,6 +32,7 @@ public enum ExceptionCode {
   
     //FORBIDDEN
     FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다."),
+    FESTIVAL_NOTICE_ACCESS_FORBIDDEN("내가 관리하는 축제가 아닙니다."),
 
     //BAD_REQUEST
     FESTIVAL_BAD_DATE("축제 시작일은 종료일보다 빨라야합니다."),

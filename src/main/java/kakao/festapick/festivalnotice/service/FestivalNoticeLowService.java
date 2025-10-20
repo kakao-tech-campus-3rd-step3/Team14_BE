@@ -1,9 +1,9 @@
 package kakao.festapick.festivalnotice.service;
 
-import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
 import kakao.festapick.festivalnotice.domain.FestivalNotice;
-import kakao.festapick.festivalnotice.dto.FestivalNoticeResponseDto;
+import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.global.exception.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,12 +21,7 @@ public class FestivalNoticeLowService {
 
     public FestivalNotice findByIdAndAuthorId(Long id, Long userId){
         return festivalNoticeRepository.findByIdAndAuthorId(id, userId)
-                .orElseThrow(() ->  new IllegalStateException("내가 작성한 공지사항이 아닙니다."));
-    }
-
-    public FestivalNotice findById(Long id){
-        return festivalNoticeRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 공지사항 입니다."));
+                .orElseThrow(() -> new ForbiddenException(ExceptionCode.FESTIVAL_NOTICE_ACCESS_FORBIDDEN));
     }
 
     public Page<FestivalNotice> findByFestivalId(Long id, Pageable pageable){

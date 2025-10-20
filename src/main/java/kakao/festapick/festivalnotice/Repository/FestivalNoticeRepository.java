@@ -20,4 +20,5 @@ public interface FestivalNoticeRepository extends JpaRepository<FestivalNotice, 
     Optional<FestivalNotice> findById(Long id);
 
     Page<FestivalNotice> findByFestivalId(Long festivalId, Pageable pageable);
+
 }
