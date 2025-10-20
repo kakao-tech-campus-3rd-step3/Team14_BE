@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import jakarta.persistence.EntityManager;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.dto.ChatMessageSliceDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -79,12 +80,12 @@ public class QChatMessageRepositoryTest {
                 new ChatMessage("test message", "image url", chatRoom, userEntity)
         );
 
-        Slice<ChatMessage> find = qChatMessageRepository.findByChatRoomId(
-                chatRoom.getId(), null, null, PageRequest.of(0, 1)
+        ChatMessageSliceDto find = qChatMessageRepository.findByChatRoomId(
+                chatRoom.getId(), null, null, 1
         );
 
 
-        ChatMessage actual = find.getContent().get(0);
+        ChatMessage actual = find.content().get(0);
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(savedMessage.getId()),
@@ -114,11 +115,11 @@ public class QChatMessageRepositoryTest {
         entityManager.refresh(firstSavedMessage);
         entityManager.refresh(secondSavedMessage);
 
-        Slice<ChatMessage> find = qChatMessageRepository.findByChatRoomId(
-                chatRoom.getId(), secondSavedMessage.getId(), secondSavedMessage.getCreatedDate(), PageRequest.of(0, 1)
+        ChatMessageSliceDto find = qChatMessageRepository.findByChatRoomId(
+                chatRoom.getId(), secondSavedMessage.getId(), secondSavedMessage.getCreatedDate(), 1
         );
 
-        ChatMessage actual = find.getContent().get(0);
+        ChatMessage actual = find.content().get(0);
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isEqualTo(firstSavedMessage.getId()),

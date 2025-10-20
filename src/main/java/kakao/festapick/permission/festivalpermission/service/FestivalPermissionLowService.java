@@ -64,7 +64,7 @@ public class FestivalPermissionLowService {
     }
 
     public void deleteByFestivalId(Long festivalId){
-        festivalPermissionRepository.deleteByUserId(festivalId);
+        festivalPermissionRepository.deleteByFestivalId(festivalId);
     }
 
 }
