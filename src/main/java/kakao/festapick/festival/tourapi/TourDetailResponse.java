@@ -32,10 +32,8 @@ public class TourDetailResponse {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("홈페이지의 주소를 찾을 수 없습니다."));
         } catch (NullPointerException | IllegalArgumentException e) {
-            log.error("홈페이지 정보를 찾을 수 없습니다.");
-            log.error("homePage = {}", homePage);
+            return "no_homepage";
         }
-        return "no_homepage";
     }
 
 }
