@@ -171,6 +171,7 @@ public class FestivalPermissionService {
         else{ //PENDING 또는 DENIED인 경우
             if (festival.getManager() != null && festival.getManager().equals(festivalPermission.getUser())) {
                 festival.updateManager(null); //관리자로 해제
+                festivalNoticeService.deleteByFestivalId(festival.getId()); // 작성했던 모든 축제 공지 삭제
             }
         }
         festivalPermission.updateState(permissionState);

@@ -158,6 +158,10 @@ public class FMPermissionService {
             return;
         }
         user.changeUserRole(UserRoleType.USER);
+        // 관리하고 있던 축제의 매니저를 null로 설정
+        removeManagerFromFestival(user.getId());
+        // 작성했던 모든 축제 공지 삭제
+        festivalNoticeService.deleteByUserId(user.getId());
     }
 
 }
