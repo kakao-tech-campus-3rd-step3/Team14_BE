@@ -3,14 +3,18 @@ package kakao.festapick.chat.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDateTime;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
+import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.chat.service.ChatMessageService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.global.dto.ApiResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,13 +52,14 @@ public class ChatController {
     )
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/chatRooms/{chatRoomId}/messages")
-    public ResponseEntity<Page<ChatPayload>> getPreviousMessages(
+    public ResponseEntity<PreviousMessagesResponseDto> getPreviousMessages(
             @PathVariable Long chatRoomId,
             @RequestParam(defaultValue = "30", required = false) int size,
-            @RequestParam(defaultValue = "0", required = false) int page
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME)
+            LocalDateTime cursorTime
     ) {
-        Page<ChatPayload> payloads = chatMessageService.getPreviousMessages(chatRoomId,
-                PageRequest.of(page, size));
+        PreviousMessagesResponseDto payloads = chatMessageService.getPreviousMessages(chatRoomId, size, cursorId, cursorTime);
 
         return new ResponseEntity<>(payloads, HttpStatus.OK);
     }

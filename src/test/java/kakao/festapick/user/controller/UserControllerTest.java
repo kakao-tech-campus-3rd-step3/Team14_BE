@@ -1,20 +1,33 @@
 package kakao.festapick.user.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.chat.repository.ChatRoomRepository;
-import kakao.festapick.global.dto.ApiResponseDto;
+import kakao.festapick.chat.repository.QChatMessageRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.domain.UserRoleType;
 import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestSecurityContextHolderInjection;
@@ -25,8 +38,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +50,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -72,6 +88,9 @@ class UserControllerTest {
     @Autowired
     private ChatMessageRepository chatMessageRepository;
 
+    @Autowired
+    private QChatMessageRepository qChatMessageRepository;
+
     @Test
     @DisplayName("회원 탈퇴 성공")
     void withDrawSuccess() throws Exception {
@@ -85,7 +104,9 @@ class UserControllerTest {
         }
 
         // when & then
-        mockMvc.perform(delete("/api/users"))
+        mockMvc.perform(delete("/api/users")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
@@ -120,12 +141,14 @@ class UserControllerTest {
         }
 
         // when & then
-        mockMvc.perform(delete("/api/users"))
+        mockMvc.perform(delete("/api/users")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
-        List<ChatMessage> messages1 = chatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), Pageable.unpaged()).getContent();
-        List<ChatMessage> messages2 = chatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), Pageable.unpaged()).getContent();
+        List<ChatMessage> messages1 = qChatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), null, null, 1).content();
+        List<ChatMessage> messages2 = qChatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), null, null, 1).content();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(findUser.isPresent()).isEqualTo(false);
@@ -144,7 +167,9 @@ class UserControllerTest {
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
         // when
-        String response = mockMvc.perform(get("/api/users/my"))
+        String response = mockMvc.perform(get("/api/users/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -178,6 +203,7 @@ class UserControllerTest {
 
         // when
         mockMvc.perform(patch("/api/users/profileImage")
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .content(request)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -185,6 +211,50 @@ class UserControllerTest {
         UserEntity findUser = userRepository.findById(userEntity.getId()).get();
 
         assertThat(findUser.getProfileImageUrl()).isEqualTo(updateImageUrl.presignedUrl());
+    }
+
+    @Test
+    @DisplayName("축제 관리자 or 어드민인지 조회 - 인증X")
+    void checkIsFMOrAdminFalse() throws Exception {
+
+        // when
+        String response = mockMvc.perform(get("/api/users/role")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        ApiResponseDto<Map<String, Boolean>> apiResponseDto = objectMapper.readValue(response, new TypeReference<ApiResponseDto<Map<String, Boolean>>>() {
+        });
+
+        Boolean isFestivalManagerOrAdmin = apiResponseDto.content().get("isFestivalManagerOrAdmin");
+
+
+        assertThat(isFestivalManagerOrAdmin).isFalse();
+    }
+
+    @Test
+    @DisplayName("축제 관리자 or 어드민인지 조회 - 축제 관리자")
+    void checkIsFMOrAdminTrue() throws Exception {
+
+        // given
+        UserEntity userEntity = saveUserEntity();
+        userEntity.changeUserRole(UserRoleType.FESTIVAL_MANAGER);
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+
+        // when
+        String response = mockMvc.perform(get("/api/users/role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                .with(securityContext(SecurityContextHolder.getContext())))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        ApiResponseDto<Map<String, Boolean>> apiResponseDto = objectMapper.readValue(response, new TypeReference<ApiResponseDto<Map<String, Boolean>>>() {
+        });
+
+        Boolean isFestivalManagerOrAdmin = apiResponseDto.content().get("isFestivalManagerOrAdmin");
+
+
+        assertThat(isFestivalManagerOrAdmin).isTrue();
     }
 
     private UserEntity saveUserEntity() {

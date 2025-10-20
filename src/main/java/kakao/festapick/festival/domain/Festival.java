@@ -147,33 +147,12 @@ public class Festival extends BaseTimeEntity {
         this.state = festivalState;
     }
 
+    public void updateManager(UserEntity user){
+        this.manager = user;
+    }
+
     public static void setDefaultImage(String url) {
         defaultImage = url;
-    }
-
-    public boolean checkIsMyWish(Long userId) {
-        if (userId == null) return false;
-
-        for (Wish wish : this.wishes) {
-            if (userId.equals(wish.getUser().getId())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public Double calculateReviewScore() {
-        // 리뷰 별점 평균 계산
-        OptionalDouble averageCalc = this.getReviews()
-                .stream().mapToDouble(Review::getScore).average();
-
-        // 존재하는 리뷰가 없으면 null 반환
-        return averageCalc.isPresent() ? averageCalc.getAsDouble() : null;
-    }
-
-    public long getWishCount() {
-        return this.getWishes().size();
     }
 
     private static String resolveImage(String url) {

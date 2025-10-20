@@ -42,17 +42,12 @@ public class ChatMessage extends BaseTimeEntity {
     }
 
     public ChatMessage(String content, String imageUrl, ChatRoom chatRoom, UserEntity user) {
-        this(null, content, imageUrl, chatRoom, user);
-    }
-
-    public ChatMessage(Long id, String content, String imageUrl, ChatRoom chatRoom,
-            UserEntity user) {
-        this.id = id;
         this.content = content;
         this.imageUrl = imageUrl;
         this.chatRoom = chatRoom;
         this.user = user;
     }
+
 
     public String getSenderName() {
         return this.getUser().getUsername();

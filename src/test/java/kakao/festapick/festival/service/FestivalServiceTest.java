@@ -1,9 +1,29 @@
 package kakao.festapick.festival.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import kakao.festapick.ai.service.RecommendationHistoryLowService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
-import kakao.festapick.festival.dto.*;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
+import kakao.festapick.festival.dto.FestivalDetailResponseDto;
+import kakao.festapick.festival.dto.FestivalListResponse;
+import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
+import kakao.festapick.festival.dto.FestivalRequestDto;
+import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
+import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
@@ -13,6 +33,7 @@ import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.permission.festivalpermission.service.FestivalPermissionService;
 import kakao.festapick.review.service.ReviewService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
@@ -28,18 +49,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalServiceTest {
@@ -70,6 +79,12 @@ class FestivalServiceTest {
 
     @Mock
     private RecommendationHistoryLowService recommendationHistoryLowService;
+
+    @Mock
+    private FestivalPermissionService festivalPermissionService;
+
+    @Mock
+    private FestivalCacheService festivalCacheService;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -161,6 +176,9 @@ class FestivalServiceTest {
         Festival festival = createFestival();
 
         given(festivalLowService.findByIdWithReviews(any())).willReturn(festival);
+        given(festivalCacheService.calculateReviewScore(any())).willReturn(null);
+        given(festivalCacheService.getWishCount(any())).willReturn(0L);
+        given(festivalCacheService.checkIsMyWish(any(),any())).willReturn(false);
 
         //when
         FestivalDetailResponseDto response = festivalService.findOneById(festival.getId(), null);
@@ -170,11 +188,17 @@ class FestivalServiceTest {
                 () -> assertThat(response.title()).isEqualTo(festival.getTitle()),
                 () -> assertThat(response.contentId()).isEqualTo(festival.getContentId()),
                 () -> assertThat(response.overView()).isEqualTo(festival.getOverView()),
-                () -> assertThat(response.imageInfos()).isInstanceOf(List.class) //축제 관련 이미지가 List의 형태로 반환
+                () -> assertThat(response.imageInfos()).isInstanceOf(List.class), //축제 관련 이미지가 List의 형태로 반환
+                () -> assertThat(response.isMyWish()).isFalse(),
+                () -> assertThat(response.averageScore()).isEqualTo(null),
+                () -> assertThat(response.wishCount()).isEqualTo(0L)
         );
 
         verify(festivalLowService).findByIdWithReviews(any());
-        verifyNoMoreInteractions(festivalLowService,wishLowService);
+        verify(festivalCacheService).calculateReviewScore(any());
+        verify(festivalCacheService).checkIsMyWish(any(), any());
+        verify(festivalCacheService).getWishCount(any());
+        verifyNoMoreInteractions(festivalLowService,wishLowService, festivalCacheService);
     }
 
     @Test
@@ -187,7 +211,7 @@ class FestivalServiceTest {
         List<Festival> festivals = getFestivals();
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), any(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponse> festivalList = festivalService.findApprovedAreaAndDate(areaCode, pageable);
@@ -199,7 +223,7 @@ class FestivalServiceTest {
                 () -> assertThat(festivalList.getContent().getFirst()).isInstanceOf(FestivalListResponse.class)
         );
 
-        verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), any(), any(), any());
+        verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), any(), any());
         verifyNoMoreInteractions(festivalLowService, wishLowService);
     }
 
@@ -327,7 +351,8 @@ class FestivalServiceTest {
         verify(fileService).deleteByDomainId(any(), any());
         verify(reviewService).deleteReviewByFestivalId(festival.getId());
         verify(wishLowService).deleteByFestivalId(festival.getId());
-        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService);
+        verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festival.getId());
+        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService, festivalPermissionService);
     }
 
     @Test
@@ -372,7 +397,8 @@ class FestivalServiceTest {
         verify(wishLowService).deleteByFestivalId(festivalId);
         verify(reviewService).deleteReviewByFestivalId(festivalId);
         verify(chatRoomService).deleteChatRoomByfestivalIdIfExist(festivalId);
-        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService);
+        verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festivalId);
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService, festivalPermissionService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {

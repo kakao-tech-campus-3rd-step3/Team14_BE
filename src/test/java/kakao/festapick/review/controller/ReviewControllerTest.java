@@ -1,8 +1,19 @@
 package kakao.festapick.review.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kakao.festapick.global.dto.ApiResponseDto;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
@@ -13,6 +24,8 @@ import kakao.festapick.fileupload.domain.TemporalFile;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.global.dto.ApiResponseDto;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.review.domain.Review;
 import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.dto.ReviewResponseDto;
@@ -27,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +51,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -86,6 +101,7 @@ public class ReviewControllerTest {
                 new FileUploadRequest(t3));
 
         String header = mockMvc.perform(post(String.format("/api/festivals/%s/reviews", festival.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
@@ -124,6 +140,7 @@ public class ReviewControllerTest {
         ReviewRequestDto requestDto = new ReviewRequestDto("testtesttest", 3, null, null);
 
         mockMvc.perform(post(String.format("/api/festivals/%s/reviews", 999L))
+                        .with(securityContext(SecurityContextHolder.getContext()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isNotFound());
@@ -135,7 +152,9 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
-        mockMvc.perform(get("/api/reviews/my"))
+        mockMvc.perform(get("/api/reviews/my")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isOk());
     }
 
@@ -177,7 +196,9 @@ public class ReviewControllerTest {
 
         Review target = reviewRepository.save(new Review(userEntity, festival, "test 정성리뷰 10글자 이상 해야 해요", 3));
 
-        mockMvc.perform(delete(String.format("/api/reviews/%s", target.getId())))
+        mockMvc.perform(delete(String.format("/api/reviews/%s", target.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
                 .andExpect(status().isNoContent());
 
         Optional<Review> find = reviewRepository.findById(target.getId());
@@ -206,8 +227,10 @@ public class ReviewControllerTest {
                 new FileEntity("imageUrl1", FileType.VIDEO, DomainType.REVIEW, target.getId())));
 
         mockMvc.perform(put(String.format("/api/reviews/%s", target.getId()))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto))
+                )
                 .andExpect(status().isOk());
 
         Optional<Review> find = reviewRepository.findById(target.getId());

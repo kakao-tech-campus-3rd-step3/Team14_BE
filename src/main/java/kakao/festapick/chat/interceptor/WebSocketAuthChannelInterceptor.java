@@ -36,7 +36,8 @@ import org.springframework.stereotype.Component;
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private static final Pattern CHATROOM_DEST_PATTERN = Pattern.compile("^/sub/(\\d+)/messages$");
-    private static final Pattern PUB_MESSAGE_DEST_PATTERN = Pattern.compile("^/pub/(\\d+)/messages$");
+    private static final Pattern PUB_MESSAGE_DEST_PATTERN = Pattern.compile(
+            "^/pub/(\\d+)/messages$");
     private static final String USER_ERROR_DEST = "/user/queue/errors";
 
     private final JwtUtil jwtUtil;
@@ -49,8 +50,10 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         StompHeaderAccessor headerAccessor = MessageHeaderAccessor
                 .getAccessor(message, StompHeaderAccessor.class);
 
-        StompCommand command = Optional.ofNullable(headerAccessor.getCommand())
-                .orElseThrow(() -> new WebSocketException(ExceptionCode.MISSING_COMMAND));
+        StompCommand command = headerAccessor.getCommand();
+        if (command == null) {
+            return message;
+        }
 
         switch (command) {
             case StompCommand.CONNECT -> handleConnect(headerAccessor);
@@ -128,7 +131,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         if (matcher.matches()) {
             Long userId = Long.valueOf(principal.getName());
             Long chatRoomId = Long.valueOf(matcher.group(1));
-            ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
+            ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(
+                    chatRoomId);
             chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
         }
 
