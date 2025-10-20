@@ -4,10 +4,7 @@ import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -155,7 +152,7 @@ class FestivalPermissionControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
 
         //when
-        MvcResult mvcResult = mockMvc.perform(patch("/api/festival-permissions/" + id)
+        MvcResult mvcResult = mockMvc.perform(put("/api/festival-permissions/" + id)
                         .with(securityContext(SecurityContextHolder.getContext()))
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON)

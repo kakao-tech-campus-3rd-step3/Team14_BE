@@ -3,10 +3,7 @@ package kakao.festapick.permission.fmpermission.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -123,7 +120,7 @@ class FMPermissionControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(updateDto);
 
         //when
-        MvcResult mvcResult = mockMvc.perform(patch("/api/fm-permissions/my")
+        MvcResult mvcResult = mockMvc.perform(put("/api/fm-permissions/my")
                         .with(securityContext(SecurityContextHolder.getContext()))
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON)
