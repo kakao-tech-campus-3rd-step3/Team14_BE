@@ -16,15 +16,17 @@ public class LoggingFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String loggingId = UUID.randomUUID().toString();
 
+
+        long startTime = System.currentTimeMillis();
         try {
-            long startTime = System.currentTimeMillis();
             log.trace("[REQUEST] id:{}, request URI: {}, METHOD:{}", loggingId, request.getRequestURI(), request.getMethod());
             filterChain.doFilter(request, response);
             long endTime = System.currentTimeMillis();
             log.trace("[RESPONSE] id:{},  HTTP STATUS:{}, TIME:{}ms ", loggingId, response.getStatus(), endTime - startTime);
         } catch (Exception e) {
+            long endTime = System.currentTimeMillis();
             log.error("[REQUEST] id:{}, request URI: {}, METHOD:{}", loggingId, request.getRequestURI(), request.getMethod());
-            log.error("[RESPONSE] id:{}, ERROR:{}", loggingId, e.getMessage(), e);
+            log.error("[RESPONSE] id:{}, TIME:{}ms, ERROR:{}", loggingId, endTime - startTime, e.getMessage(), e);
             throw e;
         }
     }
