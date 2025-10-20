@@ -25,6 +25,7 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
@@ -85,6 +86,9 @@ class FestivalServiceTest {
 
     @Mock
     private FestivalCacheService festivalCacheService;
+
+    @Mock
+    private FestivalNoticeService festivalNoticeService;
 
     @InjectMocks
     private FestivalService festivalService;
@@ -352,6 +356,7 @@ class FestivalServiceTest {
         verify(reviewService).deleteReviewByFestivalId(festival.getId());
         verify(wishLowService).deleteByFestivalId(festival.getId());
         verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festival.getId());
+        verify(festivalNoticeService).deleteByFestivalId(any());
         verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService, festivalPermissionService);
     }
 
@@ -398,7 +403,8 @@ class FestivalServiceTest {
         verify(reviewService).deleteReviewByFestivalId(festivalId);
         verify(chatRoomService).deleteChatRoomByfestivalIdIfExist(festivalId);
         verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festivalId);
-        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService, festivalPermissionService);
+        verify(festivalNoticeService).deleteByFestivalId(any());
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService, festivalPermissionService, festivalNoticeService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {

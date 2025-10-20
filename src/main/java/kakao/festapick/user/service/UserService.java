@@ -5,6 +5,7 @@ import kakao.festapick.chat.service.ChatMessageService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.ai.service.RecommendationHistoryLowService;
 import kakao.festapick.festival.service.FestivalService;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.S3Service;
@@ -41,6 +42,7 @@ public class UserService {
     private final ChatMessageService chatMessageService;
     private final FMPermissionService fmPermissionService;
     private final FestivalPermissionService festivalPermissionService;
+    private final FestivalNoticeService festivalNoticeService;
 
     public void withDraw(Long userId, HttpServletResponse response) {
 
@@ -108,6 +110,7 @@ public class UserService {
         festivalPermissionService.deleteFestivalPermissionByUserId(findUser.getId());
         festivalService.deleteFestivalByManagerId(findUser.getId());
         fmPermissionService.deleteFMPermissionByUserId(findUser.getId());
+        festivalNoticeService.deleteByUserId(findUser.getId());
     }
 
 }

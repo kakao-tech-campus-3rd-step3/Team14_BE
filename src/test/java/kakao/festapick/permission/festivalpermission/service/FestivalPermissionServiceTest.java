@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -53,6 +54,9 @@ class FestivalPermissionServiceTest {
 
     @Mock
     private FileUploadHelper fileUploadHelper;
+
+    @Mock
+    private FestivalNoticeService festivalNoticeService;
 
     @InjectMocks
     private FestivalPermissionService festivalPermissionService;
@@ -284,7 +288,8 @@ class FestivalPermissionServiceTest {
         assertThat(festival.getManager()).isNull();
         verify(festivalPermissionLowService).removeById(any());
         verify(fileService).deleteByDomainId(any(), any());
-        verifyNoMoreInteractions(festivalPermissionLowService, fileService);
+        verify(festivalNoticeService).deleteByUserId(any());
+        verifyNoMoreInteractions(festivalPermissionLowService, fileService, festivalNoticeService);
     }
 
     private FestivalPermission createFestivalPermission(UserEntity user, Festival festival, PermissionState permissionState) throws Exception {

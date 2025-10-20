@@ -1,5 +1,6 @@
 package kakao.festapick.festivalnotice.service;
 
+import java.util.List;
 import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
 import kakao.festapick.festivalnotice.domain.FestivalNotice;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -24,12 +25,28 @@ public class FestivalNoticeLowService {
                 .orElseThrow(() -> new ForbiddenException(ExceptionCode.FESTIVAL_NOTICE_ACCESS_FORBIDDEN));
     }
 
-    public Page<FestivalNotice> findByFestivalId(Long id, Pageable pageable){
+    public Page<FestivalNotice> findPagedNoticeByFestivalId (Long id, Pageable pageable){
         return festivalNoticeRepository.findByFestivalId(id, pageable);
     }
 
     public void deleteByIdAndUserId(Long id, Long userId){
         festivalNoticeRepository.deleteByIdAndUserId(id, userId);
+    }
+
+    public List<FestivalNotice> findByFestivalId(Long id){
+        return festivalNoticeRepository.findByFestivalId(id);
+    }
+
+    public List<FestivalNotice> findByUserId(Long userId){
+        return festivalNoticeRepository.findByFestivalId(userId);
+    }
+
+    public void deleteByUserId(Long userId){
+        festivalNoticeRepository.deleteByUserId(userId);
+    }
+
+    public void deleteByFestivalId(Long festivalId){
+        festivalNoticeRepository.deleteByFestivalId(festivalId);
     }
 
 }

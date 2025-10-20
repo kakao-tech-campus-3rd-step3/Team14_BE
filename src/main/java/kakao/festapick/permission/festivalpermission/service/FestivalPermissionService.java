@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -40,6 +41,7 @@ public class FestivalPermissionService {
 
     private final FileService fileService;
     private final FileUploadHelper fileUploadHelper;
+    private final FestivalNoticeService festivalNoticeService;
 
     public Long createFestivalPermission(Long userId, Long festivalId, List<FileUploadRequest> documents){
         UserEntity user = userLowService.getReferenceById(userId);
@@ -103,6 +105,9 @@ public class FestivalPermissionService {
         if(festivalPermission.getPermissionState().equals(PermissionState.ACCEPTED)){
             Festival festival = festivalPermission.getFestival();
             festival.updateManager(null);
+
+            // 작성했던 모든 축제 공지 삭제
+            festivalNoticeService.deleteByUserId(userId);
         }
 
         festivalPermissionLowService.removeById(id);

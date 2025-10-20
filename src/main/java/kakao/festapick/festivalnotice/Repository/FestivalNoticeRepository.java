@@ -1,6 +1,7 @@
 package kakao.festapick.festivalnotice.Repository;
 
 import jakarta.persistence.Id;
+import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festivalnotice.domain.FestivalNotice;
 import org.springframework.data.domain.Page;
@@ -21,4 +22,13 @@ public interface FestivalNoticeRepository extends JpaRepository<FestivalNotice, 
 
     Page<FestivalNotice> findByFestivalId(Long festivalId, Pageable pageable);
 
+    List<FestivalNotice> findByFestivalId(Long festivalId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("delete from FestivalNotice fn where fn.author.id =:userId")
+    void deleteByUserId(Long userId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("delete from FestivalNotice fn where fn.author.id =:festivalId")
+    void deleteByFestivalId(Long festivalId);
 }

@@ -44,7 +44,7 @@ public class FestivalNoticeService {
     }
 
     public Page<FestivalNoticeResponseDto> getFestivalNotices(Long festivalId, Pageable pageable){
-        Page<FestivalNotice> pagedFestivalNotice = festivalNoticeLowService.findByFestivalId(festivalId, pageable);
+        Page<FestivalNotice> pagedFestivalNotice = festivalNoticeLowService.findPagedNoticeByFestivalId(festivalId, pageable);
         return pagedFestivalNotice.map(fn -> new FestivalNoticeResponseDto(fn, getFestivalNoticeImages(fn.getId())));
     }
 
@@ -61,6 +61,25 @@ public class FestivalNoticeService {
     public void deleteFestivalNotice(Long id, Long userId){
         festivalNoticeLowService.deleteByIdAndUserId(id, userId);
         fileService.deleteByDomainId(id, DomainType.FESTIVAL_NOTICE); //관련 파일 삭제
+    }
+
+    //User가 탈퇴한 경우
+    public void deleteByUserId(Long userId){
+        List <Long> relatedFiles = festivalNoticeLowService.findByUserId(userId)
+                .stream()
+                .map(FestivalNotice::getId)
+                .toList();
+        festivalNoticeLowService.deleteByUserId(userId);
+        fileService.deleteByDomainIds(relatedFiles, DomainType.FESTIVAL_NOTICE);
+    }
+
+    public void deleteByFestivalId(Long festivalId){
+        List<Long> relatedFiles = festivalNoticeLowService.findByFestivalId(festivalId)
+                .stream()
+                .map(FestivalNotice::getId)
+                .toList();
+        festivalNoticeLowService.deleteByFestivalId(festivalId);
+        fileService.deleteByDomainIds(relatedFiles, DomainType.FESTIVAL_NOTICE);
     }
 
     private Festival checkMyFestival(Long festivalId, Long userId){

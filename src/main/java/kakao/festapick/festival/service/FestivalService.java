@@ -5,6 +5,7 @@ import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.*;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -47,6 +48,7 @@ public class FestivalService {
     private final ChatRoomService chatRoomService;
     private final FestivalPermissionService festivalPermissionService;
     private final FestivalCacheService festivalCacheService;
+    private final FestivalNoticeService festivalNoticeService;
 
     //CREATE
     @Transactional
@@ -271,6 +273,7 @@ public class FestivalService {
         reviewService.deleteReviewByFestivalId(festivalId);
         chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
         festivalPermissionService.deleteFestivalPermissionByFestivalId(festivalId);
+        festivalNoticeService.deleteByFestivalId(festivalId);
     }
 
 }
