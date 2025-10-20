@@ -107,7 +107,7 @@ public class FestivalPermissionService {
             festival.updateManager(null);
 
             // 작성했던 모든 축제 공지 삭제
-            festivalNoticeService.deleteByUserId(userId);
+            festivalNoticeService.deleteByFestivalId(festival.getId());
         }
 
         festivalPermissionLowService.removeById(id);
