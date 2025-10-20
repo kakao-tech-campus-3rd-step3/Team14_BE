@@ -105,7 +105,7 @@ public class WishControllerTest {
         UserEntity userEntity = saveUserEntity();
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
-        mockMvc.perform(get("/api/users/wished-festivals")
+        mockMvc.perform(get("/api/festivals/wishedBy/me")
                         .with(securityContext(SecurityContextHolder.getContext()))
                 )
                 .andExpect(status().isOk());

@@ -80,7 +80,7 @@ public class ReviewController {
             security = @SecurityRequirement(name = "JWT")
     )
     @PreAuthorize("isAuthenticated()") // 내가 리뷰한 축제 조회는 인증 필요
-    @GetMapping("/users/reviewed-festivals")
+    @GetMapping("/festivals/reviewedBy/me")
     public ResponseEntity<Page<FestivalListResponse>> getMyReviewedFestivals(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0", required = false) int page,

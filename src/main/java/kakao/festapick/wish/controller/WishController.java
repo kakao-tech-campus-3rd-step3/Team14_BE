@@ -56,7 +56,7 @@ public class WishController {
             summary = "내가 좋아요한 축제 목록 가져오기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @GetMapping("/users/wished-festivals")
+    @GetMapping("/festivals/wishedBy/me")
     public ResponseEntity<Page<FestivalListResponse>> getWishedFestivals(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0", required = false) int page,

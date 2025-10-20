@@ -164,7 +164,7 @@ public class ReviewControllerTest {
         UserEntity userEntity = saveUserEntity();
         TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
 
-        mockMvc.perform(get("/api/users/reviewed-festivals")
+        mockMvc.perform(get("/api/festivals/reviewedBy/me")
                         .with(securityContext(SecurityContextHolder.getContext()))
                 )
                 .andExpect(status().isOk());
