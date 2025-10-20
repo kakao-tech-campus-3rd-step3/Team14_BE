@@ -100,6 +100,18 @@ public class WishControllerTest {
     }
 
     @Test
+    @DisplayName("위시한 축제 조회 성공")
+    void getWishedFestivalSuccess() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+
+        mockMvc.perform(get("/api/festivals/wishedBy/me")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("위시 삭제 성공 (WishId 사용)")
     void removeWishSuccessWithWishId() throws Exception {
 
