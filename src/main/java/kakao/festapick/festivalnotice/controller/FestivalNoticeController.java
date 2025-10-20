@@ -1,5 +1,7 @@
 package kakao.festapick.festivalnotice.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -31,7 +33,10 @@ public class FestivalNoticeController {
 
     private final FestivalNoticeService festivalNoticeService;
 
-    //create
+    @Operation(
+            summary = "축제 공지 작성하기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     @PostMapping("/{festivalId}/notices")
     public ResponseEntity<Void> addNotice(
@@ -43,7 +48,10 @@ public class FestivalNoticeController {
         return ResponseEntity.created(URI.create("/api/festival/notice/" + saveId)).build();
     }
 
-    //축제에 대한 모든 공지 사항 가져오기
+    @Operation(
+            summary = "축제를 기준으로 공지사항 가져오기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @GetMapping("/{festivalId}/notices")
     public ResponseEntity<Page<FestivalNoticeResponseDto>> getFestivalNotices(
             @PathVariable Long festivalId,
@@ -55,7 +63,10 @@ public class FestivalNoticeController {
         return ResponseEntity.ok(pagedRequestDto);
     }
 
-    //수정
+    @Operation(
+            summary = "공지 사항 수정 하기",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     @PutMapping("/notices/{id}")
     public ResponseEntity<ApiResponseDto<FestivalNoticeResponseDto>> updateFestivalNotice(
@@ -68,6 +79,10 @@ public class FestivalNoticeController {
     }
 
     //삭제
+    @Operation(
+            summary = "공지 사항 삭제",
+            security = @SecurityRequirement(name = "JWT")
+    )
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     @DeleteMapping("/notices/{id}")
     public ResponseEntity<Void> removeFestivalNotice(

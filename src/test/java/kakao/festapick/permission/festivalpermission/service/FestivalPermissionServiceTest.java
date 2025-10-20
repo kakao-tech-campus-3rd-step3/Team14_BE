@@ -288,7 +288,7 @@ class FestivalPermissionServiceTest {
         assertThat(festival.getManager()).isNull();
         verify(festivalPermissionLowService).removeById(any());
         verify(fileService).deleteByDomainId(any(), any());
-        verify(festivalNoticeService).deleteByUserId(any());
+        verify(festivalNoticeService).deleteByFestivalId(any());
         verifyNoMoreInteractions(festivalPermissionLowService, fileService, festivalNoticeService);
     }
 

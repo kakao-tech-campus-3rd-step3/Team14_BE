@@ -4,7 +4,7 @@ import java.util.List;
 import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
 import kakao.festapick.festivalnotice.domain.FestivalNotice;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.global.exception.ForbiddenException;
+import kakao.festapick.global.exception.NotFoundEntityException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +22,7 @@ public class FestivalNoticeLowService {
 
     public FestivalNotice findByIdAndAuthorId(Long id, Long userId){
         return festivalNoticeRepository.findByIdAndAuthorId(id, userId)
-                .orElseThrow(() -> new ForbiddenException(ExceptionCode.FESTIVAL_NOTICE_ACCESS_FORBIDDEN));
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOTICE_NOT_FOUND));
     }
 
     public Page<FestivalNotice> findPagedNoticeByFestivalId (Long id, Pageable pageable){

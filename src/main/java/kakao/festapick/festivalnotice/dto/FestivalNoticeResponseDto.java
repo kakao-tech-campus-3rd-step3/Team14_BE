@@ -7,17 +7,17 @@ import kakao.festapick.festivalnotice.domain.FestivalNotice;
 public record FestivalNoticeResponseDto(
         Long id,
         Long userId,
-        String content,
         LocalDateTime updatedDate,
         String title,
+        String content,
         List<String> images
 ){
     public FestivalNoticeResponseDto(FestivalNotice festivalNotice, List<String> imagesUrl){
         this(
                 festivalNotice.getId(),
                 festivalNotice.getAuthor().getId(),
-                festivalNotice.getTitle(),
                 festivalNotice.getUpdatedDate(),
+                festivalNotice.getTitle(),
                 festivalNotice.getContent(),
                 imagesUrl
         );

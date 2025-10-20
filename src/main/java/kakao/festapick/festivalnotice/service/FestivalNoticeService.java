@@ -63,7 +63,7 @@ public class FestivalNoticeService {
         fileService.deleteByDomainId(id, DomainType.FESTIVAL_NOTICE); //관련 파일 삭제
     }
 
-    //User가 탈퇴한 경우
+    // User가 탈퇴한 경우
     public void deleteByUserId(Long userId){
         List <Long> relatedFiles = festivalNoticeLowService.findByUserId(userId)
                 .stream()
@@ -73,6 +73,7 @@ public class FestivalNoticeService {
         fileService.deleteByDomainIds(relatedFiles, DomainType.FESTIVAL_NOTICE);
     }
 
+    // 축제가 삭제된 경우
     public void deleteByFestivalId(Long festivalId){
         List<Long> relatedFiles = festivalNoticeLowService.findByFestivalId(festivalId)
                 .stream()
