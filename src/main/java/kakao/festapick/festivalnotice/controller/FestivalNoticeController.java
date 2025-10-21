@@ -49,8 +49,7 @@ public class FestivalNoticeController {
     }
 
     @Operation(
-            summary = "축제를 기준으로 공지사항 가져오기",
-            security = @SecurityRequirement(name = "JWT")
+            summary = "축제를 기준으로 공지사항 가져오기"
     )
     @GetMapping("/{festivalId}/notices")
     public ResponseEntity<Page<FestivalNoticeResponseDto>> getFestivalNotices(
