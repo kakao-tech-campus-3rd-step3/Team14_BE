@@ -16,6 +16,7 @@ import kakao.festapick.fileupload.service.FileService;
 import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
+import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +49,13 @@ public class FestivalNoticeService {
 
     @Transactional(readOnly = true)
     public Page<FestivalNoticeResponseDto> getFestivalNotices(Long festivalId, Pageable pageable){
-        Page<FestivalNotice> pagedFestivalNotice = festivalNoticeLowService.findPagedNoticeByFestivalId(festivalId, pageable);
-        List<Long> noticeIds = pagedFestivalNotice.map(FestivalNotice::getId).stream().toList();
-        Map<Long, List<String>> noticeImages = getFestivalNoticeImages(noticeIds);
-        return pagedFestivalNotice.map(fn -> new FestivalNoticeResponseDto(fn, noticeImages.getOrDefault(fn.getId(), List.of())));
+        if(festivalLowService.existsFestivalById(festivalId)){
+            Page<FestivalNotice> pagedFestivalNotice = festivalNoticeLowService.findPagedNoticeByFestivalId(festivalId, pageable);
+            List<Long> noticeIds = pagedFestivalNotice.map(FestivalNotice::getId).stream().toList();
+            Map<Long, List<String>> noticeImages = getFestivalNoticeImages(noticeIds);
+            return pagedFestivalNotice.map(fn -> new FestivalNoticeResponseDto(fn, noticeImages.getOrDefault(fn.getId(), List.of())));
+        }
+        throw new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND);
     }
 
     public FestivalNoticeResponseDto updateFestivalNotice(Long id, Long userId, FestivalNoticeRequestDto requestDto){

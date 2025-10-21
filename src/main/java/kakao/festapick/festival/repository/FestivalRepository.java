@@ -20,6 +20,8 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
     List<Festival> findFestivalByManagerId(Long managerId);
 
+    boolean existsFestivalById(Long id);
+
     @Query("select f from Festival f where f.contentId in :contentIds")
     List<Festival> findFestivalsByContentIds(List<String> contentIds);
 
