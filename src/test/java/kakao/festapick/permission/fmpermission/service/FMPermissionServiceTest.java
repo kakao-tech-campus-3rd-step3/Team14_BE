@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
@@ -20,6 +21,7 @@ import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.permission.PermissionState;
+import kakao.festapick.permission.festivalpermission.service.FestivalPermissionLowService;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionAdminListResponseDto;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionResponseDto;
@@ -52,6 +54,12 @@ class FMPermissionServiceTest {
 
     @Mock
     private FileUploadHelper fileUploadHelper;
+
+    @Mock
+    private FestivalPermissionLowService festivalPermissionLowService;
+
+    @Mock
+    private FestivalNoticeService festivalNotice;
 
     @InjectMocks
     private FMPermissionService fmPermissionService;
@@ -296,6 +304,8 @@ class FMPermissionServiceTest {
         );
 
         verify(fmPermissionLowService).findFMPermissionByIdWithUser(any());
+        verify(festivalPermissionLowService).findByUserIdWithFestival(any());
+        verify(festivalNotice).deleteByUserId(any());
         verifyNoMoreInteractions(fmPermissionLowService);
     }
 }
