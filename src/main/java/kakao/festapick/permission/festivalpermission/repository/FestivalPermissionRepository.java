@@ -45,5 +45,8 @@ public interface FestivalPermissionRepository extends JpaRepository<FestivalPerm
 
     List<FestivalPermission> findByUserId(Long userId);
 
+    @Query("select fp from FestivalPermission fp join fetch fp.festival where fp.user.id =:userId")
+    List<FestivalPermission> findByUserIdWithFestival(Long userId);
+
     List<FestivalPermission> findByFestivalId(Long festivalId);
 }
