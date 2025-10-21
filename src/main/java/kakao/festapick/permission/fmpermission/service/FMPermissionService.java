@@ -1,14 +1,18 @@
 package kakao.festapick.permission.fmpermission.service;
 
 import java.util.List;
+import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
+import kakao.festapick.permission.festivalpermission.service.FestivalPermissionLowService;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionAdminListResponseDto;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionResponseDto;
@@ -28,8 +32,11 @@ public class FMPermissionService {
 
     private final FMPermissionLowService fmPermissionLowService;
     private final UserLowService userLowService;
+    private final FestivalPermissionLowService festivalPermissionLowService;
+    private final FestivalNoticeService festivalNoticeService;
 
-    private final PermissionFileUploader permissionFileUploader;
+
+    private final FileUploadHelper fileUploadHelper;
     private final FileService fileService;
 
     //신청
@@ -55,7 +62,7 @@ public class FMPermissionService {
         Long fmPermissionId = fmPermissionLowService.saveFMPermission(fmPermission).getId();
 
         //관련 서류 저장
-        permissionFileUploader.saveFiles(documents, fmPermissionId, DomainType.FM_PERMISSION);
+        fileUploadHelper.saveFiles(documents, fmPermissionId, FileType.DOCUMENT, DomainType.FM_PERMISSION);
         return fmPermissionId;
     }
 
@@ -69,7 +76,7 @@ public class FMPermissionService {
             throw new BadRequestException(ExceptionCode.FM_PERMISSION_BAD_REQUEST);
         }
 
-        permissionFileUploader.updateFiles(permissionId, DomainType.FM_PERMISSION, documents);
+        fileUploadHelper.updateFiles(permissionId, DomainType.FM_PERMISSION, FileType.DOCUMENT, documents);
 
         fmPermission.updateState(PermissionState.PENDING);
         List<String> docsUrl = fileService.findByDomainIdAndDomainType(permissionId, DomainType.FM_PERMISSION)
@@ -112,9 +119,19 @@ public class FMPermissionService {
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
         if(fmPermission.getPermissionState().equals(PermissionState.ACCEPTED)){
             fmPermission.getUser().changeUserRole(UserRoleType.USER);
+
+            // 관리하고 있던 축제의 매니저를 null로 설정
+            removeManagerFromFestival(userId);
+            // 작성했던 모든 축제 공지 삭제
+            festivalNoticeService.deleteByUserId(userId);
         }
         fmPermissionLowService.removeFMPermissionByUserId(userId);
         fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION); //첨부 했던 모든 문서들 삭제
+    }
+
+    private void removeManagerFromFestival(Long userId){
+        festivalPermissionLowService.findByUserIdWithFestival(userId)
+                .forEach(fm -> fm.getFestival().updateManager(null));
     }
 
     //user탈퇴 시, 관련 정보를 모두 삭제
@@ -141,6 +158,10 @@ public class FMPermissionService {
             return;
         }
         user.changeUserRole(UserRoleType.USER);
+        // 관리하고 있던 축제의 매니저를 null로 설정
+        removeManagerFromFestival(user.getId());
+        // 작성했던 모든 축제 공지 삭제
+        festivalNoticeService.deleteByUserId(user.getId());
     }
 
 }

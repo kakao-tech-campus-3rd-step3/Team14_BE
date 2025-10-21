@@ -5,12 +5,14 @@ import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.dto.*;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.ForbiddenException;
@@ -46,6 +48,8 @@ public class FestivalService {
     private final ChatRoomService chatRoomService;
     private final FestivalPermissionService festivalPermissionService;
     private final FestivalCacheService festivalCacheService;
+    private final FestivalNoticeService festivalNoticeService;
+    private final FileUploadHelper fileUploadHelper;
 
     //CREATE
     @Transactional
@@ -54,15 +58,13 @@ public class FestivalService {
 
         Festival festival = new Festival(requestDto, user);
         Festival savedFestival = festivalLowService.save(festival);
-        
+
+        //temp에서 포스터 삭제
         temporalFileRepository.deleteById(requestDto.posterInfo().id());
 
         //관련 이미지 업로드(포스터의 경우에는 festival 도메인에서만 관리)
-        if(requestDto.imageInfos() != null){
-            //이미지에 대한 중복 체크(url : unique 속성)
-            List<String> imageUrls = requestDto.imageInfos().stream().map(FileUploadRequest::presignedUrl).toList();
-            fileService.checkUniqueURL(imageUrls);
-            saveFiles(requestDto.imageInfos(), savedFestival.getId());
+        if(requestDto.imageInfos() != null && !(requestDto.imageInfos().isEmpty())){
+            fileUploadHelper.saveFiles(requestDto.imageInfos(), savedFestival.getId(), FileType.IMAGE, DomainType.FESTIVAL);
         }
 
         return savedFestival.getId();
@@ -123,58 +125,25 @@ public class FestivalService {
 
         Festival festival = checkMyFestival(userId, id);
 
-        // 기존 이미지 파일들
-        List<FileEntity> registeredImages = fileService.findByDomainIdAndDomainType(festival.getId(), DomainType.FESTIVAL);
-        Set<String> registeredImgUrl = registeredImages.stream()
-                .map(FileEntity::getUrl)
-                .collect(Collectors.toSet());
-
-        // 요청에 존재하는 파일들
-        Set<String> requestImgUrl = Optional.ofNullable(requestDto.imageInfos())
-                .orElse(List.of())
-                .stream()
-                .map(FileUploadRequest::presignedUrl)
-                .collect(Collectors.toSet());
-
-        //삭제 : 기존 이미지 - 요청 이미지
-        Set<String> deleteImgUrl = new HashSet<>(registeredImgUrl);
-        deleteImgUrl.removeAll(requestImgUrl);
-        List<FileEntity> deleteFileEntities = registeredImages.stream()
-                .filter(fileEntity -> deleteImgUrl.contains(fileEntity.getUrl()))
-                .toList();
-
-        //새롭게 업로드 : 요청 이미지 - 기존 이미지
-        Set<String> uploadImgUrl = new HashSet<>(requestImgUrl);
-        uploadImgUrl.removeAll(registeredImgUrl);
-
-        //이미지에 대한 중복 체크(url : unique 속성)
-        fileService.checkUniqueURL(uploadImgUrl.stream().toList());
-
-        List<FileUploadRequest> requestFiles = new ArrayList<>(Optional.ofNullable(requestDto.imageInfos()).orElse(List.of()));
-
-        List<FileUploadRequest> uploadFiles = requestFiles.stream()
-                .filter(fileEntity -> uploadImgUrl.contains(fileEntity.presignedUrl()))
-                .toList();
-
         // 포스터(Festival 도메인에서만 관리)
         String oldPosterUrl = festival.getPosterInfo();
         String newPosterUrl = requestDto.posterInfo().presignedUrl();
 
         if(!oldPosterUrl.equals(newPosterUrl)){
             temporalFileRepository.deleteById(requestDto.posterInfo().id());
-            deleteImgUrl.add(oldPosterUrl);
         }
         festival.updateFestival(requestDto);
 
-        saveFiles(uploadFiles, festival.getId());
-        fileService.deleteAllByFileEntity(deleteFileEntities);
+        if(requestDto.imageInfos() != null){
+            fileUploadHelper.updateFiles(id, DomainType.FESTIVAL, FileType.IMAGE, requestDto.imageInfos());
+        }
 
         List<String> festivalImgs = fileService.findByDomainIdAndDomainType(festival.getId(), DomainType.FESTIVAL)
                 .stream()
                 .map(FileEntity::getUrl)
                 .toList();
 
-        s3Service.deleteFiles(deleteImgUrl.stream().toList()); // s3에서 삭제
+        s3Service.deleteS3File(oldPosterUrl); // s3에서 삭제 - 포스터
 
         Double averageScore = festivalCacheService.calculateReviewScore(festival);
         long wishCount = festivalCacheService.getWishCount(festival);
@@ -224,7 +193,7 @@ public class FestivalService {
 
         festivalLowService.deleteByManagerId(id);
 
-        fileService.deleteByDomainIds(festivalIds, DomainType.REVIEW); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+        fileService.deleteByDomainIds(festivalIds, DomainType.FESTIVAL); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
 
     //수정 권한을 확인하기 위한 메서드
@@ -249,27 +218,13 @@ public class FestivalService {
         return new FestivalListResponse(festival, averageScore, wishCount);
     }
 
-    private void saveFiles(List<FileUploadRequest> images, Long id) {
-        List<FileEntity> files = new ArrayList<>();
-        List<Long> temporalFileIds = new ArrayList<>();
-
-        images.forEach(imageInfo -> {
-            files.add(new FileEntity(imageInfo.presignedUrl(), FileType.IMAGE, DomainType.FESTIVAL, id));
-            temporalFileIds.add(imageInfo.id());
-        });
-
-        if (!files.isEmpty()) {
-            fileService.saveAll(files);
-        }
-        temporalFileRepository.deleteByIds(temporalFileIds);
-    }
-
     private void deleteRelatedEntity(Long festivalId) {
         recommendationHistoryLowService.deleteByFestivalId(festivalId);
         wishLowService.deleteByFestivalId(festivalId);
         reviewService.deleteReviewByFestivalId(festivalId);
         chatRoomService.deleteChatRoomByfestivalIdIfExist(festivalId);
         festivalPermissionService.deleteFestivalPermissionByFestivalId(festivalId);
+        festivalNoticeService.deleteByFestivalId(festivalId);
     }
 
 }

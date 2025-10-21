@@ -80,4 +80,8 @@ public class FestivalLowService {
                 .orElseThrow(()-> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
     }
 
+    public Boolean existsFestivalById(Long id){
+        return festivalRepository.existsFestivalById(id);
+    }
+
 }

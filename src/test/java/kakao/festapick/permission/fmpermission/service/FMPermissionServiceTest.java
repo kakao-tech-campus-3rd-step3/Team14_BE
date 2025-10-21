@@ -11,15 +11,17 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
+import kakao.festapick.permission.festivalpermission.service.FestivalPermissionLowService;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionAdminListResponseDto;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionResponseDto;
@@ -51,7 +53,13 @@ class FMPermissionServiceTest {
     private FileService fileService;
 
     @Mock
-    private PermissionFileUploader permissionFileUploader;
+    private FileUploadHelper fileUploadHelper;
+
+    @Mock
+    private FestivalPermissionLowService festivalPermissionLowService;
+
+    @Mock
+    private FestivalNoticeService festivalNotice;
 
     @InjectMocks
     private FMPermissionService fmPermissionService;
@@ -110,9 +118,9 @@ class FMPermissionServiceTest {
         verify(userLowService).findById(any());
         verify(fmPermissionLowService).existsByUserId(any());
         verify(fmPermissionLowService).saveFMPermission(any());
-        verify(permissionFileUploader).saveFiles(any(), any(),any());
+        verify(fileUploadHelper).saveFiles(any(), any(),any(), any());
 
-        verifyNoMoreInteractions(userLowService, fmPermissionLowService, permissionFileUploader);
+        verifyNoMoreInteractions(userLowService, fmPermissionLowService, fileUploadHelper);
     }
 
     @Test
@@ -167,9 +175,9 @@ class FMPermissionServiceTest {
         );
 
         verify(fmPermissionLowService).findFMPermissionByUserId(any());
-        verify(permissionFileUploader).updateFiles(any(), any(), any());
+        verify(fileUploadHelper).updateFiles(any(), any(), any(), any());
         verify(fileService).findByDomainIdAndDomainType(any(), any());
-        verifyNoMoreInteractions(fmPermissionLowService, permissionFileUploader, fileService);
+        verifyNoMoreInteractions(fmPermissionLowService, fileUploadHelper, fileService);
     }
 
     @Test
@@ -296,6 +304,8 @@ class FMPermissionServiceTest {
         );
 
         verify(fmPermissionLowService).findFMPermissionByIdWithUser(any());
+        verify(festivalPermissionLowService).findByUserIdWithFestival(any());
+        verify(festivalNotice).deleteByUserId(any());
         verifyNoMoreInteractions(fmPermissionLowService);
     }
 }
