@@ -1,6 +1,9 @@
 package kakao.festapick.festivalnotice.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festivalnotice.domain.FestivalNotice;
@@ -46,17 +49,19 @@ public class FestivalNoticeService {
     @Transactional(readOnly = true)
     public Page<FestivalNoticeResponseDto> getFestivalNotices(Long festivalId, Pageable pageable){
         Page<FestivalNotice> pagedFestivalNotice = festivalNoticeLowService.findPagedNoticeByFestivalId(festivalId, pageable);
-        return pagedFestivalNotice.map(fn -> new FestivalNoticeResponseDto(fn, getFestivalNoticeImages(fn.getId())));
+        List<Long> noticeIds = pagedFestivalNotice.map(FestivalNotice::getId).stream().toList();
+        Map<Long, List<String>> noticeImages = getFestivalNoticeImages(noticeIds);
+        return pagedFestivalNotice.map(fn -> new FestivalNoticeResponseDto(fn, noticeImages.getOrDefault(fn.getId(), List.of())));
     }
 
     public FestivalNoticeResponseDto updateFestivalNotice(Long id, Long userId, FestivalNoticeRequestDto requestDto){
         FestivalNotice festivalNotice = festivalNoticeLowService.findByIdAndAuthorId(id, userId);
         festivalNotice.updateTitle(requestDto.title());
         festivalNotice.updateContent(requestDto.content());
-        if(requestDto.images() != null && !(requestDto.images().isEmpty())){
+        if(requestDto.images() != null){
             fileUploadHelper.updateFiles(id, DomainType.FESTIVAL_NOTICE, FileType.IMAGE, requestDto.images());
         }
-        return new FestivalNoticeResponseDto(festivalNotice, getFestivalNoticeImages(id));
+        return new FestivalNoticeResponseDto(festivalNotice, getFestivalNoticeImage(id));
     }
 
     public void deleteFestivalNotice(Long id, Long userId){
@@ -92,9 +97,21 @@ public class FestivalNoticeService {
         throw new ForbiddenException(ExceptionCode.FESTIVAL_NOTICE_ACCESS_FORBIDDEN);
     }
 
-    private List<String> getFestivalNoticeImages(Long id){
+    private List<String> getFestivalNoticeImage(Long id){
         List<FileEntity> images = fileService.findByDomainIdAndDomainType(id, DomainType.FESTIVAL_NOTICE);
         return images.stream().map(file -> file.getUrl()).toList();
+    }
+
+    private Map<Long, List<String>> getFestivalNoticeImages(List<Long> ids){
+        Map<Long, List<String>> noticeImages = new HashMap<>();
+        for(FileEntity file : fileService.findAllFileEntityByDomain(ids, DomainType.FESTIVAL_NOTICE)){
+            Long key = file.getDomainId();
+            if(!noticeImages.containsKey(key)){
+                noticeImages.put(key, new ArrayList<>());
+            }
+            noticeImages.get(key).add(file.getUrl());
+        }
+        return noticeImages;
     }
 
 }

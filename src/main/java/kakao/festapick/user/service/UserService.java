@@ -108,9 +108,9 @@ public class UserService {
         chatMessageService.deleteChatMessagesByUserId(findUser.getId());
         reviewService.deleteReviewByUserId(findUser.getId());
         festivalPermissionService.deleteFestivalPermissionByUserId(findUser.getId());
+        festivalNoticeService.deleteByUserId(findUser.getId());
         festivalService.deleteFestivalByManagerId(findUser.getId());
         fmPermissionService.deleteFMPermissionByUserId(findUser.getId());
-        festivalNoticeService.deleteByUserId(findUser.getId());
     }
 
 }
