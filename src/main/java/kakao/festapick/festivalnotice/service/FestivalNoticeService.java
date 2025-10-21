@@ -71,22 +71,22 @@ public class FestivalNoticeService {
 
     // User가 탈퇴한 경우
     public void deleteByUserId(Long userId){
-        List <Long> relatedFiles = festivalNoticeLowService.findByUserId(userId)
+        List <Long> domainIds = festivalNoticeLowService.findByUserId(userId)
                 .stream()
                 .map(FestivalNotice::getId)
                 .toList();
         festivalNoticeLowService.deleteByUserId(userId);
-        fileService.deleteByDomainIds(relatedFiles, DomainType.FESTIVAL_NOTICE);
+        fileService.deleteByDomainIds(domainIds, DomainType.FESTIVAL_NOTICE);
     }
 
     // 축제가 삭제된 경우
     public void deleteByFestivalId(Long festivalId){
-        List<Long> relatedFiles = festivalNoticeLowService.findByFestivalId(festivalId)
+        List<Long> domainIds = festivalNoticeLowService.findByFestivalId(festivalId)
                 .stream()
                 .map(FestivalNotice::getId)
                 .toList();
         festivalNoticeLowService.deleteByFestivalId(festivalId);
-        fileService.deleteByDomainIds(relatedFiles, DomainType.FESTIVAL_NOTICE);
+        fileService.deleteByDomainIds(domainIds, DomainType.FESTIVAL_NOTICE);
     }
 
     private Festival checkMyFestival(Long festivalId, Long userId){

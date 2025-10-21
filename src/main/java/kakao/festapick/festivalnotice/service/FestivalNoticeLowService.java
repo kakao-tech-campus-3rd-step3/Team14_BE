@@ -33,8 +33,8 @@ public class FestivalNoticeLowService {
         festivalNoticeRepository.deleteByIdAndUserId(id, userId);
     }
 
-    public List<FestivalNotice> findByFestivalId(Long id){
-        return festivalNoticeRepository.findByFestivalId(id);
+    public List<FestivalNotice> findByFestivalId(Long festivalId){
+        return festivalNoticeRepository.findByFestivalId(festivalId);
     }
 
     public List<FestivalNotice> findByUserId(Long userId){
