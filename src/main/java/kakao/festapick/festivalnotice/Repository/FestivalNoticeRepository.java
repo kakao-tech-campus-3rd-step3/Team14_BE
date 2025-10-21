@@ -21,6 +21,9 @@ public interface FestivalNoticeRepository extends JpaRepository<FestivalNotice, 
 
     List<FestivalNotice> findByFestivalId(Long festivalId);
 
+    @Query("select fn from FestivalNotice fn where fn.author.id =:userId")
+    List<FestivalNotice> findByUserId(Long userId);
+
     @Modifying(clearAutomatically = true)
     @Query("delete from FestivalNotice fn where fn.author.id =:userId")
     void deleteByUserId(Long userId);

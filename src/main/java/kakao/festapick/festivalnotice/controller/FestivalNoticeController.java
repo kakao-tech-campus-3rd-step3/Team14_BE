@@ -45,7 +45,7 @@ public class FestivalNoticeController {
             @PathVariable Long festivalId
     ) {
         Long saveId = festivalNoticeService.addFestivalNotice(festivalId, userId, requestDto);
-        return ResponseEntity.created(URI.create("/api/festival/notice/" + saveId)).build();
+        return ResponseEntity.created(URI.create("/api/festival/notices/" + saveId)).build();
     }
 
     @Operation(

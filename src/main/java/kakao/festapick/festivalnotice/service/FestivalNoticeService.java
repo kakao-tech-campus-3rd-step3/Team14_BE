@@ -43,6 +43,7 @@ public class FestivalNoticeService {
         return festivalNoticeId;
     }
 
+    @Transactional(readOnly = true)
     public Page<FestivalNoticeResponseDto> getFestivalNotices(Long festivalId, Pageable pageable){
         Page<FestivalNotice> pagedFestivalNotice = festivalNoticeLowService.findPagedNoticeByFestivalId(festivalId, pageable);
         return pagedFestivalNotice.map(fn -> new FestivalNoticeResponseDto(fn, getFestivalNoticeImages(fn.getId())));
