@@ -15,7 +15,6 @@ import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +24,6 @@ import java.util.Arrays;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Log4j2
 public class JwtService {
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -67,7 +65,6 @@ public class JwtService {
         RefreshToken findRefreshToken = findByUserIdentifier(identifier);
 
         if(!tokenEncoder.match(findRefreshToken.getToken(), oldRefreshToken)) {
-            log.info("token invalidated");
             throw new AuthenticationException(ExceptionCode.INVALID_REFRESH_TOKEN);
         }
 

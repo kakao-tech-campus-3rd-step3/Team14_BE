@@ -21,7 +21,6 @@ import java.util.OptionalDouble;
 
 @Entity
 @Getter
-@Slf4j
 @Table(indexes = @Index(name = "idx_festival_area_state_startdate_id", columnList= "areaCode, state, startDate, id"))
 public class Festival extends BaseTimeEntity {
 
