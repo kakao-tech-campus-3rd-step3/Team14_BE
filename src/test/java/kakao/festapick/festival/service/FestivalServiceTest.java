@@ -29,6 +29,7 @@ import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -90,6 +91,9 @@ class FestivalServiceTest {
     @Mock
     private FestivalNoticeService festivalNoticeService;
 
+    @Mock
+    private FileUploadHelper fileUploadHelper;
+
     @InjectMocks
     private FestivalService festivalService;
 
@@ -121,8 +125,8 @@ class FestivalServiceTest {
         verify(userLowService).getReferenceById(any());
         verify(festivalLowService).save(any());
         verify(temporalFileRepository).deleteById(any());
-        verify(temporalFileRepository).deleteByIds(any());
-        verifyNoMoreInteractions(userLowService, festivalLowService, s3Service, temporalFileRepository);
+        verify(fileUploadHelper).saveFiles(any(), any(), any(), any());
+        verifyNoMoreInteractions(userLowService, festivalLowService, temporalFileRepository, fileUploadHelper);
     }
 
     @Test
@@ -306,10 +310,11 @@ class FestivalServiceTest {
                 () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
         verify(festivalLowService).findByIdWithReviews(any());
-        verify(temporalFileRepository).deleteByIds(anyList());
-        verify(s3Service).deleteFiles(any());
+        verify(fileUploadHelper).updateFiles(any(), any(), any(), any());
+        verify(fileService).findByDomainIdAndDomainType(any(), any());
+        verify(s3Service).deleteS3File(any());
 
-        verifyNoMoreInteractions(festivalLowService, temporalFileRepository,s3Service, wishLowService);
+        verifyNoMoreInteractions(festivalLowService, fileUploadHelper, fileService, s3Service);
     }
 
     @Test
