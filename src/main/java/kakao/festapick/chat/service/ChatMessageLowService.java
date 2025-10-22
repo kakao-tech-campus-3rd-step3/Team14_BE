@@ -6,9 +6,9 @@ import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.dto.ChatMessageSliceDto;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.QChatMessageRepository;
+import kakao.festapick.global.exception.ExceptionCode;
+import kakao.festapick.global.exception.NotFoundEntityException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,5 +42,10 @@ public class ChatMessageLowService {
 
     public void deleteByUserId(Long userId) {
         chatMessageRepository.deleteByUserId(userId);
+    }
+
+    public ChatMessage findById(Long id) {
+        return chatMessageRepository.findById(id)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.CHAT_MESSAGE_NOT_FOUND));
     }
 }

@@ -23,8 +23,11 @@ public class ChatMessageService {
     private final S3Service s3Service;
 
     // 채팅방에서 최근 메시지 조회
-    public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long cursorId, LocalDateTime cursorTime) {
-        ChatMessageSliceDto prevMessageSlice = chatMessageLowService.findByChatRoomId(chatRoomId, cursorId, cursorTime, size);
+    public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long cursor) {
+        LocalDateTime cursorTime = (cursor != null) ? chatMessageLowService.findById(cursor).getCreatedDate() : null;
+        ChatMessageSliceDto prevMessageSlice = chatMessageLowService.findByChatRoomId(
+                chatRoomId, cursor, cursorTime, size
+        );
         Boolean hasMoreList = prevMessageSlice.hasNext();
         List<ChatMessage> prevMessageList = new ArrayList<>(prevMessageSlice.content());
         // 프론트에 전달하기 위해 역전, 프론트에는 id 기준 오름 차순으로 전달
