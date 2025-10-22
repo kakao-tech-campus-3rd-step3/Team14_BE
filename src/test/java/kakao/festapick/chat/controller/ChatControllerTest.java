@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.persistence.EntityManager;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -58,6 +59,8 @@ public class ChatControllerTest {
     private ChatRoomRepository chatRoomRepository;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     @DisplayName("채팅방 생성 성공")
@@ -122,20 +125,27 @@ public class ChatControllerTest {
         Festival festival = saveFestival();
         ChatRoom chatRoom = new ChatRoom("test room", festival);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
         ChatMessage firstChatMessage = new ChatMessage("test message1", "image url", savedChatRoom,
                 userEntity);
         ChatMessage secondChatMessage = new ChatMessage("test message2", "image url", savedChatRoom,
                 userEntity);
         ChatMessage thirdChatMessage = new ChatMessage("test message3", "image url", savedChatRoom,
                 userEntity);
+
         chatMessageRepository.save(firstChatMessage);
         chatMessageRepository.save(secondChatMessage);
         chatMessageRepository.save(thirdChatMessage);
 
+        entityManager.flush();
+
+        entityManager.refresh(firstChatMessage);
+        entityManager.refresh(secondChatMessage);
+        entityManager.refresh(thirdChatMessage);
+
         String response = mockMvc.perform(get(String.format("/api/chatRooms/%s/messages", savedChatRoom.getId()))
                         .with(securityContext(SecurityContextHolder.getContext()))
-                        .param("cursorId", String.valueOf(thirdChatMessage.getId()))
-                        .param("cursorTime", String.valueOf(thirdChatMessage.getCreatedDate()))
+                        .param("cursor", String.valueOf(thirdChatMessage.getId()))
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
