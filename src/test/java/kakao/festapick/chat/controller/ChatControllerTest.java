@@ -1,26 +1,35 @@
 package kakao.festapick.chat.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.chat.repository.ChatRoomRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
+import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.user.domain.UserEntity;
+import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +57,7 @@ public class ChatControllerTest {
     @Autowired
     private ChatRoomRepository chatRoomRepository;
     @Autowired
-    private ChatParticipantRepository chatParticipantRepository;
+    private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("채팅방 생성 성공")
@@ -103,6 +112,45 @@ public class ChatControllerTest {
                         .with(securityContext(SecurityContextHolder.getContext()))
                 )
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("cursorId로 채팅방의 이전 대화내역 불러오기 성공")
+    void getPreviousMessagesWithCursorIdSuccess() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        ChatMessage firstChatMessage = new ChatMessage("test message1", "image url", savedChatRoom,
+                userEntity);
+        ChatMessage secondChatMessage = new ChatMessage("test message2", "image url", savedChatRoom,
+                userEntity);
+        ChatMessage thirdChatMessage = new ChatMessage("test message3", "image url", savedChatRoom,
+                userEntity);
+        chatMessageRepository.save(firstChatMessage);
+        chatMessageRepository.save(secondChatMessage);
+        chatMessageRepository.save(thirdChatMessage);
+
+        String response = mockMvc.perform(get(String.format("/api/chatRooms/%s/messages", savedChatRoom.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                        .param("cursorId", String.valueOf(thirdChatMessage.getId()))
+                        .param("cursorTime", String.valueOf(thirdChatMessage.getCreatedDate()))
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+
+        PreviousMessagesResponseDto apiResponse = objectMapper.readValue(response, new TypeReference<PreviousMessagesResponseDto>() {
+        });
+
+
+        assertSoftly(softly -> {
+            softly.assertThat(apiResponse.content().size()).isEqualTo(2);
+            softly.assertThat(apiResponse.content().get(0).content()).isEqualTo(firstChatMessage.getContent());
+            softly.assertThat(apiResponse.content().get(1).content()).isEqualTo(secondChatMessage.getContent());
+        });
+
     }
 
     private UserEntity saveUserEntity() {
