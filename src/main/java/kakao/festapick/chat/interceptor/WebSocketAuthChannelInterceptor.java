@@ -36,9 +36,10 @@ import org.springframework.stereotype.Component;
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private static final Pattern CHATROOM_DEST_PATTERN = Pattern.compile("^/sub/(\\d+)/messages$");
-    private static final Pattern PUB_MESSAGE_DEST_PATTERN = Pattern.compile(
-            "^/pub/(\\d+)/messages$");
+    private static final Pattern PUB_DEST_PATTERN = Pattern.compile(
+            "^/pub/(\\d+)/(messages|read)$");
     private static final String USER_ERROR_DEST = "/user/queue/errors";
+    private static final String USER_UNREADS_DEST = "/user/queue/unreads";
 
     private final JwtUtil jwtUtil;
     private final UserLowService userLowService;
@@ -115,7 +116,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     // 클라이언트에서 보낸 pub 메시지의 destination 검증
     private void checkSendDestination(String destination) {
-        Matcher matcher = PUB_MESSAGE_DEST_PATTERN.matcher(destination);
+        Matcher matcher = PUB_DEST_PATTERN.matcher(destination);
 
         // 채팅방 destination이 아니면 전부 예외처리
         if (!matcher.matches()) {
@@ -134,10 +135,11 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(
                     chatRoomId);
             chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
+            return;
         }
 
-        // 에러 메시지를 받기 위한 구독
-        else if (!destination.equals(USER_ERROR_DEST)) {
+        // 개인 채널 구독이 아니면 예외 발생
+        if (!(destination.equals(USER_ERROR_DEST) || destination.equals(USER_UNREADS_DEST))) {
             throw new WebSocketException(ExceptionCode.INVALID_DESTINATION); // 둘 다 아니면 예외 발생
         }
     }

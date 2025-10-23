@@ -3,11 +3,15 @@ package kakao.festapick.redis.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
 import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
+import kakao.festapick.chat.dto.UnreadEventPayload;
 import kakao.festapick.chat.service.ChatMessageLowService;
+import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.global.exception.JsonParsingException;
@@ -31,6 +35,7 @@ public class RedisPubSubService implements MessageListener{
     private final UserLowService userLowService;
     private final ChatMessageLowService chatMessageLowService;
     private final ChatRoomLowService chatRoomLowService;
+    private final ChatParticipantLowService chatParticipantLowService;
     private final TemporalFileRepository temporalFileRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -55,21 +60,54 @@ public class RedisPubSubService implements MessageListener{
         // 채팅방의 버전 변경
         chatRoom.updateVersion();
 
-        //마지막에 redis로 전파
+        // redis로 채팅 메시지 브로드캐스트
         redisTemplate.convertAndSend("chat." + chatRoom.getId(), payload);
+
+        // 자신을 제외한 채팅방 참여자들의 id
+        List<Long> participantsUserIdList = chatParticipantLowService.findByChatRoomId(chatRoom.getId())
+                .stream()
+                .map(chatParticipant -> chatParticipant.getUser().getId())
+                .filter(id -> !id.equals(userId))
+                .toList();
+
+        UnreadEventPayload event = new UnreadEventPayload(chatRoom.getId(), participantsUserIdList);
+
+        // redis로 각 인스턴스에 브로드캐스트
+        redisTemplate.convertAndSend("unreads", event);
+
+        // 자신이 보낸 채팅 읽음 처리
+        ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserId(chatRoomId, userId);
+        participant.syncVersion();
     }
 
     // pubsub으로 메시지 받으면
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        // channel의 경우 chat.XXX로 . 뒤는 양수 숫자 (. 다음 첫 문자 1 - 9, 첫 문자가 아니면  0 - 9 가능)만 존재해야 한다
         String channel = new String(message.getChannel());
         String body = new String(message.getBody());
-        Long chatRoomId = Long.valueOf(channel.replaceAll("\\D+", ""));
         try {
-            ChatPayload payload = objectMapper.readValue(body, ChatPayload.class);
-            // subscribe한 클라이언트로 전파
-            webSocket.convertAndSend("/sub/" + chatRoomId + "/messages", payload);
+            // 채팅 전송의 경우
+            if (channel.startsWith("chat.")) {
+                // channel의 경우 chat.XXX로 . 뒤는 양수 숫자 (. 다음 첫 문자 1 - 9, 첫 문자가 아니면  0 - 9 가능)만 존재해야 한다
+                Long chatRoomId = Long.valueOf(channel.replaceAll("\\D+", ""));
+                ChatPayload payload = objectMapper.readValue(body, ChatPayload.class);
+                // subscribe한 클라이언트로 전파
+                webSocket.convertAndSend("/sub/" + chatRoomId + "/messages", payload);
+            }
+            // 새로운 채팅 알람인 경우
+            else if (channel.equals("unreads")) {
+                UnreadEventPayload event = objectMapper.readValue(body, UnreadEventPayload.class);
+                // 채팅방의 모든 참여자에게 전송 시도
+                for (Long userId : event.userIds()) {
+                    webSocket.convertAndSendToUser(
+                            userId.toString(),
+                            "/queue/unreads",
+                            Map.of("chatRoomId", event.chatRoomId())
+                    );
+
+                }
+            }
+
         } catch (JsonProcessingException e) {
             throw new JsonParsingException("redis payload 파싱 실패");
         }

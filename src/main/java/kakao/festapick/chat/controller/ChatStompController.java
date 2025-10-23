@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
 import kakao.festapick.chat.dto.ChatRequestDto;
-import kakao.festapick.chat.service.ChatMessageService;
+import kakao.festapick.chat.service.ChatParticipantService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.redis.service.RedisPubSubService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +19,7 @@ public class ChatStompController {
 
     private final RedisPubSubService redisPubSubService;
     private final ChatRoomService chatRoomService;
+    private final ChatParticipantService chatParticipantService;
 
     @MessageMapping("/{chatRoomId}/messages")
     public void sendChat(
@@ -29,5 +30,14 @@ public class ChatStompController {
         Long userId = Long.valueOf(principal.getName());
         ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(chatRoomId);
         redisPubSubService.sendChatMessageToRedis(chatRoomResponseDto.roomId(), requestDto, userId);
+    }
+
+    @MessageMapping("/{chatRoomId}/read")
+    public void readChatRoomMessage(
+            @DestinationVariable Long chatRoomId,
+            Principal principal
+    ) {
+        Long userId = Long.valueOf(principal.getName());
+        chatParticipantService.readChatRoomMessage(chatRoomId, userId);
     }
 }
