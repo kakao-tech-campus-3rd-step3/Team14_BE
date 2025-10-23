@@ -52,6 +52,9 @@ public class RedisPubSubService implements MessageListener{
         ChatMessage savedMessage = chatMessageLowService.save(chatMessage);
         ChatPayload payload = new ChatPayload(savedMessage);
 
+        // 채팅방의 버전 변경
+        chatRoom.updateVersion();
+
         //마지막에 redis로 전파
         redisTemplate.convertAndSend("chat." + chatRoom.getId(), payload);
     }

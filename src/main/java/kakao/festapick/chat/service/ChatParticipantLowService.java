@@ -10,6 +10,8 @@ import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +30,17 @@ public class ChatParticipantLowService {
         return chatParticipantRepository.existsByUserAndChatRoom(user, chatRoom);
     }
 
+    public ChatParticipant findByChatRoomIdAndUserId(Long chatRoomId, Long userId) {
+        return chatParticipantRepository.findByChatRoomIdAndUserId(chatRoomId, userId)
+                .orElseThrow(() -> new NotFoundEntityException(ExceptionCode.CHAT_PARTICIPANT_NOT_FOUND));
+    }
+
     public List<ChatParticipant> findByChatRoomId(Long chatRooomId) {
         return chatParticipantRepository.findByChatRoomId(chatRooomId);
+    }
+
+    public Page<ChatParticipant> findByUserIdWithChatRoom(Long userId, Pageable pageable) {
+        return chatParticipantRepository.findByUserIdWithChatRoom(userId, pageable);
     }
 
     public void deleteByChatRoomId(Long chatRoomId) {

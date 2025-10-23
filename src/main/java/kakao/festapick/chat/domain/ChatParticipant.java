@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
@@ -37,16 +38,18 @@ public class ChatParticipant extends BaseTimeEntity {
     @JoinColumn(name = "chatroom_id", nullable = false)
     private ChatRoom chatRoom;
 
+    private Long version;
+
     protected ChatParticipant() {
     }
 
     public ChatParticipant(UserEntity user, ChatRoom chatRoom) {
-        this(null, user, chatRoom);
-    }
-
-    public ChatParticipant(Long id, UserEntity user, ChatRoom chatRoom) {
-        this.id = id;
         this.user = user;
         this.chatRoom = chatRoom;
+        this.version = chatRoom.getVersion();
+    }
+
+    public void syncVersion() {
+        this.version = this.chatRoom.getVersion();
     }
 }

@@ -25,6 +25,7 @@ public enum ExceptionCode {
     FESTIVAL_PERMISSION_NOT_FOUND("존재하지 않는 관리 신청입니다."),
     FESTIVAL_NOTICE_NOT_FOUND("존재하지 않는 공지 사항입니다."),
     CHAT_MESSAGE_NOT_FOUND("존재하지 않는 채팅 메시지입니다."),
+    CHAT_PARTICIPANT_NOT_FOUND("존재하지 않는 채팅 참여자입니다."),
 
     //CONFLICT
     WISH_DUPLICATE("이미 좋아요한 축제입니다."),
