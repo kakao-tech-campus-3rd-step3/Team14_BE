@@ -9,13 +9,15 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
 import java.util.Optional;
+import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
-import kakao.festapick.chat.repository.ChatRoomRepository;
+import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
+import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Assertions;
@@ -27,51 +29,55 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ChatRoomLowServiceTest {
+public class ChatParticipantLowServiceTest {
 
     private final TestUtil testUtil = new TestUtil();
     @InjectMocks
-    private ChatRoomLowService chatRoomLowService;
+    private ChatParticipantLowService chatParticipantLowService;
     @Mock
-    private ChatRoomRepository chatRoomRepository;
+    private ChatParticipantRepository chatParticipantRepository;
 
     @Test
-    @DisplayName("방 아이디로 존재하는 채팅방 조회 성공")
-    void getExistChatRoomSuccess2() throws NoSuchFieldException, IllegalAccessException {
+    @DisplayName("방 아이디와 유저 아이디로 존재하는 채팅 참여자 조회 성공")
+    void getExistChatParticipantSuccess() throws NoSuchFieldException, IllegalAccessException {
         Festival festival = testFestival();
-
         ChatRoom chatRoom = new ChatRoom("test room", festival);
+        UserEntity userEntity = testUtil.createTestUser();
 
-        given(chatRoomRepository.findByRoomId(any()))
-                .willReturn(Optional.of(chatRoom));
+        ChatParticipant chatParticipant = new ChatParticipant(userEntity, chatRoom);
 
-        ChatRoom response = chatRoomLowService.findByRoomId(chatRoom.getId());
+        given(chatParticipantRepository.findByChatRoomIdAndUserId(any(), any()))
+                .willReturn(Optional.of(chatParticipant));
+
+        ChatParticipant response = chatParticipantLowService.findByChatRoomIdAndUserId(chatRoom.getId(), userEntity.getId());
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(response.getRoomName())
-                        .isEqualTo("test room"),
-                () -> AssertionsForClassTypes.assertThat(response.getFestival())
-                        .isEqualTo(festival)
+                () -> AssertionsForClassTypes.assertThat(response.getUser())
+                        .isEqualTo(userEntity),
+                () -> AssertionsForClassTypes.assertThat(response.getChatRoom())
+                        .isEqualTo(chatRoom),
+                () -> AssertionsForClassTypes.assertThat(response.getVersion())
+                        .isEqualTo(chatRoom.getVersion())
         );
 
-        verify(chatRoomRepository).findByRoomId(any());
-        verifyNoMoreInteractions(chatRoomRepository);
+        verify(chatParticipantRepository).findByChatRoomIdAndUserId(any(), any());
+        verifyNoMoreInteractions(chatParticipantRepository);
     }
 
     @Test
-    @DisplayName("없는 방 아이디로 채팅방 조회 실패")
-    void getExistChatRoomFail() {
-
-        given(chatRoomRepository.findByRoomId(any()))
+    @DisplayName("없는 방 아이디로 채팅 참여자 조회 실패")
+    void getExistChatParticipantFail() {
+        UserEntity userEntity = testUtil.createTestUser();
+        given(chatParticipantRepository.findByChatRoomIdAndUserId(any(), any()))
                 .willReturn(Optional.empty());
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> chatRoomLowService.findByRoomId(999L));
+                () -> chatParticipantLowService.findByChatRoomIdAndUserId(999L, userEntity.getId()));
 
-        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.CHATROOM_NOT_FOUND);
+        assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.CHAT_PARTICIPANT_NOT_FOUND);
 
-        verify(chatRoomRepository).findByRoomId(any());
-        verifyNoMoreInteractions(chatRoomRepository);
+        verify(chatParticipantRepository).findByChatRoomIdAndUserId(any(), any());
+        verifyNoMoreInteractions(chatParticipantRepository);
     }
 
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {

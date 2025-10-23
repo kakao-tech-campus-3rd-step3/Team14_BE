@@ -51,7 +51,7 @@ public class ChatMessageServiceTest {
     void getPreviousMessagesSuccess() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
         List<ChatMessage> messageList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {

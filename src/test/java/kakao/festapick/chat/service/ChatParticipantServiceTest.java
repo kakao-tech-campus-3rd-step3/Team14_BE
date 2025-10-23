@@ -1,13 +1,17 @@
 package kakao.festapick.chat.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.dto.ChatRoomReadStatusDto;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -20,10 +24,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class ChatParticipantServiceTest {
 
+    private final TestUtil testUtil = new TestUtil();
     @InjectMocks
     private ChatParticipantService chatParticipantService;
     @Mock
@@ -33,16 +41,14 @@ public class ChatParticipantServiceTest {
     @Mock
     private UserLowService userLowService;
 
-    private final TestUtil testUtil = new TestUtil();
-
     @Test
     @DisplayName("채팅방 입장 성공")
     void enterChatRoomSuccess() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
-        ChatParticipant chatParticipant = new ChatParticipant(1L, user, chatRoom);
+        ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
 
         given(chatRoomLowService.findByRoomId(any()))
                 .willReturn(chatRoom);
@@ -57,7 +63,7 @@ public class ChatParticipantServiceTest {
 
         verify(chatRoomLowService).findByRoomId(any());
         verify(userLowService).getReferenceById(any());
-        verify(chatParticipantLowService).existsByUserAndChatRoom(any(),any());
+        verify(chatParticipantLowService).existsByUserAndChatRoom(any(), any());
         verify(chatParticipantLowService).save(any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
@@ -69,7 +75,7 @@ public class ChatParticipantServiceTest {
     void enterChatRoomSuccess2() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
         given(chatRoomLowService.findByRoomId(any()))
                 .willReturn(chatRoom);
@@ -82,7 +88,57 @@ public class ChatParticipantServiceTest {
 
         verify(chatRoomLowService).findByRoomId(any());
         verify(userLowService).getReferenceById(any());
-        verify(chatParticipantLowService).existsByUserAndChatRoom(any(),any());
+        verify(chatParticipantLowService).existsByUserAndChatRoom(any(), any());
+        verifyNoMoreInteractions(chatRoomLowService);
+        verifyNoMoreInteractions(userLowService);
+        verifyNoMoreInteractions(chatParticipantLowService);
+    }
+
+    @Test
+    @DisplayName("내 채팅방 정보 조회 성공")
+    void getMyChatRoomSuccess() throws NoSuchFieldException, IllegalAccessException {
+        UserEntity user = testUtil.createTestUserWithId();
+        Festival festival = testFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
+        Page<ChatParticipant> chatParticipantPage = new PageImpl<ChatParticipant>(
+                List.of(chatParticipant), PageRequest.of(0, 1), 1);
+
+        given(chatParticipantLowService.findByUserIdWithChatRoom(any(), any()))
+                .willReturn(chatParticipantPage);
+
+        Page<ChatRoomReadStatusDto> resultPage = chatParticipantService.getMyChatRoomsReadStatus(
+                user.getId(), PageRequest.of(0, 1));
+
+        ChatRoomReadStatusDto actual = resultPage.getContent().get(0);
+
+        assertSoftly(softly -> {
+                    softly.assertThat(actual.roomName()).isEqualTo(chatRoom.getRoomName());
+                    softly.assertThat(actual.posterInfo()).isEqualTo(festival.getPosterInfo());
+                    softly.assertThat(actual.existNewMessage()).isEqualTo(false);
+                }
+        );
+
+        verify(chatParticipantLowService).findByUserIdWithChatRoom(any(), any());
+        verifyNoMoreInteractions(chatRoomLowService);
+        verifyNoMoreInteractions(userLowService);
+        verifyNoMoreInteractions(chatParticipantLowService);
+    }
+
+    @Test
+    @DisplayName("채팅방 읽음 확인")
+    void readChatMessage() throws NoSuchFieldException, IllegalAccessException {
+        UserEntity user = testUtil.createTestUserWithId();
+        Festival festival = testFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
+
+        given(chatParticipantLowService.findByChatRoomIdAndUserId(any(), any()))
+                .willReturn(chatParticipant);
+
+        chatParticipantService.readChatRoomMessage(chatRoom.getId(), user.getId());
+
+        verify(chatParticipantLowService).findByChatRoomIdAndUserId(any(), any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatParticipantLowService);
