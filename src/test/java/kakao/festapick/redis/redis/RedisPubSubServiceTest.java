@@ -159,7 +159,7 @@ public class RedisPubSubServiceTest {
         String payload = """
                 {
                     "chatRoomId": %d,
-                    "userIds": {%d}
+                    "userIds": [%d]
                 }
                 """.formatted(chatRoomId, userId);
 
