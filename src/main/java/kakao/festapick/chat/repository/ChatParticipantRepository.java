@@ -19,7 +19,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     @Query(value = "select cp from ChatParticipant cp join fetch cp.chatRoom cr join fetch cr.festival f where cp.chatRoom.id = :chatRoomId and cp.user.id = :userId")
     Optional<ChatParticipant> findByChatRoomIdAndUserId(Long chatRoomId, Long userId);
 
-    @Query(value = "select c from ChatParticipant c where c.chatRoom.id = :chatRooomId")
+    @Query(value = "select c from ChatParticipant c join fetch c.user u where c.chatRoom.id = :chatRooomId")
     List<ChatParticipant> findByChatRoomId(Long chatRooomId);
 
     @Query(value = "select cp from ChatParticipant cp join fetch cp.chatRoom cr join fetch cr.festival f where cp.user.id = :userId",
