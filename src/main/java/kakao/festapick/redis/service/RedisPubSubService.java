@@ -84,7 +84,7 @@ public class RedisPubSubService implements MessageListener {
         UnreadEventPayload event = new UnreadEventPayload(chatRoom.getId(), participantsUserIdList);
 
         // 자신이 보낸 채팅 읽음 처리
-        ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserId(
+        ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(
                 chatRoomId, userId);
         participant.syncMessageSeq();
 

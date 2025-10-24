@@ -38,7 +38,7 @@ public class ChatParticipantService {
 
     // 내가 접속했던 채팅방들의 정보 조회
     public Page<ChatRoomReadStatusDto> getMyChatRoomsReadStatus(Long userId, Pageable pageable) {
-        Page<ChatParticipant> chatParticipants = chatParticipantLowService.findByUserIdWithChatRoom(
+        Page<ChatParticipant> chatParticipants = chatParticipantLowService.findByUserIdWithChatRoomAndFestival(
                 userId, pageable);
         return chatParticipants.map(this::getMyChatRoomReadStatus);
     }
@@ -50,7 +50,7 @@ public class ChatParticipantService {
             backoff = @Backoff(delay = 10, multiplier = 2)
     )
     public void readChatRoomMessage(Long chatRoomId, Long userId) {
-        ChatParticipant chatParticipant = chatParticipantLowService.findByChatRoomIdAndUserId(chatRoomId, userId);
+        ChatParticipant chatParticipant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoomId, userId);
         chatParticipant.syncMessageSeq();
     }
 
