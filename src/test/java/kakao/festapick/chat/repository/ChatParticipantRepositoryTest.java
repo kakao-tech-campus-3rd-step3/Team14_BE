@@ -69,8 +69,8 @@ public class ChatParticipantRepositoryTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(userEntity),
                 () -> AssertionsForClassTypes.assertThat(actual.getChatRoom())
                         .isEqualTo(chatRoom),
-                () -> AssertionsForClassTypes.assertThat(actual.getVersion())
-                        .isEqualTo(chatRoom.getVersion())
+                () -> AssertionsForClassTypes.assertThat(actual.getMessageSeq())
+                        .isEqualTo(chatRoom.getMessageSeq())
         );
     }
 

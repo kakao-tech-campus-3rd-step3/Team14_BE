@@ -14,7 +14,9 @@ import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
+import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.JsonParsingException;
+import kakao.festapick.global.exception.WebSocketException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +24,14 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +47,12 @@ public class RedisPubSubService implements MessageListener {
     private final TemporalFileRepository temporalFileRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // 채팅 메시지 보내기
+    // 채팅 메시지 보내기, message seq 경합 발생 시 재시도
+    @Retryable(
+            retryFor = {ObjectOptimisticLockingFailureException.class},
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 10, multiplier = 2)
+    )
     public void sendChatMessageToRedis(Long chatRoomId, ChatRequestDto requestDto, Long userId) {
         UserEntity sender = userLowService.getReferenceById(userId);
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(chatRoomId);
@@ -57,11 +70,8 @@ public class RedisPubSubService implements MessageListener {
         ChatMessage savedMessage = chatMessageLowService.save(chatMessage);
         ChatPayload payload = new ChatPayload(savedMessage);
 
-        // 채팅방의 버전 변경
-        chatRoom.updateVersion();
-
-        // redis로 채팅 메시지 브로드캐스트
-        redisTemplate.convertAndSend("chat." + chatRoom.getId(), payload);
+        // 채팅방의 message seq 변경
+        chatRoom.updateMessageSeq();
 
         // 자신을 제외한 채팅방 참여자들의 id
         List<Long> participantsUserIdList = chatParticipantLowService.findByChatRoomId(
@@ -73,13 +83,29 @@ public class RedisPubSubService implements MessageListener {
 
         UnreadEventPayload event = new UnreadEventPayload(chatRoom.getId(), participantsUserIdList);
 
-        // redis로 각 인스턴스에 브로드캐스트
-        redisTemplate.convertAndSend("unreads", event);
-
         // 자신이 보낸 채팅 읽음 처리
         ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserId(
                 chatRoomId, userId);
-        participant.syncVersion();
+        participant.syncMessageSeq();
+
+        // db에 정상 커밋 이후 동작
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        // redis로 채팅 메시지 브로드캐스트
+                        redisTemplate.convertAndSend("chat." + chatRoom.getId(), payload);
+                        // redis로 각 인스턴스에 브로드캐스트
+                        redisTemplate.convertAndSend("unreads", event);
+                    }
+                }
+        );
+    }
+
+    // sendChatMessageToRedis가 재시도 5회 실패한 경우 실행
+    @Recover
+    public void recoverOptimisticLockFailure(ObjectOptimisticLockingFailureException exception) {
+        throw new WebSocketException(ExceptionCode.SEND_MESSAGE_CONFLICT);
     }
 
     // 인스턴스가 redis pubsub으로 메시지 받으면

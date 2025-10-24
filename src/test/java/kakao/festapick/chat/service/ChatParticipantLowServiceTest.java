@@ -56,8 +56,8 @@ public class ChatParticipantLowServiceTest {
                         .isEqualTo(userEntity),
                 () -> AssertionsForClassTypes.assertThat(response.getChatRoom())
                         .isEqualTo(chatRoom),
-                () -> AssertionsForClassTypes.assertThat(response.getVersion())
-                        .isEqualTo(chatRoom.getVersion())
+                () -> AssertionsForClassTypes.assertThat(response.getMessageSeq())
+                        .isEqualTo(chatRoom.getMessageSeq())
         );
 
         verify(chatParticipantRepository).findByChatRoomIdAndUserId(any(), any());

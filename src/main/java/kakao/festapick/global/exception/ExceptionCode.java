@@ -50,6 +50,7 @@ public enum ExceptionCode {
     //WEB_SOCKET_EXCEPTION
     MISSING_DESTINATION("destination이 없습니다."),
     MISSING_COMMAND("command가 없습니다."),
+    SEND_MESSAGE_CONFLICT("메시지 전송에 충돌이 발생했습니다, 다시 시도해주세요."),
     INVALID_DESTINATION("유효하지 않은 destination입니다.");
 
     private final String errorMessage;

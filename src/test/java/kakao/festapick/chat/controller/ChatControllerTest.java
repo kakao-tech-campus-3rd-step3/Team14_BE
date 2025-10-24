@@ -11,8 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import jakarta.persistence.EntityManager;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
-import kakao.festapick.chat.dto.ChatRoomReadStatusDto;
 import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
@@ -28,20 +25,16 @@ import kakao.festapick.chat.repository.ChatRoomRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -185,8 +178,8 @@ public class ChatControllerTest {
                 new ChatParticipant(userEntity, savedChatRoom)
         );
 
-        savedChatRoom.updateVersion();
-        savedChatRoom.updateVersion();
+        savedChatRoom.updateMessageSeq();
+        savedChatRoom.updateMessageSeq();
 
         String response = mockMvc.perform(get("/api/chatRooms/me")
                         .with(securityContext(SecurityContextHolder.getContext()))

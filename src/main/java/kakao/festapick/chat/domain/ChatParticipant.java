@@ -1,5 +1,6 @@
 package kakao.festapick.chat.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -10,7 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
+import jakarta.persistence.Version;
 import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.user.domain.UserEntity;
 import lombok.Getter;
@@ -38,7 +39,11 @@ public class ChatParticipant extends BaseTimeEntity {
     @JoinColumn(name = "chatroom_id", nullable = false)
     private ChatRoom chatRoom;
 
+    @Version
     private Long version;
+
+    @Column(nullable = false)
+    private Long messageSeq;
 
     protected ChatParticipant() {
     }
@@ -46,10 +51,13 @@ public class ChatParticipant extends BaseTimeEntity {
     public ChatParticipant(UserEntity user, ChatRoom chatRoom) {
         this.user = user;
         this.chatRoom = chatRoom;
-        this.version = chatRoom.getVersion();
+        this.messageSeq = chatRoom.getMessageSeq();
     }
 
-    public void syncVersion() {
-        this.version = this.chatRoom.getVersion();
+    public void syncMessageSeq() {
+        Long newMessageSeq = this.chatRoom.getMessageSeq();
+        if (this.messageSeq == null || newMessageSeq > this.messageSeq) {
+            this.messageSeq = newMessageSeq;
+        }
     }
 }
