@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class RedisPubSubService implements MessageListener{
+public class RedisPubSubService implements MessageListener {
 
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate webSocket;
@@ -64,7 +64,8 @@ public class RedisPubSubService implements MessageListener{
         redisTemplate.convertAndSend("chat." + chatRoom.getId(), payload);
 
         // 자신을 제외한 채팅방 참여자들의 id
-        List<Long> participantsUserIdList = chatParticipantLowService.findByChatRoomId(chatRoom.getId())
+        List<Long> participantsUserIdList = chatParticipantLowService.findByChatRoomId(
+                        chatRoom.getId())
                 .stream()
                 .map(chatParticipant -> chatParticipant.getUser().getId())
                 .filter(id -> !id.equals(userId))
@@ -76,38 +77,50 @@ public class RedisPubSubService implements MessageListener{
         redisTemplate.convertAndSend("unreads", event);
 
         // 자신이 보낸 채팅 읽음 처리
-        ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserId(chatRoomId, userId);
+        ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserId(
+                chatRoomId, userId);
         participant.syncVersion();
     }
 
-    // pubsub으로 메시지 받으면
+    // 인스턴스가 redis pubsub으로 메시지 받으면
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String channel = new String(message.getChannel());
         String body = new String(message.getBody());
+
+        // 채팅 전송의 경우
+        if (channel.startsWith("chat.")) {
+            handleChatMessage(channel, body);
+        }
+        // 새로운 채팅 알람인 경우
+        else if (channel.equals("unreads")) {
+            handleUnread(body);
+        }
+    }
+
+    private void handleChatMessage(String channel, String body) {
         try {
-            // 채팅 전송의 경우
-            if (channel.startsWith("chat.")) {
-                // channel의 경우 chat.XXX로 . 뒤는 양수 숫자 (. 다음 첫 문자 1 - 9, 첫 문자가 아니면  0 - 9 가능)만 존재해야 한다
-                Long chatRoomId = Long.valueOf(channel.replaceAll("\\D+", ""));
-                ChatPayload payload = objectMapper.readValue(body, ChatPayload.class);
-                // subscribe한 클라이언트로 전파
-                webSocket.convertAndSend("/sub/" + chatRoomId + "/messages", payload);
-            }
-            // 새로운 채팅 알람인 경우
-            else if (channel.equals("unreads")) {
-                UnreadEventPayload event = objectMapper.readValue(body, UnreadEventPayload.class);
-                // 채팅방의 모든 참여자에게 전송 시도
-                for (Long userId : event.userIds()) {
-                    webSocket.convertAndSendToUser(
-                            userId.toString(),
-                            "/queue/unreads",
-                            Map.of("chatRoomId", event.chatRoomId())
-                    );
+            // channel의 경우 chat.XXX로 . 뒤는 양수 숫자 (. 다음 첫 문자 1 - 9, 첫 문자가 아니면  0 - 9 가능)만 존재해야 한다
+            Long chatRoomId = Long.valueOf(channel.replaceAll("\\D+", ""));
+            ChatPayload payload = objectMapper.readValue(body, ChatPayload.class);
+            // subscribe한 클라이언트로 전파
+            webSocket.convertAndSend("/sub/" + chatRoomId + "/messages", payload);
+        } catch (JsonProcessingException e) {
+            throw new JsonParsingException("redis payload 파싱 실패");
+        }
+    }
 
-                }
+    private void handleUnread(String body) {
+        try {
+            UnreadEventPayload event = objectMapper.readValue(body, UnreadEventPayload.class);
+            // 채팅방의 모든 참여자에게 전송 시도
+            for (Long userId : event.userIds()) {
+                webSocket.convertAndSendToUser(
+                        userId.toString(),
+                        "/queue/unreads",
+                        Map.of("chatRoomId", event.chatRoomId())
+                );
             }
-
         } catch (JsonProcessingException e) {
             throw new JsonParsingException("redis payload 파싱 실패");
         }
