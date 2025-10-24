@@ -63,7 +63,7 @@ public class ChatMessageServiceTest {
         List<ChatMessage> reversedMessageList = new ArrayList<>(messageList.reversed());
         ChatMessageSliceDto slice = new ChatMessageSliceDto(reversedMessageList, true);
 
-        given(chatMessageLowService.findByChatRoomId(any(), any(), any(), anyInt()))
+        given(chatMessageLowService.findByChatRoomIdWithUser(any(), any(), any(), anyInt()))
                 .willReturn(slice);
 
         PreviousMessagesResponseDto response = chatMessageService.getPreviousMessages(1L, 1, null);
@@ -73,7 +73,7 @@ public class ChatMessageServiceTest {
                         .isEqualTo(messageList.stream().map(ChatPayload::new).toList())
         );
 
-        verify(chatMessageLowService).findByChatRoomId(any(), any(),any(), anyInt());
+        verify(chatMessageLowService).findByChatRoomIdWithUser(any(), any(),any(), anyInt());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);

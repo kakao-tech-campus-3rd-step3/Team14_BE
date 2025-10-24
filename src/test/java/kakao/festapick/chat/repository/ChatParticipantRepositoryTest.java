@@ -101,7 +101,7 @@ public class ChatParticipantRepositoryTest {
 
         ChatParticipant chatParticipant = chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
 
-        Optional<ChatParticipant> find = chatParticipantRepository.findByChatRoomIdAndUserId(chatRoom.getId(), userEntity.getId());
+        Optional<ChatParticipant> find = chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(chatRoom.getId(), userEntity.getId());
 
         AssertionsForClassTypes.assertThat(find).isPresent();
 

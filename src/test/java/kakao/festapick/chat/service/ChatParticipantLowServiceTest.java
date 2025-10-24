@@ -46,10 +46,10 @@ public class ChatParticipantLowServiceTest {
 
         ChatParticipant chatParticipant = new ChatParticipant(userEntity, chatRoom);
 
-        given(chatParticipantRepository.findByChatRoomIdAndUserId(any(), any()))
+        given(chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(any(), any()))
                 .willReturn(Optional.of(chatParticipant));
 
-        ChatParticipant response = chatParticipantLowService.findByChatRoomIdAndUserId(chatRoom.getId(), userEntity.getId());
+        ChatParticipant response = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoom.getId(), userEntity.getId());
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(response.getUser())
@@ -60,7 +60,7 @@ public class ChatParticipantLowServiceTest {
                         .isEqualTo(chatRoom.getMessageSeq())
         );
 
-        verify(chatParticipantRepository).findByChatRoomIdAndUserId(any(), any());
+        verify(chatParticipantRepository).findByChatRoomIdAndUserIdWithChatRoom(any(), any());
         verifyNoMoreInteractions(chatParticipantRepository);
     }
 
@@ -68,15 +68,15 @@ public class ChatParticipantLowServiceTest {
     @DisplayName("없는 방 아이디로 채팅 참여자 조회 실패")
     void getExistChatParticipantFail() {
         UserEntity userEntity = testUtil.createTestUser();
-        given(chatParticipantRepository.findByChatRoomIdAndUserId(any(), any()))
+        given(chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(any(), any()))
                 .willReturn(Optional.empty());
 
         NotFoundEntityException e = Assertions.assertThrows(NotFoundEntityException.class,
-                () -> chatParticipantLowService.findByChatRoomIdAndUserId(999L, userEntity.getId()));
+                () -> chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(999L, userEntity.getId()));
 
         assertThat(e.getExceptionCode()).isEqualTo(ExceptionCode.CHAT_PARTICIPANT_NOT_FOUND);
 
-        verify(chatParticipantRepository).findByChatRoomIdAndUserId(any(), any());
+        verify(chatParticipantRepository).findByChatRoomIdAndUserIdWithChatRoom(any(), any());
         verifyNoMoreInteractions(chatParticipantRepository);
     }
 

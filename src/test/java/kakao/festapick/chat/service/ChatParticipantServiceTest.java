@@ -104,7 +104,7 @@ public class ChatParticipantServiceTest {
         Page<ChatParticipant> chatParticipantPage = new PageImpl<ChatParticipant>(
                 List.of(chatParticipant), PageRequest.of(0, 1), 1);
 
-        given(chatParticipantLowService.findByUserIdWithChatRoom(any(), any()))
+        given(chatParticipantLowService.findByUserIdWithChatRoomAndFestival(any(), any()))
                 .willReturn(chatParticipantPage);
 
         Page<ChatRoomReadStatusDto> resultPage = chatParticipantService.getMyChatRoomsReadStatus(
@@ -119,7 +119,7 @@ public class ChatParticipantServiceTest {
                 }
         );
 
-        verify(chatParticipantLowService).findByUserIdWithChatRoom(any(), any());
+        verify(chatParticipantLowService).findByUserIdWithChatRoomAndFestival(any(), any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatParticipantLowService);
@@ -133,12 +133,12 @@ public class ChatParticipantServiceTest {
         ChatRoom chatRoom = new ChatRoom("test room", festival);
         ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
 
-        given(chatParticipantLowService.findByChatRoomIdAndUserId(any(), any()))
+        given(chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(any(), any()))
                 .willReturn(chatParticipant);
 
         chatParticipantService.readChatRoomMessage(chatRoom.getId(), user.getId());
 
-        verify(chatParticipantLowService).findByChatRoomIdAndUserId(any(), any());
+        verify(chatParticipantLowService).findByChatRoomIdAndUserIdWithChatRoom(any(), any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatParticipantLowService);

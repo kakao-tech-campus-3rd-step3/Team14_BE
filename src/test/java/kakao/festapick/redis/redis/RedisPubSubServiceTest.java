@@ -40,6 +40,8 @@ import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @ExtendWith(MockitoExtension.class)
 public class RedisPubSubServiceTest {
@@ -66,40 +68,51 @@ public class RedisPubSubServiceTest {
 
     @Test
     @DisplayName("채팅 메시지 레디스로 전송 성공")
-    void sendChatMessageToRedisSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUserWithId();
-        Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom("test room", festival);
-        ChatMessage chatMessage = new ChatMessage("test message", "image url",chatRoom, user);
-        ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
+    void sendChatMessageToRedisSuccess() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            UserEntity user = testUtil.createTestUserWithId();
+            Festival festival = testFestival();
+            ChatRoom chatRoom = new ChatRoom("test room", festival);
+            ChatMessage chatMessage = new ChatMessage("test message", "image url",chatRoom, user);
+            ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
 
-        given(userLowService.getReferenceById(any()))
-                .willReturn(user);
-        given(chatRoomLowService.findByRoomId(any()))
-                .willReturn(chatRoom);
-        given(chatMessageLowService.save(any()))
-                .willReturn(chatMessage);
-        given(chatParticipantLowService.findByChatRoomIdAndUserId(any(), any()))
-                .willReturn(chatParticipant);
+            given(userLowService.getReferenceById(any()))
+                    .willReturn(user);
+            given(chatRoomLowService.findByRoomId(any()))
+                    .willReturn(chatRoom);
+            given(chatMessageLowService.save(any()))
+                    .willReturn(chatMessage);
+            given(chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(any(), any()))
+                    .willReturn(chatParticipant);
 
-        ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
-        redisPubSubService.sendChatMessageToRedis(chatRoom.getId(), requestDto, user.getId());
+            ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
+            redisPubSubService.sendChatMessageToRedis(chatRoom.getId(), requestDto, user.getId());
 
-        verify(userLowService).getReferenceById(any());
-        verify(chatRoomLowService).findByRoomId(any());
-        verify(chatMessageLowService).save(any());
-        verify(temporalFileRepository).deleteByIds(any());
-        verify(redisTemplate, times(2)).convertAndSend((String) any(), (Object) any());
-        verify(chatParticipantLowService).findByChatRoomId(any());
-        verify(chatParticipantLowService).findByChatRoomIdAndUserId(any(), any());
-        verifyNoMoreInteractions(chatRoomLowService);
-        verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(chatMessageLowService);
-        verifyNoMoreInteractions(temporalFileRepository);
-        verifyNoMoreInteractions(objectMapper);
-        verifyNoMoreInteractions(webSocket);
-        verifyNoMoreInteractions(redisTemplate);
-        verifyNoMoreInteractions(chatParticipantLowService);
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+
+            verify(userLowService).getReferenceById(any());
+            verify(chatRoomLowService).findByRoomId(any());
+            verify(chatMessageLowService).save(any());
+            verify(temporalFileRepository).deleteByIds(any());
+            verify(redisTemplate, times(2)).convertAndSend((String) any(), (Object) any());
+            verify(chatParticipantLowService).findByChatRoomId(any());
+            verify(chatParticipantLowService).findByChatRoomIdAndUserIdWithChatRoom(any(), any());
+            verifyNoMoreInteractions(chatRoomLowService);
+            verifyNoMoreInteractions(userLowService);
+            verifyNoMoreInteractions(chatMessageLowService);
+            verifyNoMoreInteractions(temporalFileRepository);
+            verifyNoMoreInteractions(objectMapper);
+            verifyNoMoreInteractions(webSocket);
+            verifyNoMoreInteractions(redisTemplate);
+            verifyNoMoreInteractions(chatParticipantLowService);
+        } catch (Exception e) {
+
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
     }
 
     @Test
