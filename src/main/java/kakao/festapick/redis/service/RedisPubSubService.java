@@ -9,6 +9,7 @@ import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
+import kakao.festapick.chat.dto.ReadEventPayload;
 import kakao.festapick.chat.dto.UnreadEventPayload;
 import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
@@ -20,6 +21,7 @@ import kakao.festapick.global.exception.WebSocketException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -108,12 +110,35 @@ public class RedisPubSubService implements MessageListener {
         throw new WebSocketException(ExceptionCode.SEND_MESSAGE_CONFLICT);
     }
 
+    // 채팅방 읽음 확인
+    @Retryable(
+            retryFor = {ObjectOptimisticLockingFailureException.class},
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 10, multiplier = 2)
+    )
+    public void readChatRoomMessage(Long chatRoomId, Long userId) {
+        ChatParticipant chatParticipant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoomId, userId);
+        chatParticipant.syncMessageSeq();
+
+        ReadEventPayload event = new ReadEventPayload(chatRoomId, userId);
+
+        // db에 정상 커밋 이후 동작
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        // redis로 각 인스턴스에 브로드캐스트
+                        redisTemplate.convertAndSend("reads", event);
+                    }
+                }
+        );
+    }
+
     // 인스턴스가 redis pubsub으로 메시지 받으면
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String channel = new String(message.getChannel());
         String body = new String(message.getBody());
-
         // 채팅 전송의 경우
         if (channel.startsWith("chat.")) {
             handleChatMessage(channel, body);
@@ -121,6 +146,10 @@ public class RedisPubSubService implements MessageListener {
         // 새로운 채팅 알람인 경우
         else if (channel.equals("unreads")) {
             handleUnread(body);
+        }
+        // 다른 기기에서 채팅을 읽었다는 알람인 경우
+        else if (channel.equals("reads")) {
+            handleRead(body);
         }
     }
 
@@ -147,6 +176,19 @@ public class RedisPubSubService implements MessageListener {
                         Map.of("chatRoomId", event.chatRoomId())
                 );
             }
+        } catch (JsonProcessingException e) {
+            throw new JsonParsingException("redis payload 파싱 실패");
+        }
+    }
+
+    private void handleRead(String body) {
+        try {
+            ReadEventPayload event = objectMapper.readValue(body, ReadEventPayload.class);
+            webSocket.convertAndSendToUser(
+                    event.userId().toString(),
+                    "/queue/reads",
+                    Map.of("chatRoomId", event.chatRoomId())
+            );
         } catch (JsonProcessingException e) {
             throw new JsonParsingException("redis payload 파싱 실패");
         }

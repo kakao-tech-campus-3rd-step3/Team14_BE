@@ -40,6 +40,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             "^/pub/(\\d+)/(messages|read)$");
     private static final String USER_ERROR_DEST = "/user/queue/errors";
     private static final String USER_UNREADS_DEST = "/user/queue/unreads";
+    private static final String USER_READS_DEST = "/user/queue/reads";
 
     private final JwtUtil jwtUtil;
     private final UserLowService userLowService;
@@ -139,8 +140,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         }
 
         // 개인 채널 구독이 아니면 예외 발생
-        if (!(destination.equals(USER_ERROR_DEST) || destination.equals(USER_UNREADS_DEST))) {
-            throw new WebSocketException(ExceptionCode.INVALID_DESTINATION); // 둘 다 아니면 예외 발생
+        if (!(destination.equals(USER_ERROR_DEST) || destination.equals(USER_UNREADS_DEST) || destination.equals(USER_READS_DEST))) {
+            throw new WebSocketException(ExceptionCode.INVALID_DESTINATION); // 셋 다 아니면 예외 발생
         }
     }
 }

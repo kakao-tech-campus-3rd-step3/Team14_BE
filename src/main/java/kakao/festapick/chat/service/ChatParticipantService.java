@@ -9,9 +9,6 @@ import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,17 +38,6 @@ public class ChatParticipantService {
         Page<ChatParticipant> chatParticipants = chatParticipantLowService.findByUserIdWithChatRoomAndFestival(
                 userId, pageable);
         return chatParticipants.map(this::getMyChatRoomReadStatus);
-    }
-
-    // 채팅방 읽음 확인
-    @Retryable(
-            retryFor = {ObjectOptimisticLockingFailureException.class},
-            maxAttempts = 5,
-            backoff = @Backoff(delay = 10, multiplier = 2)
-    )
-    public void readChatRoomMessage(Long chatRoomId, Long userId) {
-        ChatParticipant chatParticipant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoomId, userId);
-        chatParticipant.syncMessageSeq();
     }
 
     private ChatRoomReadStatusDto getMyChatRoomReadStatus(ChatParticipant chatParticipant) {

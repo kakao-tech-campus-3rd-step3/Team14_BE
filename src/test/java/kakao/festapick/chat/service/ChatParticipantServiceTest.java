@@ -125,25 +125,6 @@ public class ChatParticipantServiceTest {
         verifyNoMoreInteractions(chatParticipantLowService);
     }
 
-    @Test
-    @DisplayName("채팅방 읽음 확인")
-    void readChatMessage() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUserWithId();
-        Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom("test room", festival);
-        ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
-
-        given(chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(any(), any()))
-                .willReturn(chatParticipant);
-
-        chatParticipantService.readChatRoomMessage(chatRoom.getId(), user.getId());
-
-        verify(chatParticipantLowService).findByChatRoomIdAndUserIdWithChatRoom(any(), any());
-        verifyNoMoreInteractions(chatRoomLowService);
-        verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(chatParticipantLowService);
-    }
-
     private Festival testFestival() throws NoSuchFieldException, IllegalAccessException {
         FestivalRequestDto festivalRequestDto = new FestivalRequestDto("12345", "example title",
                 11, "test area1", "test area2", "http://asd.example.com/test.jpg",

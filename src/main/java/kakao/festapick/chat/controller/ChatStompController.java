@@ -38,6 +38,6 @@ public class ChatStompController {
             Principal principal
     ) {
         Long userId = Long.valueOf(principal.getName());
-        chatParticipantService.readChatRoomMessage(chatRoomId, userId);
+        redisPubSubService.readChatRoomMessage(chatRoomId, userId);
     }
 }
