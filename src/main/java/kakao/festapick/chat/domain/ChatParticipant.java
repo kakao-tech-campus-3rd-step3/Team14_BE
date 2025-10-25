@@ -39,9 +39,6 @@ public class ChatParticipant extends BaseTimeEntity {
     @JoinColumn(name = "chatroom_id", nullable = false)
     private ChatRoom chatRoom;
 
-    @Version
-    private Long version;
-
     @Column(nullable = false)
     private Long messageSeq;
 
