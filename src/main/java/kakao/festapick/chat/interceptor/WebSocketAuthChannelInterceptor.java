@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import kakao.festapick.chat.domain.ChatRoomSession;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
+import kakao.festapick.chat.repository.ChatRoomSessionRepository;
 import kakao.festapick.chat.service.ChatParticipantService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.global.exception.AuthenticationException;
@@ -18,7 +21,7 @@ import kakao.festapick.jwt.util.TokenType;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -46,6 +49,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
     private final UserLowService userLowService;
     private final ChatParticipantService chatParticipantService;
     private final ChatRoomService chatRoomService;
+    private final ChatRoomSessionRepository chatRoomSessionRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -61,6 +65,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             case StompCommand.CONNECT -> handleConnect(headerAccessor);
             case StompCommand.SUBSCRIBE -> handleSubscribe(headerAccessor);
             case StompCommand.SEND -> handleSend(headerAccessor);
+            case StompCommand.UNSUBSCRIBE, StompCommand.DISCONNECT -> handleUnSubscribeAndDisconnect(headerAccessor);
             default -> {
                 // 그 외 command는 무시
             }
@@ -81,13 +86,14 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     // 들어온 command가 Subscribe인 경우
     private void handleSubscribe(StompHeaderAccessor headerAccessor) {
-        Principal principal = Optional.ofNullable(headerAccessor.getUser())
-                .orElseThrow(() -> new AuthenticationException(ExceptionCode.NO_LOGIN));
-        String destination = Optional.ofNullable(headerAccessor.getDestination())
-                .orElseThrow(() -> new WebSocketException(ExceptionCode.MISSING_DESTINATION));
-
         //destination 확인
-        checkSubscribeDestination(destination, principal);
+        checkDestination(headerAccessor);
+    }
+
+    // 들어온 command가 unSubscribe인 경우
+    private void handleUnSubscribeAndDisconnect(StompHeaderAccessor headerAccessor) {
+        //destination 확인
+        checkDestination(headerAccessor);
     }
 
     // 들어온 command가 Connect인 경우
@@ -126,16 +132,34 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
     }
 
     // 클라이언트에서 보낸 sub 메시지의 destination 검증
-    private void checkSubscribeDestination(String destination, Principal principal) {
+    private void checkDestination(StompHeaderAccessor headerAccessor) {
+
+        Principal principal = Optional.ofNullable(headerAccessor.getUser())
+                .orElseThrow(() -> new AuthenticationException(ExceptionCode.NO_LOGIN));
+        String destination = Optional.ofNullable(headerAccessor.getDestination())
+                .orElseThrow(() -> new WebSocketException(ExceptionCode.MISSING_DESTINATION));
+
         Matcher matcher = CHATROOM_DEST_PATTERN.matcher(destination);
 
+        StompCommand command = headerAccessor.getCommand();
+
         // 채팅방 구독이거나
-        if (matcher.matches()) {
+        if (matcher.matches() && command == StompCommand.SUBSCRIBE) {
             Long userId = Long.valueOf(principal.getName());
             Long chatRoomId = Long.valueOf(matcher.group(1));
             ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(
                     chatRoomId);
             chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
+            chatRoomSessionRepository.save(new ChatRoomSession(chatRoomId, userId));
+            return;
+        }
+
+        // 채팅방 나갔을 때(UNSUBSCRIBE or DISCONNECT) 레디스 ChatRoomSession 무효화
+        if (matcher.matches() && (command == StompCommand.UNSUBSCRIBE ||  command == StompCommand.DISCONNECT)) {
+            Long userId = Long.valueOf(principal.getName());
+            Long chatRoomId = Long.valueOf(matcher.group(1));
+
+            chatRoomSessionRepository.deleteById(chatRoomId + ":" + userId);
             return;
         }
 

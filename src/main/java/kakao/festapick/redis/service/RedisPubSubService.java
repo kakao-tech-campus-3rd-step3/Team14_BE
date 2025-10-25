@@ -11,6 +11,7 @@ import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
 import kakao.festapick.chat.dto.ReadEventPayload;
 import kakao.festapick.chat.dto.UnreadEventPayload;
+import kakao.festapick.chat.repository.ChatRoomSessionRepository;
 import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;
@@ -48,6 +49,7 @@ public class RedisPubSubService implements MessageListener {
     private final ChatParticipantLowService chatParticipantLowService;
     private final TemporalFileRepository temporalFileRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ChatRoomSessionRepository chatRoomSessionRepository;
 
     // 채팅 메시지 보내기, message seq 경합 발생 시 재시도
     @Retryable(
@@ -170,6 +172,7 @@ public class RedisPubSubService implements MessageListener {
             UnreadEventPayload event = objectMapper.readValue(body, UnreadEventPayload.class);
             // 채팅방의 모든 참여자에게 전송 시도
             for (Long userId : event.userIds()) {
+                if (isActiveChatRoomSession(event.chatRoomId(), userId)) continue;
                 webSocket.convertAndSendToUser(
                         userId.toString(),
                         "/queue/unreads",
@@ -179,6 +182,10 @@ public class RedisPubSubService implements MessageListener {
         } catch (JsonProcessingException e) {
             throw new JsonParsingException("redis payload 파싱 실패");
         }
+    }
+
+    private boolean isActiveChatRoomSession(Long chatRoomId, Long userId) {
+        return chatRoomSessionRepository.existsById(chatRoomId + ":" + userId);
     }
 
     private void handleRead(String body) {

@@ -18,6 +18,7 @@ import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
 import kakao.festapick.chat.dto.UnreadEventPayload;
+import kakao.festapick.chat.repository.ChatRoomSessionRepository;
 import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;
@@ -65,6 +66,8 @@ public class RedisPubSubServiceTest {
     private TemporalFileRepository temporalFileRepository;
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
+    @Mock
+    private ChatRoomSessionRepository chatRoomSessionRepository;
 
     @Test
     @DisplayName("채팅 메시지 레디스로 전송 성공")
