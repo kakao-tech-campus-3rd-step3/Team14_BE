@@ -24,8 +24,8 @@ public class ChatMessageLowService {
         return chatMessageRepository.save(chatMessage);
     }
 
-    public ChatMessageSliceDto findByChatRoomId(Long chatRoomId, Long cursorId, LocalDateTime cursorTime, int size) {
-        return qChatMessageRepository.findByChatRoomId(chatRoomId, cursorId, cursorTime, size);
+    public ChatMessageSliceDto findByChatRoomIdWithUser(Long chatRoomId, Long cursorId, LocalDateTime cursorTime, int size) {
+        return qChatMessageRepository.findByChatRoomIdWithUser(chatRoomId, cursorId, cursorTime, size);
     }
 
     public List<ChatMessage> findAllByChatRoomId(Long chatRoomId) {

@@ -1,5 +1,6 @@
 package kakao.festapick.chat.controller;
 
+import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -15,6 +16,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.chat.repository.ChatMessageRepository;
@@ -23,14 +25,11 @@ import kakao.festapick.chat.repository.ChatRoomRepository;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.repository.FestivalRepository;
-import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.user.domain.UserEntity;
-import kakao.festapick.user.dto.UserResponseDto;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestSecurityContextHolderInjection;
 import kakao.festapick.util.TestUtil;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +56,8 @@ public class ChatControllerTest {
     private ChatMessageRepository chatMessageRepository;
     @Autowired
     private ChatRoomRepository chatRoomRepository;
+    @Autowired
+    private ChatParticipantRepository chatParticipantRepository;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -159,6 +160,37 @@ public class ChatControllerTest {
             softly.assertThat(apiResponse.content().size()).isEqualTo(2);
             softly.assertThat(apiResponse.content().get(0).content()).isEqualTo(firstChatMessage.getContent());
             softly.assertThat(apiResponse.content().get(1).content()).isEqualTo(secondChatMessage.getContent());
+        });
+
+    }
+
+    @Test
+    @DisplayName("내 채팅방 조회 시 읽지않은 메시지가 있는 채팅방은 표시 성공")
+    void getMyChatRoomReadStatus() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        ChatParticipant chatParticipant = chatParticipantRepository.save(
+                new ChatParticipant(userEntity, savedChatRoom)
+        );
+
+        savedChatRoom.updateMessageSeq();
+        savedChatRoom.updateMessageSeq();
+
+        String response = mockMvc.perform(get("/api/chatRooms/me")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        Boolean exist = read(response, "$.content[0].existNewMessage");
+
+        assertSoftly(softly -> {
+            softly.assertThat(exist.equals(true));
         });
 
     }

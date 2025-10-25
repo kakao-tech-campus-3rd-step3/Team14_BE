@@ -25,7 +25,7 @@ public class ChatMessageService {
     // 채팅방에서 최근 메시지 조회
     public PreviousMessagesResponseDto getPreviousMessages(Long chatRoomId, int size, Long cursor) {
         LocalDateTime cursorTime = (cursor != null) ? chatMessageLowService.findById(cursor).getCreatedDate() : null;
-        ChatMessageSliceDto prevMessageSlice = chatMessageLowService.findByChatRoomId(
+        ChatMessageSliceDto prevMessageSlice = chatMessageLowService.findByChatRoomIdWithUser(
                 chatRoomId, cursor, cursorTime, size
         );
         Boolean hasMoreList = prevMessageSlice.hasNext();

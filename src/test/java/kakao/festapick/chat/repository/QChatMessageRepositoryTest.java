@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatMessageSliceDto;
@@ -15,7 +13,6 @@ import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.repository.UserRepository;
 import kakao.festapick.util.TestUtil;
-import org.apache.catalina.User;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
@@ -93,7 +87,7 @@ public class QChatMessageRepositoryTest {
                 new ChatMessage("test message", "image url", chatRoom, userEntity)
         );
 
-        ChatMessageSliceDto find = qChatMessageRepository.findByChatRoomId(
+        ChatMessageSliceDto find = qChatMessageRepository.findByChatRoomIdWithUser(
                 chatRoom.getId(), null, null, 1
         );
 
@@ -129,7 +123,7 @@ public class QChatMessageRepositoryTest {
         entityManager.refresh(firstSavedMessage);
         entityManager.refresh(secondSavedMessage);
 
-        ChatMessageSliceDto find = qChatMessageRepository.findByChatRoomId(
+        ChatMessageSliceDto find = qChatMessageRepository.findByChatRoomIdWithUser(
                 chatRoom.getId(), secondSavedMessage.getId(), secondSavedMessage.getCreatedDate(), 1
         );
 
@@ -170,11 +164,11 @@ public class QChatMessageRepositoryTest {
         entityManager.refresh(secondSavedMessage);
         entityManager.refresh(thirdSavedMessage);
 
-        ChatMessageSliceDto actual1 = qChatMessageRepository.findByChatRoomId(
+        ChatMessageSliceDto actual1 = qChatMessageRepository.findByChatRoomIdWithUser(
                 chatRoom.getId(), thirdSavedMessage.getId(), thirdSavedMessage.getCreatedDate(), 2
         );
 
-        ChatMessageSliceDto actual2 = qChatMessageRepository.findByChatRoomId(
+        ChatMessageSliceDto actual2 = qChatMessageRepository.findByChatRoomIdWithUser(
                 chatRoom.getId(), thirdSavedMessage.getId(), thirdSavedMessage.getCreatedDate(), 1
         );
 
@@ -210,7 +204,7 @@ public class QChatMessageRepositoryTest {
         entityManager.refresh(secondSavedMessage);
         entityManager.refresh(thirdSavedMessage);
 
-        ChatMessageSliceDto actual = qChatMessageRepository.findByChatRoomId(
+        ChatMessageSliceDto actual = qChatMessageRepository.findByChatRoomIdWithUser(
                 chatRoom.getId(), firstSavedMessage.getId(), firstSavedMessage.getCreatedDate(), 1
         );
 
@@ -251,7 +245,7 @@ public class QChatMessageRepositoryTest {
         entityManager.refresh(secondSavedMessage);
         entityManager.refresh(thirdSavedMessage);
 
-        ChatMessageSliceDto actual = qChatMessageRepository.findByChatRoomId(
+        ChatMessageSliceDto actual = qChatMessageRepository.findByChatRoomIdWithUser(
                 chatRoom.getId(), thirdSavedMessage.getId(), thirdSavedMessage.getCreatedDate(), 2
         );
 
@@ -294,7 +288,7 @@ public class QChatMessageRepositoryTest {
         entityManager.refresh(secondSavedMessage);
         entityManager.refresh(thirdSavedMessage);
 
-        ChatMessageSliceDto actual = qChatMessageRepository.findByChatRoomId(
+        ChatMessageSliceDto actual = qChatMessageRepository.findByChatRoomIdWithUser(
                 chatRoom.getId(), thirdSavedMessage.getId(), thirdSavedMessage.getCreatedDate(), 2
         );
 

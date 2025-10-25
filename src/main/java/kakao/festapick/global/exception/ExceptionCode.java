@@ -25,6 +25,7 @@ public enum ExceptionCode {
     FESTIVAL_PERMISSION_NOT_FOUND("존재하지 않는 관리 신청입니다."),
     FESTIVAL_NOTICE_NOT_FOUND("존재하지 않는 공지 사항입니다."),
     CHAT_MESSAGE_NOT_FOUND("존재하지 않는 채팅 메시지입니다."),
+    CHAT_PARTICIPANT_NOT_FOUND("존재하지 않는 채팅 참여자입니다."),
 
     //CONFLICT
     WISH_DUPLICATE("이미 좋아요한 축제입니다."),
@@ -49,6 +50,7 @@ public enum ExceptionCode {
     //WEB_SOCKET_EXCEPTION
     MISSING_DESTINATION("destination이 없습니다."),
     MISSING_COMMAND("command가 없습니다."),
+    SEND_MESSAGE_CONFLICT("메시지 전송에 충돌이 발생했습니다, 다시 시도해주세요."),
     INVALID_DESTINATION("유효하지 않은 destination입니다.");
 
     private final String errorMessage;

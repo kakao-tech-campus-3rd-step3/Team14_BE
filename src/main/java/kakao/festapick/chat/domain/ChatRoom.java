@@ -10,6 +10,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.festival.domain.Festival;
 import lombok.Getter;
@@ -30,20 +31,26 @@ public class ChatRoom extends BaseTimeEntity {
     @JoinColumn(name = "festival_id", nullable = false, unique = true)
     private Festival festival;
 
+    @Version
+    private Long version;
+
+    @Column(nullable = false)
+    private Long messageSeq;
+
     protected ChatRoom() {
     }
 
     public ChatRoom(String roomName, Festival festival) {
-        this(null, roomName, festival);
-    }
-
-    public ChatRoom(Long id, String roomName, Festival festival) {
-        this.id = id;
         this.roomName = roomName;
         this.festival = festival;
+        this.messageSeq = 0L;
     }
 
     public Long getFestivalId() {
         return this.festival.getId();
+    }
+
+    public void updateMessageSeq() {
+        this.messageSeq = (this.messageSeq == null) ? 1L : this.messageSeq + 1L;
     }
 }

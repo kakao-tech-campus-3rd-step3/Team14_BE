@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
-    @Query(value = "select c from ChatMessage c join fetch c.user u where c.chatRoom.id = :chatRoomId")
+    @Query(value = "select c from ChatMessage c where c.chatRoom.id = :chatRoomId")
     List<ChatMessage> findAllByChatRoomId(Long chatRoomId);
 
     @Query(value = "select c from ChatMessage c where c.user.id = :userId")

@@ -7,13 +7,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
 import kakao.festapick.chat.dto.ChatMessageSliceDto;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import static kakao.festapick.chat.domain.QChatMessage.chatMessage;
+import static kakao.festapick.user.domain.QUserEntity.userEntity;
 
 @Transactional
 @Repository
@@ -25,10 +23,11 @@ public class QChatMessageRepository {
         this.queryFactory = new JPAQueryFactory(em);
     }
 
-    public ChatMessageSliceDto findByChatRoomId(Long chatRoomId, Long cursorId,
+    public ChatMessageSliceDto findByChatRoomIdWithUser(Long chatRoomId, Long cursorId,
             LocalDateTime cursorTime, int size) {
         List<ChatMessage> content = queryFactory
                 .selectFrom(chatMessage)
+                .join(chatMessage.user, userEntity).fetchJoin()
                 .where(
                         chatMessage.chatRoom.id.eq(chatRoomId)
                                 .and(

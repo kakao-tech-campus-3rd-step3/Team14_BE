@@ -43,7 +43,7 @@ public class ChatRoomServiceTest {
     void getExistChatRoomSuccess() throws NoSuchFieldException, IllegalAccessException {
         Festival festival = testFestival();
 
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
         given(chatRoomLowService.findByFestivalId(any()))
                 .willReturn(Optional.of(chatRoom));
@@ -52,7 +52,6 @@ public class ChatRoomServiceTest {
                 festival.getId());
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(responseDto.roomId()).isNotNull(),
                 () -> AssertionsForClassTypes.assertThat(responseDto.roomName())
                         .isEqualTo("test room"),
                 () -> AssertionsForClassTypes.assertThat(responseDto.festivalId())
@@ -69,7 +68,7 @@ public class ChatRoomServiceTest {
     void createChatRoomSuccess() throws NoSuchFieldException, IllegalAccessException {
         Festival festival = testFestival();
 
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
         given(chatRoomLowService.findByFestivalId(any()))
                 .willReturn(Optional.empty());
@@ -82,7 +81,6 @@ public class ChatRoomServiceTest {
                 festival.getId());
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(responseDto.roomId()).isNotNull(),
                 () -> AssertionsForClassTypes.assertThat(responseDto.roomName())
                         .isEqualTo("test room"),
                 () -> AssertionsForClassTypes.assertThat(responseDto.festivalId())
@@ -101,7 +99,7 @@ public class ChatRoomServiceTest {
     void getExistChatRoomSuccess2() throws NoSuchFieldException, IllegalAccessException {
         Festival festival = testFestival();
 
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
         given(chatRoomLowService.findByRoomId(any()))
                 .willReturn(chatRoom);
@@ -109,7 +107,6 @@ public class ChatRoomServiceTest {
         ChatRoomResponseDto responseDto = chatRoomService.getChatRoomByRoomId(festival.getId());
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(responseDto.roomId()).isNotNull(),
                 () -> AssertionsForClassTypes.assertThat(responseDto.roomName())
                         .isEqualTo("test room"),
                 () -> AssertionsForClassTypes.assertThat(responseDto.festivalId())
