@@ -21,12 +21,13 @@ public class ChatRoomSessionLowService {
         redisTemplate.expire(key, Duration.ofHours(1));
     }
 
-    // userId, chatRoomId인 chatroomsession의 count 감소, 0이면 해시 삭제
+    // userId, chatRoomId인 chatroomsession의 count 감소
     public void decreaseChatRoomSession(Long roomId, Long userId) {
         String key = "chatRoomSession:" + roomId + ":" + userId;
         redisTemplate.opsForHash().increment(key, HASH_KEY, -1L);
     }
 
+    // chatroomsession이 존재하지 않거나 count가 0이라면 false를 반환한다.
     public boolean existsById(Long roomId, Long userId) {
         String key = getKey(roomId, userId);
         Object count = redisTemplate.opsForHash().get(key, HASH_KEY);
