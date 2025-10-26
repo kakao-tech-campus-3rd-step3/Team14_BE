@@ -82,8 +82,6 @@ class AiRecommendationControllerTest {
 
         FestivalListResponse festivalListResponse = festivalListResponses.get(0);
 
-        System.out.println(festivalListResponse.toString());
-
         assertSoftly(softly -> {
             softly.assertThat(festivalListResponse.id()).isEqualTo(testFestival.getId());
             softly.assertThat(festivalListResponse.posterInfo()).isEqualTo(testFestival.getPosterInfo());

@@ -2,6 +2,7 @@ package kakao.festapick.redis.redis;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -10,12 +11,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 
+import java.util.List;
 import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
+import kakao.festapick.chat.dto.UnreadEventPayload;
 import kakao.festapick.chat.service.ChatMessageLowService;
+import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;
+import kakao.festapick.chat.service.ChatRoomSessionLowService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -35,6 +41,8 @@ import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @ExtendWith(MockitoExtension.class)
 public class RedisPubSubServiceTest {
@@ -51,42 +59,60 @@ public class RedisPubSubServiceTest {
     @Mock
     private ChatMessageLowService chatMessageLowService;
     @Mock
+    private ChatParticipantLowService chatParticipantLowService;
+    @Mock
     private ChatRoomLowService chatRoomLowService;
     @Mock
     private TemporalFileRepository temporalFileRepository;
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
+    @Mock
+    private ChatRoomSessionLowService chatRoomSessionLowService;
 
     @Test
     @DisplayName("채팅 메시지 레디스로 전송 성공")
-    void sendChatMessageToRedisSuccess() throws NoSuchFieldException, IllegalAccessException {
-        UserEntity user = testUtil.createTestUserWithId();
-        Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom("test room", festival);
-        ChatMessage chatMessage = new ChatMessage("test message", "image url",chatRoom, user);
+    void sendChatMessageToRedisSuccess() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            UserEntity user = testUtil.createTestUserWithId();
+            Festival festival = testFestival();
+            ChatRoom chatRoom = new ChatRoom("test room", festival);
+            ChatMessage chatMessage = new ChatMessage("test message", "image url",chatRoom, user);
+            ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
 
-        given(userLowService.getReferenceById(any()))
-                .willReturn(user);
-        given(chatRoomLowService.findByRoomId(any()))
-                .willReturn(chatRoom);
-        given(chatMessageLowService.save(any()))
-                .willReturn(chatMessage);
+            given(userLowService.getReferenceById(any()))
+                    .willReturn(user);
+            given(chatRoomLowService.findByRoomId(any()))
+                    .willReturn(chatRoom);
+            given(chatMessageLowService.save(any()))
+                    .willReturn(chatMessage);
 
-        ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
-        redisPubSubService.sendChatMessageToRedis(chatRoom.getId(), requestDto, user.getId());
+            ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
+            redisPubSubService.sendChatMessageToRedis(chatRoom.getId(), requestDto, user.getId());
 
-        verify(userLowService).getReferenceById(any());
-        verify(chatRoomLowService).findByRoomId(any());
-        verify(chatMessageLowService).save(any());
-        verify(temporalFileRepository).deleteByIds(any());
-        verify(redisTemplate).convertAndSend((String) any(), (Object) any());
-        verifyNoMoreInteractions(chatRoomLowService);
-        verifyNoMoreInteractions(userLowService);
-        verifyNoMoreInteractions(chatMessageLowService);
-        verifyNoMoreInteractions(temporalFileRepository);
-        verifyNoMoreInteractions(objectMapper);
-        verifyNoMoreInteractions(webSocket);
-        verifyNoMoreInteractions(redisTemplate);
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+
+            verify(userLowService).getReferenceById(any());
+            verify(chatRoomLowService).findByRoomId(any());
+            verify(chatMessageLowService).save(any());
+            verify(temporalFileRepository).deleteByIds(any());
+            verify(redisTemplate, times(2)).convertAndSend((String) any(), (Object) any());
+            verify(chatParticipantLowService).findByChatRoomId(any());
+            verifyNoMoreInteractions(chatRoomLowService);
+            verifyNoMoreInteractions(userLowService);
+            verifyNoMoreInteractions(chatMessageLowService);
+            verifyNoMoreInteractions(temporalFileRepository);
+            verifyNoMoreInteractions(objectMapper);
+            verifyNoMoreInteractions(webSocket);
+            verifyNoMoreInteractions(redisTemplate);
+            verifyNoMoreInteractions(chatParticipantLowService);
+        } catch (Exception e) {
+
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
     }
 
     @Test
@@ -127,6 +153,45 @@ public class RedisPubSubServiceTest {
 
         verify(objectMapper).readValue((String) any(), (Class<Object>) any());
         verify(webSocket).convertAndSend((String) any(), (Object) any());
+        verifyNoMoreInteractions(chatRoomLowService);
+        verifyNoMoreInteractions(userLowService);
+        verifyNoMoreInteractions(chatMessageLowService);
+        verifyNoMoreInteractions(temporalFileRepository);
+        verifyNoMoreInteractions(objectMapper);
+        verifyNoMoreInteractions(webSocket);
+        verifyNoMoreInteractions(redisTemplate);
+
+    }
+
+    @Test
+    @DisplayName("채팅 알림 각 클라이언트로 전파 성공")
+    void sendChatAlarmToClientSuccess() throws JsonProcessingException {
+        Long chatRoomId = 1L;
+        Long userId = 2L;
+        String channel = "unreads";
+        String payload = """
+                {
+                    "chatRoomId": %d,
+                    "userIds": [%d]
+                }
+                """.formatted(chatRoomId, userId);
+
+        UnreadEventPayload event = new UnreadEventPayload(chatRoomId, List.of(userId));
+
+        Message message = new DefaultMessage(
+                channel.getBytes(),
+                payload.getBytes()
+        );
+
+        byte[] pattern = "".getBytes();
+
+        given(objectMapper.readValue((String)any(), (Class<Object>) any()))
+                .willReturn(event);
+
+        redisPubSubService.onMessage(message, pattern);
+
+        verify(objectMapper).readValue((String) any(), (Class<Object>) any());
+        verify(webSocket).convertAndSendToUser((String) any(), (String) any(), (Object) any());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);

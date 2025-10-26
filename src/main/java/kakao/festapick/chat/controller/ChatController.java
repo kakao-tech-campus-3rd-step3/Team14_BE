@@ -3,9 +3,11 @@ package kakao.festapick.chat.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kakao.festapick.chat.dto.ChatRoomReadStatusDto;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
 import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.chat.service.ChatMessageService;
+import kakao.festapick.chat.service.ChatParticipantService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.global.dto.ApiResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +30,7 @@ public class ChatController {
 
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
+    private final ChatParticipantService chatParticipantService;
 
     @Operation(
             summary = "축제 아이디로 채팅방 아이디 조회",
@@ -70,6 +74,22 @@ public class ChatController {
     ) {
         Page<ChatRoomResponseDto> chatRooms = chatRoomService.getChatRooms(
                 PageRequest.of(page, size));
+
+        return new ResponseEntity<>(chatRooms, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "내 채팅방 정보 보기",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/api/chatRooms/me")
+    public ResponseEntity<Page<ChatRoomReadStatusDto>> getMyChatRoomsReadStatus(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(defaultValue = "15", required = false) int size,
+            @RequestParam(defaultValue = "0", required = false) int page
+    ) {
+        Page<ChatRoomReadStatusDto> chatRooms = chatParticipantService.getMyChatRoomsReadStatus(userId, PageRequest.of(page, size));
 
         return new ResponseEntity<>(chatRooms, HttpStatus.OK);
     }
