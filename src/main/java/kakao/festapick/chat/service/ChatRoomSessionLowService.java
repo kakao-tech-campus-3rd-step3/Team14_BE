@@ -1,5 +1,6 @@
 package kakao.festapick.chat.service;
 
+import kakao.festapick.chat.dto.ReadEventPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,10 @@ public class ChatRoomSessionLowService {
         String key = "chatRoomSession:" + roomId + ":" + userId;
         redisTemplate.opsForHash().increment(key, HASH_KEY, 1L);
         redisTemplate.expire(key, Duration.ofHours(1));
+
+        // 같은 사람의 다른 세션에도 알리기 위해 전송
+        ReadEventPayload event = new ReadEventPayload(roomId, userId);
+        redisTemplate.convertAndSend("reads", event);
     }
 
     // userId, chatRoomId인 chatroomsession의 count 감소
