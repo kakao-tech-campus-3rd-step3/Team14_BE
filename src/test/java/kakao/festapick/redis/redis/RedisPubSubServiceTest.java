@@ -22,6 +22,7 @@ import kakao.festapick.chat.repository.ChatRoomSessionRepository;
 import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;
+import kakao.festapick.chat.service.ChatRoomSessionLowService;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
@@ -67,7 +68,7 @@ public class RedisPubSubServiceTest {
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
     @Mock
-    private ChatRoomSessionRepository chatRoomSessionRepository;
+    private ChatRoomSessionLowService chatRoomSessionLowService;
 
     @Test
     @DisplayName("채팅 메시지 레디스로 전송 성공")
@@ -86,8 +87,6 @@ public class RedisPubSubServiceTest {
                     .willReturn(chatRoom);
             given(chatMessageLowService.save(any()))
                     .willReturn(chatMessage);
-            given(chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(any(), any()))
-                    .willReturn(chatParticipant);
 
             ChatRequestDto requestDto = new ChatRequestDto("test message", new FileUploadRequest(1L,"image"));
             redisPubSubService.sendChatMessageToRedis(chatRoom.getId(), requestDto, user.getId());
@@ -101,7 +100,6 @@ public class RedisPubSubServiceTest {
             verify(temporalFileRepository).deleteByIds(any());
             verify(redisTemplate, times(2)).convertAndSend((String) any(), (Object) any());
             verify(chatParticipantLowService).findByChatRoomId(any());
-            verify(chatParticipantLowService).findByChatRoomIdAndUserIdWithChatRoom(any(), any());
             verifyNoMoreInteractions(chatRoomLowService);
             verifyNoMoreInteractions(userLowService);
             verifyNoMoreInteractions(chatMessageLowService);
