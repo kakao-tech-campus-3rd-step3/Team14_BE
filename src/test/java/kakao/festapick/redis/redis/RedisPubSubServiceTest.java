@@ -18,7 +18,6 @@ import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
 import kakao.festapick.chat.dto.UnreadEventPayload;
-import kakao.festapick.chat.repository.ChatRoomSessionRepository;
 import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;

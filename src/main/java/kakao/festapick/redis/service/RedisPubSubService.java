@@ -169,7 +169,7 @@ public class RedisPubSubService implements MessageListener {
     }
 
     private boolean isActiveChatRoomSession(Long chatRoomId, Long userId) {
-        return chatRoomSessionLowService.existsById(chatRoomId + ":" + userId);
+        return chatRoomSessionLowService.existsById(chatRoomId, userId);
     }
 }
 
