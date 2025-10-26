@@ -11,10 +11,10 @@ import kakao.festapick.chat.dto.ChatPayload;
 import kakao.festapick.chat.dto.ChatRequestDto;
 import kakao.festapick.chat.dto.ReadEventPayload;
 import kakao.festapick.chat.dto.UnreadEventPayload;
-import kakao.festapick.chat.repository.ChatRoomSessionRepository;
 import kakao.festapick.chat.service.ChatMessageLowService;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomLowService;
+import kakao.festapick.chat.service.ChatRoomSessionLowService;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.JsonParsingException;
@@ -48,7 +48,7 @@ public class RedisPubSubService implements MessageListener {
     private final ChatParticipantLowService chatParticipantLowService;
     private final TemporalFileRepository temporalFileRepository;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ChatRoomSessionRepository chatRoomSessionRepository;
+    private final ChatRoomSessionLowService chatRoomSessionLowService;
 
     // 채팅 메시지 보내기, message seq 경합 발생 시 재시도
     @Retryable(
@@ -85,11 +85,6 @@ public class RedisPubSubService implements MessageListener {
                 .toList();
 
         UnreadEventPayload event = new UnreadEventPayload(chatRoom.getId(), participantsUserIdList);
-
-        // 자신이 보낸 채팅 읽음 처리
-        ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(
-                chatRoomId, userId);
-        participant.syncMessageSeq();
 
         // db에 정상 커밋 이후 동작
         TransactionSynchronizationManager.registerSynchronization(
@@ -174,7 +169,7 @@ public class RedisPubSubService implements MessageListener {
     }
 
     private boolean isActiveChatRoomSession(Long chatRoomId, Long userId) {
-        return chatRoomSessionRepository.existsById(chatRoomId + ":" + userId);
+        return chatRoomSessionLowService.existsById(chatRoomId + ":" + userId);
     }
 }
 
