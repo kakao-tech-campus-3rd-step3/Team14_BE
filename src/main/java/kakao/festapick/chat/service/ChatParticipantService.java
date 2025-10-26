@@ -22,15 +22,13 @@ public class ChatParticipantService {
     private final UserLowService userLowService;
 
     //채팅룸 입장 시 Chat Participant에 저장
-    public void enterChatRoom(Long userId, Long roomId) {
+    public ChatParticipant enterChatRoom(Long userId, Long roomId) {
         ChatRoom chatRoom = chatRoomLowService.findByRoomId(roomId);
-
         UserEntity user = userLowService.getReferenceById(userId);
 
-        if (!chatParticipantLowService.existsByUserAndChatRoom(user, chatRoom)) {
-            ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
-            chatParticipantLowService.save(chatParticipant);
-        }
+        return chatParticipantLowService.existsByUserAndChatRoom(user, chatRoom) ?
+                chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(roomId, userId)
+                : chatParticipantLowService.save(new ChatParticipant(user, chatRoom));
     }
 
     // 내가 접속했던 채팅방들의 정보 조회

@@ -2,15 +2,19 @@ package kakao.festapick.chat.interceptor;
 
 import io.jsonwebtoken.Claims;
 import java.security.Principal;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoomSession;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
+import kakao.festapick.chat.dto.ReadEventPayload;
 import kakao.festapick.chat.repository.ChatRoomSessionRepository;
+import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatParticipantService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.global.exception.AuthenticationException;
@@ -33,14 +37,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private static final Pattern CHATROOM_DEST_PATTERN = Pattern.compile("^/sub/(\\d+)/messages$");
     private static final Pattern PUB_DEST_PATTERN = Pattern.compile(
-            "^/pub/(\\d+)/(messages|read)$");
+            "^/pub/(\\d+)/(messages)$");
     private static final String USER_ERROR_DEST = "/user/queue/errors";
     private static final String USER_UNREADS_DEST = "/user/queue/unreads";
     private static final String USER_READS_DEST = "/user/queue/reads";
@@ -49,7 +55,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
     private final UserLowService userLowService;
     private final ChatParticipantService chatParticipantService;
     private final ChatRoomService chatRoomService;
-    private final ChatRoomSessionRepository chatRoomSessionRepository;
+    private final ChatParticipantLowService chatParticipantLowService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -65,7 +72,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             case StompCommand.CONNECT -> handleConnect(headerAccessor);
             case StompCommand.SUBSCRIBE -> handleSubscribe(headerAccessor);
             case StompCommand.SEND -> handleSend(headerAccessor);
-            case StompCommand.UNSUBSCRIBE, StompCommand.DISCONNECT -> handleUnSubscribeAndDisconnect(headerAccessor);
+            case StompCommand.UNSUBSCRIBE -> handleUnSubscribeAndDisconnect(headerAccessor);
             default -> {
                 // 그 외 command는 무시
             }
@@ -149,17 +156,26 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             Long chatRoomId = Long.valueOf(matcher.group(1));
             ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(
                     chatRoomId);
-            chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
-            chatRoomSessionRepository.save(new ChatRoomSession(chatRoomId, userId));
+            // count 증가
+            increaseSessionViewer(chatRoomId, userId);
+            // 채팅방 진입 시 읽음 처리
+            ChatParticipant participant = chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
+            participant.syncMessageSeq();
+            // 같은 사람의 다른 세션에도 알리기 위해 전송
+            ReadEventPayload event = new ReadEventPayload(chatRoomId, userId);
+            redisTemplate.convertAndSend("reads", event);
             return;
         }
 
-        // 채팅방 나갔을 때(UNSUBSCRIBE or DISCONNECT) 레디스 ChatRoomSession 무효화
-        if (matcher.matches() && (command == StompCommand.UNSUBSCRIBE ||  command == StompCommand.DISCONNECT)) {
+        // 채팅방 나갔을 때(UNSUBSCRIBE) 레디스 ChatRoomSession 무효화
+        if (matcher.matches() && (command == StompCommand.UNSUBSCRIBE)) {
             Long userId = Long.valueOf(principal.getName());
             Long chatRoomId = Long.valueOf(matcher.group(1));
-
-            chatRoomSessionRepository.deleteById(chatRoomId + ":" + userId);
+            // count 감소
+            decreaseSessionViewer(chatRoomId, userId);
+            // 채팅방 퇴장 시 읽음 처리
+            ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoomId, userId);
+            participant.syncMessageSeq();
             return;
         }
 
@@ -168,4 +184,25 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             throw new WebSocketException(ExceptionCode.INVALID_DESTINATION); // 셋 다 아니면 예외 발생
         }
     }
+
+    // userId, chatRoomId인 chatroomsession의 count 증가, 없으면 해시 생성 후 count = 1로 설정
+    private void increaseSessionViewer(Long roomId, Long userId) {
+        String key = "chatRoomSession:" + roomId + ":" + userId;
+        redisTemplate.opsForHash().increment(key, "count", 1L);
+        redisTemplate.expire(key, Duration.ofHours(1));
+    }
+
+    // userId, chatRoomId인 chatroomsession의 count 감소, 0이면 해시 삭제
+    private void decreaseSessionViewer(Long roomId, Long userId) {
+        String key = "chatRoomSession:" + roomId + ":" + userId;
+        Long after = redisTemplate.opsForHash().increment(key, "count", -1L);
+        if (after <= 0L) {
+            redisTemplate.delete(key);
+        }
+        else {
+            redisTemplate.expire(key, Duration.ofHours(1));
+        }
+    }
+
+
 }

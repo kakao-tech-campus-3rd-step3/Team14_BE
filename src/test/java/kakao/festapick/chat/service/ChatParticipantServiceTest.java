@@ -59,7 +59,12 @@ public class ChatParticipantServiceTest {
         given(chatParticipantLowService.save(any()))
                 .willReturn(chatParticipant);
 
-        chatParticipantService.enterChatRoom(user.getId(), chatRoom.getId());
+        ChatParticipant actual = chatParticipantService.enterChatRoom(user.getId(), chatRoom.getId());
+
+        assertSoftly(softly -> {
+                    softly.assertThat(actual).isEqualTo(chatParticipant);
+                }
+        );
 
         verify(chatRoomLowService).findByRoomId(any());
         verify(userLowService).getReferenceById(any());
@@ -77,14 +82,23 @@ public class ChatParticipantServiceTest {
         Festival festival = testFestival();
         ChatRoom chatRoom = new ChatRoom("test room", festival);
 
+        ChatParticipant chatParticipant = new ChatParticipant(user, chatRoom);
+
         given(chatRoomLowService.findByRoomId(any()))
                 .willReturn(chatRoom);
         given(userLowService.getReferenceById(any()))
                 .willReturn(user);
         given(chatParticipantLowService.existsByUserAndChatRoom(any(), any()))
                 .willReturn(true);
+        given(chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(any(), any()))
+                .willReturn(chatParticipant);
 
-        chatParticipantService.enterChatRoom(user.getId(), chatRoom.getId());
+        ChatParticipant actual = chatParticipantService.enterChatRoom(user.getId(), chatRoom.getId());
+
+        assertSoftly(softly -> {
+                    softly.assertThat(actual).isEqualTo(chatParticipant);
+                }
+        );
 
         verify(chatRoomLowService).findByRoomId(any());
         verify(userLowService).getReferenceById(any());

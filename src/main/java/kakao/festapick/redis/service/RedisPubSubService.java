@@ -22,7 +22,6 @@ import kakao.festapick.global.exception.WebSocketException;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -112,30 +111,6 @@ public class RedisPubSubService implements MessageListener {
         throw new WebSocketException(ExceptionCode.SEND_MESSAGE_CONFLICT);
     }
 
-    // 채팅방 읽음 확인
-    @Retryable(
-            retryFor = {ObjectOptimisticLockingFailureException.class},
-            maxAttempts = 5,
-            backoff = @Backoff(delay = 10, multiplier = 2)
-    )
-    public void readChatRoomMessage(Long chatRoomId, Long userId) {
-        ChatParticipant chatParticipant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoomId, userId);
-        chatParticipant.syncMessageSeq();
-
-        ReadEventPayload event = new ReadEventPayload(chatRoomId, userId);
-
-        // db에 정상 커밋 이후 동작
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        // redis로 각 인스턴스에 브로드캐스트
-                        redisTemplate.convertAndSend("reads", event);
-                    }
-                }
-        );
-    }
-
     // 인스턴스가 redis pubsub으로 메시지 받으면
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -170,8 +145,9 @@ public class RedisPubSubService implements MessageListener {
     private void handleUnread(String body) {
         try {
             UnreadEventPayload event = objectMapper.readValue(body, UnreadEventPayload.class);
-            // 채팅방의 모든 참여자에게 전송 시도
+            // 채팅방의 모든 참여자들 대상
             for (Long userId : event.userIds()) {
+                // 채팅방에 들어가있는 사람들에겐 전송하지 않는다
                 if (isActiveChatRoomSession(event.chatRoomId(), userId)) continue;
                 webSocket.convertAndSendToUser(
                         userId.toString(),
@@ -182,10 +158,6 @@ public class RedisPubSubService implements MessageListener {
         } catch (JsonProcessingException e) {
             throw new JsonParsingException("redis payload 파싱 실패");
         }
-    }
-
-    private boolean isActiveChatRoomSession(Long chatRoomId, Long userId) {
-        return chatRoomSessionRepository.existsById(chatRoomId + ":" + userId);
     }
 
     private void handleRead(String body) {
@@ -199,6 +171,10 @@ public class RedisPubSubService implements MessageListener {
         } catch (JsonProcessingException e) {
             throw new JsonParsingException("redis payload 파싱 실패");
         }
+    }
+
+    private boolean isActiveChatRoomSession(Long chatRoomId, Long userId) {
+        return chatRoomSessionRepository.existsById(chatRoomId + ":" + userId);
     }
 }
 

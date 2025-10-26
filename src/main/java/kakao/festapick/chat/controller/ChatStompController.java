@@ -32,12 +32,4 @@ public class ChatStompController {
         redisPubSubService.sendChatMessageToRedis(chatRoomResponseDto.roomId(), requestDto, userId);
     }
 
-    @MessageMapping("/{chatRoomId}/read")
-    public void readChatRoomMessage(
-            @DestinationVariable Long chatRoomId,
-            Principal principal
-    ) {
-        Long userId = Long.valueOf(principal.getName());
-        redisPubSubService.readChatRoomMessage(chatRoomId, userId);
-    }
 }
