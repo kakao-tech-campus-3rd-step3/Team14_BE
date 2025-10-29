@@ -58,7 +58,7 @@ class FestivalNoticeServiceTest {
 
     @Test
     @DisplayName("내가 관리하고 있는 축제에 대해서 공지를 작성할 수 있음")
-    void addFestivalNotice() {
+    void addFestivalNotice() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestUserWithId();
@@ -86,7 +86,7 @@ class FestivalNoticeServiceTest {
 
     @Test
     @DisplayName("내가 관리하고 있는 축제가 아닌 경우, 공지를 올릴 수 없음")
-    void addFestivalNoticeFail() {
+    void addFestivalNoticeFail() throws Exception {
 
         //given
         Long userId = 99L;
@@ -111,7 +111,7 @@ class FestivalNoticeServiceTest {
     }
 
     @Test
-    void updateFestivalNotice() {
+    void updateFestivalNotice() throws Exception {
 
         //given
         FestivalNoticeRequestDto festivalNoticeRequestDto = createRequestDto("공지 사항1", "내용1");

@@ -38,7 +38,7 @@ class QFestivalRepositoryTest {
 
     @Test
     @DisplayName("지역 코드를 통해 축제를 조회하는 경우")
-    void findFestivalByAreaCodeAndDate() {
+    void findFestivalByAreaCodeAndDate() throws Exception {
         //given
         int areaCode = 1;
 
@@ -63,7 +63,7 @@ class QFestivalRepositoryTest {
 
     @Test
     @DisplayName("전국 축제를 조회하는 경우")
-    void findAllFestivalAndDate() {
+    void findAllFestivalAndDate() throws Exception {
         //given
         Integer areaCode = null;
 
@@ -89,7 +89,7 @@ class QFestivalRepositoryTest {
     }
 
 
-    private Festival createFestivalAndSaveByAreaCode(int areaCode) {
+    private Festival createFestivalAndSaveByAreaCode(int areaCode) throws Exception {
         return festivalRepository.save(testUtil.createTestFestivalByAreaCode(areaCode));
     }
 
