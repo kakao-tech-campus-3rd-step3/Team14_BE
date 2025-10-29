@@ -1,13 +1,12 @@
 package kakao.festapick.ai.controller;
 
 import jakarta.validation.Valid;
+import kakao.festapick.ai.dto.AiRecommendationHistoryResponse;
 import kakao.festapick.ai.dto.AiRecommendationRequest;
 import kakao.festapick.ai.service.AiRecommendationService;
 import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,12 +31,10 @@ public class AiRecommendationController {
     }
 
     @GetMapping("/histories")
-    public ResponseEntity<Page<FestivalListResponse>> getRecommendedFestival(@AuthenticationPrincipal Long userId,
-                                                                                             @RequestParam(defaultValue = "0") int page,
-                                                                                             @RequestParam(defaultValue = "5") int size) {
-        Page<FestivalListResponse> response = aiRecommendationService.getRecommendedFestivals(userId, PageRequest.of(page, size));
+    public ResponseEntity<ApiResponseDto<AiRecommendationHistoryResponse>> getRecommendedFestival(@AuthenticationPrincipal Long userId) {
+        AiRecommendationHistoryResponse response = aiRecommendationService.getRecommendedFestivals(userId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto(response));
     }
 
 }

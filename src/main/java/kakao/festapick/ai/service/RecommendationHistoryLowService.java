@@ -18,17 +18,12 @@ public class RecommendationHistoryLowService {
 
     private final RecommendationHistoryRepository recommendationHistoryRepository;
 
-
-    public List<RecommendationHistory> findByFestivalsIdsAndUserId(Set<Long> festivalIds, Long userId) {
-        return recommendationHistoryRepository.findByFestivalIdsAndUserId(festivalIds, userId);
-    }
-
     public void saveAll(List<RecommendationHistory> recommendationHistories) {
         recommendationHistoryRepository.saveAll(recommendationHistories);
     }
 
-    public Page<RecommendationHistory> findByUserIdWithFestival(Long userId, Pageable pageable) {
-        return recommendationHistoryRepository.findByUserIdWithFestival(userId,pageable);
+    public List<RecommendationHistory> findByUserId(Long userId) {
+        return recommendationHistoryRepository.findByUserId(userId);
     }
 
     public void deleteByUserId(Long userId) {

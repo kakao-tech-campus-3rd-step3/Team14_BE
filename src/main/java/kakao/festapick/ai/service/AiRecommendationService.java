@@ -3,7 +3,9 @@ package kakao.festapick.ai.service;
 
 import kakao.festapick.ai.domain.RecommendationForm;
 import kakao.festapick.ai.domain.RecommendationHistory;
+import kakao.festapick.ai.dto.AiRecommendationHistoryResponse;
 import kakao.festapick.ai.dto.AiRecommendationRequest;
+import kakao.festapick.ai.dto.RecommendationFormResponse;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalListResponse;
 import kakao.festapick.festival.service.FestivalCacheService;
@@ -61,14 +63,18 @@ public class AiRecommendationService {
     }
 
 
-    public Page<FestivalListResponse> getRecommendedFestivals(Long userId, Pageable pageable) {
-        return recommendationHistoryLowService.findByUserIdWithFestival(userId, pageable)
-                .map(recommendationHistory -> {
+    public AiRecommendationHistoryResponse getRecommendedFestivals(Long userId) {
+        List<FestivalListResponse> festivalListResponses = recommendationHistoryLowService.findByUserId(userId)
+                .stream().map(recommendationHistory -> {
                     Festival festival = recommendationHistory.getFestival();
                     Double averageScore = festivalCacheService.calculateReviewScore(festival);
                     long wishCount = festivalCacheService.getWishCount(festival);
                     return new FestivalListResponse(festival, averageScore, wishCount);
-                });
+                }).toList();
+
+        RecommendationFormResponse recommendationFormResponse = new RecommendationFormResponse(recommendationFormLowService.findByUserId(userId));
+
+        return new AiRecommendationHistoryResponse(festivalListResponses, recommendationFormResponse);
     }
 
 }
