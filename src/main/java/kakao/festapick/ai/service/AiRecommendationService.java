@@ -1,6 +1,7 @@
 package kakao.festapick.ai.service;
 
 
+import kakao.festapick.ai.domain.RecommendationForm;
 import kakao.festapick.ai.domain.RecommendationHistory;
 import kakao.festapick.ai.dto.AiRecommendationRequest;
 import kakao.festapick.festival.domain.Festival;
@@ -29,6 +30,7 @@ public class AiRecommendationService {
     private final UserLowService userLowService;
     private final FestivalLowService festivalLowService;
     private final FestivalCacheService festivalCacheService;
+    private final RecommendationFormLowService recommendationFormLowService;
 
     public List<FestivalListResponse> getRecommendation(AiRecommendationRequest aiRecommendationRequest, Long userId) {
 
@@ -39,6 +41,7 @@ public class AiRecommendationService {
                 .retrieve()
                 .toEntity(new ParameterizedTypeReference<List<FestivalListResponse>>(){});
 
+        // 최신 추천 기록만 남기고 저장
         recommendationHistoryLowService.deleteByUserId(userId);
 
         UserEntity findUser = userLowService.getReferenceById(userId);
@@ -49,6 +52,10 @@ public class AiRecommendationService {
                 .toList();
 
         recommendationHistoryLowService.saveAll(recommendationHistories);
+
+        // 최신 추천 설문 기록만 남기고 저장
+        recommendationFormLowService.deleteByUserId(userId);
+        recommendationFormLowService.save(new RecommendationForm(aiRecommendationRequest, findUser));
 
         return response.getBody();
     }
