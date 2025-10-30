@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import kakao.festapick.chat.domain.ChatParticipant;
+import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
 import kakao.festapick.chat.dto.ReadEventPayload;
 import kakao.festapick.chat.service.ChatParticipantLowService;
@@ -160,7 +161,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             chatRoomSessionLowService.increaseChatRoomSession(chatRoomId, userId, sessionId);
             // 채팅방 진입 시 읽음 처리
             ChatParticipant participant = chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
-            participant.syncMessageSeq();
+            ChatRoom chatRoom = participant.getChatRoom();
+            chatParticipantLowService.syncMessageSeq(userId, chatRoomId, chatRoom.getMessageSeq());
             return;
         }
 
@@ -173,7 +175,8 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             chatRoomSessionLowService.decreaseChatRoomSession(chatRoomId, userId, sessionId);
             // 채팅방 퇴장 시 읽음 처리
             ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoomId, userId);
-            participant.syncMessageSeq();
+            ChatRoom chatRoom = participant.getChatRoom();
+            chatParticipantLowService.syncMessageSeq(userId, chatRoomId, chatRoom.getMessageSeq());
             return;
         }
 

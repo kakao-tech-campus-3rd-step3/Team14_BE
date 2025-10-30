@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -51,5 +53,10 @@ public class ChatParticipantLowService {
 
     public void deleteByUserId(Long userId) {
         chatParticipantRepository.deleteByUserId(userId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
+    public void syncMessageSeq(Long userId, Long chatRoomId, Long newMessageSeq) {
+        chatParticipantRepository.syncMessageSeq(userId, chatRoomId, newMessageSeq);
     }
 }

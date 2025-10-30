@@ -50,11 +50,4 @@ public class ChatParticipant extends BaseTimeEntity {
         this.chatRoom = chatRoom;
         this.messageSeq = chatRoom.getMessageSeq();
     }
-
-    public void syncMessageSeq() {
-        Long newMessageSeq = this.chatRoom.getMessageSeq();
-        if (this.messageSeq == null || newMessageSeq > this.messageSeq) {
-            this.messageSeq = newMessageSeq;
-        }
-    }
 }

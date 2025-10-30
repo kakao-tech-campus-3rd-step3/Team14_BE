@@ -2,11 +2,13 @@ package kakao.festapick.config;
 
 import java.util.Optional;
 import kakao.festapick.chat.domain.ChatParticipant;
+import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatRoomSessionStatusDto;
 import kakao.festapick.chat.interceptor.WebSocketAuthChannelInterceptor;
 import kakao.festapick.chat.service.ChatParticipantLowService;
 import kakao.festapick.chat.service.ChatRoomSessionLowService;
 import kakao.festapick.global.StompInterceptorExceptionHandler;
+import kakao.festapick.user.domain.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -76,7 +78,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             ChatRoomSessionStatusDto chatRoomSessionStatusDto = optionalChatRoomSessionStatusDto.get();
             ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(
                     chatRoomSessionStatusDto.chatRoomId(), chatRoomSessionStatusDto.userId());
-            participant.syncMessageSeq();
+
+            UserEntity user = participant.getUser();
+            ChatRoom chatRoom = participant.getChatRoom();
+
+            chatParticipantLowService.syncMessageSeq(user.getId(), chatRoom.getId(), chatRoom.getMessageSeq());
         }
 
     }
