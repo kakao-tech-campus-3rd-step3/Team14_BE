@@ -33,6 +33,10 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Query("delete from Festival f where f.manager.id = :userId")
     void deleteByManagerId(Long userId);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from Festival f where f.manager.id =:userId and f.festivalType =:festivalType")
+    void deleteCustomFestivalByUserIdAndFestivalType(Long userId, FestivalType festivalType);
+
     @Query("select f from Festival f where f.state = :state and f.title like concat('%', :title, '%')")
     Page<Festival> findFestivalByTitle(String title, FestivalState state, Pageable pageable);
 

@@ -24,11 +24,11 @@ public interface FestivalNoticeRepository extends JpaRepository<FestivalNotice, 
     @Query("select fn from FestivalNotice fn where fn.author.id =:userId")
     List<FestivalNotice> findByUserId(Long userId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from FestivalNotice fn where fn.author.id =:userId")
     void deleteByUserId(Long userId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from FestivalNotice fn where fn.festival.id =:festivalId")
     void deleteByFestivalId(Long festivalId);
 }
