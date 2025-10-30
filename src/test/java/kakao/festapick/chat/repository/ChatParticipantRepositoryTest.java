@@ -111,4 +111,52 @@ public class ChatParticipantRepositoryTest {
                 () -> AssertionsForClassTypes.assertThat(actual).isEqualTo(chatParticipant)
         );
     }
+
+    @Test
+    @DisplayName("채팅방과 messageSeq 동기화 성공 테스트")
+    void syncMessageSeqSuccess() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = saveChatRoom(festival);
+
+        ChatParticipant chatParticipant = chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
+
+        chatParticipantRepository.syncMessageSeq(userEntity.getId(), chatRoom.getId(), 31L);
+
+        Optional<ChatParticipant> find = chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(chatRoom.getId(),
+                userEntity.getId());
+        AssertionsForClassTypes.assertThat(find).isPresent();
+
+        ChatParticipant actual = find.get();
+
+        assertAll(
+                () -> AssertionsForClassTypes.assertThat(actual.getMessageSeq()).isEqualTo(31L)
+        );
+    }
+
+    @Test
+    @DisplayName("채팅방과 messageSeq 동기화 실패 (더 작은 값으론 동기화 되지 않음)")
+    void syncMessageSeqFail() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = saveChatRoom(festival);
+
+        ChatParticipant chatParticipant = chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
+
+        chatParticipantRepository.syncMessageSeq(userEntity.getId(), chatRoom.getId(), 31L);
+
+        chatParticipantRepository.syncMessageSeq(userEntity.getId(), chatRoom.getId(), 1L);
+
+        Optional<ChatParticipant> find = chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(chatRoom.getId(),
+                userEntity.getId());
+        AssertionsForClassTypes.assertThat(find).isPresent();
+
+        ChatParticipant actual = find.get();
+
+        assertAll(
+                () -> AssertionsForClassTypes.assertThat(actual.getMessageSeq()).isEqualTo(31L)
+        );
+    }
 }

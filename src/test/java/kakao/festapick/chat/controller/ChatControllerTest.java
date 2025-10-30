@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -193,6 +194,25 @@ public class ChatControllerTest {
             softly.assertThat(exist.equals(true));
         });
 
+    }
+
+    @Test
+    @DisplayName("들어간 채팅방에서 나가기 성공")
+    void exitMyChatRoomSuccess() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
+
+
+
+        mockMvc.perform(delete(String.format("/api/chatRooms/%s/me", savedChatRoom.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
+                .andExpect(status().isNoContent());
     }
 
     private UserEntity saveUserEntity() {
