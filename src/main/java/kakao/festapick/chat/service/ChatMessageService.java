@@ -30,8 +30,7 @@ public class ChatMessageService {
         );
         Boolean hasMoreList = prevMessageSlice.hasNext();
         List<ChatMessage> prevMessageList = new ArrayList<>(prevMessageSlice.content());
-        // 프론트에 전달하기 위해 역전, 프론트에는 id 기준 오름 차순으로 전달
-        Collections.reverse(prevMessageList);
+        // 프론트에는 id 기준 내림 차순으로 전달
         return new PreviousMessagesResponseDto(prevMessageList, hasMoreList);
     }
 

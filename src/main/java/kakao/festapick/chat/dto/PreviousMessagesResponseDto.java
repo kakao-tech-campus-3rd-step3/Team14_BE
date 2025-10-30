@@ -12,7 +12,7 @@ public record PreviousMessagesResponseDto(
 
     public PreviousMessagesResponseDto(List<ChatMessage> content, Boolean hasMoreList) {
         this(content.stream().map(ChatPayload::new).toList(),
-                content.isEmpty() ? null : content.getFirst().getId(),
+                content.isEmpty() ? null : content.getLast().getId(),
                 hasMoreList);
     }
 }
