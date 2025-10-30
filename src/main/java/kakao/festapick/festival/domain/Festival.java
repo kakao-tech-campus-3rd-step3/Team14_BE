@@ -12,12 +12,10 @@ import kakao.festapick.review.domain.Review;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.wish.domain.Wish;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalDouble;
 
 @Entity
 @Getter
@@ -29,6 +27,10 @@ public class Festival extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private FestivalType festivalType;
 
     @Column(unique = true)
     private String contentId;
@@ -74,7 +76,6 @@ public class Festival extends BaseTimeEntity {
 
     protected Festival() { }
 
-    //TODO: contentId 규칙 만들기
     public Festival(FestivalCustomRequestDto festivalCustomRequestDto, UserEntity user) {
         checkStartAndEndDate(festivalCustomRequestDto.startDate(), festivalCustomRequestDto.endDate());
         this.contentId = null;
@@ -89,6 +90,7 @@ public class Festival extends BaseTimeEntity {
         this.homePage = festivalCustomRequestDto.homePage();
         this.state = FestivalState.PROCESSING;
         this.manager = user;
+        this.festivalType = FestivalType.FESTAPICK;
     }
 
     //tourAPI 호출
@@ -105,6 +107,7 @@ public class Festival extends BaseTimeEntity {
         this.overView = detailResponse.getOverview();
         this.homePage = detailResponse.getHomepage();
         this.state = FestivalState.APPROVED;
+        this.festivalType = FestivalType.TOUR_API;
     }
 
     //축제 정보 수정
@@ -119,26 +122,6 @@ public class Festival extends BaseTimeEntity {
         this.posterInfo = requestDto.posterInfo().presignedUrl();
         this.overView = requestDto.overView();
         this.homePage = requestDto.homePage();
-    }
-
-    public Festival(String title, int areaCode,
-                    String addr1, String addr2,
-                    String posterInfo, LocalDate startDate,
-                    LocalDate endDate, String overView,
-                    String homePage, FestivalState state,
-                    UserEntity manager, String contentId) {
-        this.title = title;
-        this.areaCode = areaCode;
-        this.addr1 = addr1;
-        this.addr2 = addr2;
-        this.posterInfo = posterInfo;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.overView = overView;
-        this.homePage = homePage;
-        this.state = state;
-        this.manager = manager;
-        this.contentId = contentId;
     }
 
     //admin만 축제 권한 변경

@@ -46,7 +46,7 @@ class FestivalPermissionRepositoryTest {
         return userRepository.save(testUtil.createTestUser("KAKAO-9876"));
     }
 
-    private Festival createFestivalAndReturn(){
+    private Festival createFestivalAndReturn() throws Exception {
         return festivalRepository.save(testUtil.createTourApiTestFestival());
     }
 
@@ -55,7 +55,7 @@ class FestivalPermissionRepositoryTest {
     }
 
     @Test
-    void findFestivalPermissionsByUserIdWithFestival() {
+    void findFestivalPermissionsByUserIdWithFestival() throws Exception {
 
         //given
         UserEntity user = createUserAndReturn();
@@ -79,7 +79,7 @@ class FestivalPermissionRepositoryTest {
 
     @Test
     @DisplayName("userId와 Festival Id로 존재 여부 확인 - 중복 방지를 위함")
-    void existsByUserIdAndFestivalId() {
+    void existsByUserIdAndFestivalId() throws Exception {
         //given
         UserEntity user = createUserAndReturn();
         Festival festival = createFestivalAndReturn();
@@ -93,7 +93,7 @@ class FestivalPermissionRepositoryTest {
     }
 
     @Test
-    void findByIdAndUserId() {
+    void findByIdAndUserId() throws Exception {
 
         //given
         UserEntity user = createUserAndReturn();
@@ -115,7 +115,7 @@ class FestivalPermissionRepositoryTest {
 
     @Test
     @DisplayName("모든 FestivalPermission을 조회")
-    void findAllFestivalPermission() {
+    void findAllFestivalPermission() throws Exception {
         //given
         UserEntity user1 = createUserAndReturn();
         Festival festival1 = createFestivalAndReturn();
@@ -139,7 +139,7 @@ class FestivalPermissionRepositoryTest {
 
     @Test
     @DisplayName("userId를 통해 존재하는 FestivalPermission 조회 - user 삭제를 위함")
-    void findByUserId() {
+    void findByUserId() throws Exception {
         //given
         UserEntity user = createUserAndReturn();
         Festival festival1 = createFestivalAndReturn();
@@ -159,7 +159,7 @@ class FestivalPermissionRepositoryTest {
 
     @Test
     @DisplayName("Festival Id를 통해 존재하는 FestivalPermission 조회 - Festival 삭제를 위함")
-    void findByFestivalId() {
+    void findByFestivalId() throws Exception {
         //given
         UserEntity user1 = createUserAndReturn();
         Festival festival = createFestivalAndReturn();
@@ -180,7 +180,7 @@ class FestivalPermissionRepositoryTest {
 
     @Test
     @DisplayName("id를 통해 FestivalPermission 단건 삭제")
-    void deleteById() {
+    void deleteById() throws Exception {
         //given
         UserEntity user1 = createUserAndReturn();
         Festival festival = createFestivalAndReturn();
@@ -196,7 +196,7 @@ class FestivalPermissionRepositoryTest {
 
     @Test
     @DisplayName("userId를 통해 존재하는 FestivalPermission 삭제 - user 삭제를 위함")
-    void deleteByUserId() {
+    void deleteByUserId() throws Exception {
 
         //given
         UserEntity user = createUserAndReturn();
@@ -215,7 +215,7 @@ class FestivalPermissionRepositoryTest {
 
     @Test
     @DisplayName("FestivalId를 통해 존재하는 FestivalPermission 삭제 - festival 삭제를 위함")
-    void deleteByFestivalId() {
+    void deleteByFestivalId() throws Exception {
 
         //given
         UserEntity user = createUserAndReturn();

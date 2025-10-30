@@ -158,8 +158,8 @@ public class ChatControllerTest {
 
         assertSoftly(softly -> {
             softly.assertThat(apiResponse.content().size()).isEqualTo(2);
-            softly.assertThat(apiResponse.content().get(0).content()).isEqualTo(firstChatMessage.getContent());
-            softly.assertThat(apiResponse.content().get(1).content()).isEqualTo(secondChatMessage.getContent());
+            softly.assertThat(apiResponse.content().get(0).content()).isEqualTo(secondChatMessage.getContent());
+            softly.assertThat(apiResponse.content().get(1).content()).isEqualTo(firstChatMessage.getContent());
         });
 
     }

@@ -186,7 +186,7 @@ class FestivalPermissionControllerTest {
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
-    private Long createFestivalPermission(UserEntity user){
+    private Long createFestivalPermission(UserEntity user) throws Exception {
         Festival festival1 = testUtil.createTourApiTestFestival();
         festivalRepository.save(festival1);
         return festivalPermissionRepository.save(new FestivalPermission(user, festival1)).getId();

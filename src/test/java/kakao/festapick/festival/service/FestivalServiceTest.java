@@ -17,6 +17,7 @@ import java.util.List;
 import kakao.festapick.ai.service.RecommendationHistoryLowService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.dto.FestivalCustomListResponse;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponse;
@@ -252,16 +253,16 @@ class FestivalServiceTest {
         Pageable pageable = PageRequest.of(0,2);
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(festivalLowService.findFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findCustomFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
 
         //when
-        Page<FestivalListResponse> result = festivalService.findMyFestivals(user.getId(), pageable);
+        Page<FestivalCustomListResponse> result = festivalService.findMyCustomFestivals(user.getId(), pageable);
 
         //total
         assertThat(result.getContent().size()).isEqualTo(2);
         assertThat(result.getTotalElements()).isEqualTo(10);
 
-        verify(festivalLowService).findFestivalByManagerId(any(), any());
+        verify(festivalLowService).findCustomFestivalByManagerId(any(), any());
         verifyNoMoreInteractions(userLowService, festivalLowService, wishLowService);
     }
 

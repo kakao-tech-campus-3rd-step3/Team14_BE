@@ -1,6 +1,7 @@
 package kakao.festapick.user.domain;
 
 import jakarta.persistence.*;
+import kakao.festapick.ai.domain.RecommendationForm;
 import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.jwt.domain.RefreshToken;
 import lombok.AccessLevel;
@@ -49,6 +50,9 @@ public class UserEntity extends BaseTimeEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RefreshToken refreshToken;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private RecommendationForm recommendationForm;
 
     public UserEntity(String identifier, String email, String username, UserRoleType userRoleType, SocialType socialType) {
         this.identifier = identifier;

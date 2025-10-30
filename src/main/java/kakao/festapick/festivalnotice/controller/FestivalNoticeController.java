@@ -12,6 +12,7 @@ import kakao.festapick.global.dto.ApiResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -58,7 +59,7 @@ public class FestivalNoticeController {
             @RequestParam(defaultValue = "5") int size
     ) {
         Page<FestivalNoticeResponseDto> pagedRequestDto =
-                festivalNoticeService.getFestivalNotices(festivalId, PageRequest.of(page, size));
+                festivalNoticeService.getFestivalNotices(festivalId, PageRequest.of(page, size, Sort.by("updatedDate").descending()));
         return ResponseEntity.ok(pagedRequestDto);
     }
 

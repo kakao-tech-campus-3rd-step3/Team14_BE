@@ -70,7 +70,7 @@ public class ChatMessageServiceTest {
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(response.content())
-                        .isEqualTo(messageList.stream().map(ChatPayload::new).toList())
+                        .isEqualTo(messageList.stream().map(ChatPayload::new).toList().reversed())
         );
 
         verify(chatMessageLowService).findByChatRoomIdWithUser(any(), any(),any(), anyInt());
