@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.domain.FestivalType;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
@@ -130,6 +131,7 @@ class FestivalRepositoryTest {
     }
 
     @Test
+    @DisplayName("내가 등록한 축제 조회하기")
     void findFestivalByManagerId(){
 
         //given
@@ -144,7 +146,7 @@ class FestivalRepositoryTest {
 
         //when
         Pageable pageable = PageRequest.of(0,5);
-        Page<Festival> myFestivals = festivalRepository.findFestivalByManagerId(user.getId(), pageable);
+        Page<Festival> myFestivals = festivalRepository.findCustomFestivalByManagerId(user.getId(), FestivalType.FESTAPICK, pageable);
 
         //then
         assertAll(

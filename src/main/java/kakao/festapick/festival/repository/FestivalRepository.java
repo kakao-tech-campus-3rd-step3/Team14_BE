@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.domain.FestivalType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,9 +17,12 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
     Optional<Festival> findFestivalById(Long id);
 
-    Page<Festival> findFestivalByManagerId(Long managerId, Pageable pageable);
+    Page<Festival> findFestivalByManagerIdAndState(Long managerId, FestivalState state, Pageable pageable);
 
     List<Festival> findFestivalByManagerId(Long managerId);
+
+    @Query("select f from Festival f where f.manager.id = :managerId and f.festivalType = :festivalType")
+    Page<Festival> findCustomFestivalByManagerId(Long managerId, FestivalType festivalType, Pageable pageable);
 
     boolean existsFestivalById(Long id);
 

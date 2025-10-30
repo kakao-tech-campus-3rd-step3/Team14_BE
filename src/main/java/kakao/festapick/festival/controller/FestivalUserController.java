@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import kakao.festapick.festival.dto.FestivalCustomListResponse;
 import kakao.festapick.global.dto.ApiResponseDto;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
@@ -76,7 +77,7 @@ public class FestivalUserController {
     }
 
     @Operation(
-            summary = "내가 등록한 축제 조회",
+            summary = "내가 관리하는 축제 조회",
             security = @SecurityRequirement(name = "JWT")
     )
     @GetMapping("/my")
@@ -91,7 +92,7 @@ public class FestivalUserController {
     }
 
     @Operation(
-            summary = "내가 등록한 축제 수정",
+            summary = "내가 관리자인 축제 수정",
             security = @SecurityRequirement(name = "JWT")
     )
     @PatchMapping("/{festivalId}")
@@ -107,7 +108,7 @@ public class FestivalUserController {
     }
 
     @Operation(
-            summary = "내가 등록한 축제 삭제",
+            summary = "내가 관리자인 축제 삭제",
             security = @SecurityRequirement(name = "JWT")
     )
     @DeleteMapping("/{festivalId}")
@@ -118,6 +119,21 @@ public class FestivalUserController {
     ){
         festivalService.deleteFestivalForManager(userId, festivalId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "내가 등록한 축제 조회",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @GetMapping("/my/custom")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<FestivalCustomListResponse>> getMyCustomFestivals(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ){
+        Page<FestivalCustomListResponse> myCustomFestivals = festivalService.findMyCustomFestivals(userId, PageRequest.of(page, size));
+        return ResponseEntity.ok(myCustomFestivals);
     }
 
     //모든 지역의 축제 조회(승인된 축제만, for view Controller)

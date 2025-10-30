@@ -91,7 +91,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("FestivalPermission 생성 실패 - 동일 축제에 대해서 중복으로 신청 불가")
-    void createFestivalPermissionFailDuplicate() {
+    void createFestivalPermissionFailDuplicate() throws Exception {
 
         //given
         Festival festival = testUtil.createTourApiTestFestival();
@@ -167,7 +167,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("축제 관리자로 승인 허용 - 축제의 외래키 설정")
-    void updateFestivalPermissionState(){
+    void updateFestivalPermissionState() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");
@@ -191,7 +191,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("축제 관리자로 승인 - 이미 축제 관리자가 존재하는 경우에는 예외 발생")
-    void updateFestivalPermissionStateDuplicateFail(){
+    void updateFestivalPermissionStateDuplicateFail() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");
@@ -218,7 +218,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("축제 관리자로 거절 - 축제 매니저는 유지 되어야함")
-    void updateFestivalPermissionStateDeny(){
+    void updateFestivalPermissionStateDeny() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");
@@ -245,7 +245,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("특정 축제의 매니저인 경우에서 Festival Manager Permission을 Deny로 변경")
-    void updateFestivalPermissionStateDenyManager(){
+    void updateFestivalPermissionStateDenyManager() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");

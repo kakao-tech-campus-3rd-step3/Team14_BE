@@ -89,11 +89,17 @@ public class FestivalService {
     }
 
 
-    //내가 등록한 축제를 조회
+    //내가 관리자인 축제를 조회
     public Page<FestivalListResponse> findMyFestivals(Long userId, Pageable pageable){
 
         return festivalLowService.findFestivalByManagerId(userId, pageable)
                 .map(this::getFestivalListResponse);
+    }
+
+    //내가 등록한 축제를 조회
+    public Page<FestivalCustomListResponse> findMyCustomFestivals(Long userId, Pageable pageable){
+        return festivalLowService.findCustomFestivalByManagerId(userId, pageable)
+                .map(FestivalCustomListResponse::new);
     }
 
     //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
