@@ -22,8 +22,8 @@ public class RecommendationHistoryLowService {
         recommendationHistoryRepository.saveAll(recommendationHistories);
     }
 
-    public List<RecommendationHistory> findByUserId(Long userId) {
-        return recommendationHistoryRepository.findByUserId(userId);
+    public List<RecommendationHistory> findByUserIdWithFestival(Long userId) {
+        return recommendationHistoryRepository.findByUserIdWithFestival(userId);
     }
 
     public void deleteByUserId(Long userId) {

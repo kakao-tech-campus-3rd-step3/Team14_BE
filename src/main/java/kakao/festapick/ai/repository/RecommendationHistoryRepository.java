@@ -10,7 +10,7 @@ import java.util.List;
 public interface RecommendationHistoryRepository extends JpaRepository<RecommendationHistory, Long> {
 
     @Query("select rh from RecommendationHistory rh join fetch rh.festival where rh.user.id = :userId")
-    List<RecommendationHistory> findByUserId(Long userId);
+    List<RecommendationHistory> findByUserIdWithFestival(Long userId);
 
     @Modifying(clearAutomatically = true)
     @Query("delete from RecommendationHistory rh where rh.user.id = :userId")

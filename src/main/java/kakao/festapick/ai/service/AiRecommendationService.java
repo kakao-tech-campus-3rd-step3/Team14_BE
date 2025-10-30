@@ -14,8 +14,6 @@ import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -64,13 +62,16 @@ public class AiRecommendationService {
 
 
     public AiRecommendationHistoryResponse getRecommendedFestivals(Long userId) {
-        List<FestivalListResponse> festivalListResponses = recommendationHistoryLowService.findByUserId(userId)
+        List<FestivalListResponse> festivalListResponses = recommendationHistoryLowService.findByUserIdWithFestival(userId)
                 .stream().map(recommendationHistory -> {
                     Festival festival = recommendationHistory.getFestival();
                     Double averageScore = festivalCacheService.calculateReviewScore(festival);
                     long wishCount = festivalCacheService.getWishCount(festival);
                     return new FestivalListResponse(festival, averageScore, wishCount);
                 }).toList();
+
+        if (festivalListResponses.isEmpty())
+            return new AiRecommendationHistoryResponse(festivalListResponses, null);
 
         RecommendationFormResponse recommendationFormResponse = new RecommendationFormResponse(recommendationFormLowService.findByUserId(userId));
 

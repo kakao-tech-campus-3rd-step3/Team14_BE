@@ -3,7 +3,6 @@ package kakao.festapick.ai.controller;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -111,7 +110,33 @@ class AiRecommendationControllerTest {
             softly.assertThat(festivalListResponses).hasSize(1);
             softly.assertThat(recommendationFormResponse.areaCode()).isEqualTo(savedRecommendationForm.getAreaCode());
         });
+    }
+
+    @Test
+    @DisplayName("추천받았던적이 없다면 빈 리스트 반환")
+    void getRecommendedFestivalEmpty() throws Exception {
+
+        // given
+        UserEntity testUser = userRepository.save(testUtil.createTestUser());
+        TestSecurityContextHolderInjection.inject(testUser.getId(), testUser.getRoleType());
+
+        String response = mockMvc.perform(MockMvcRequestBuilders.get("/api/recommendations/histories")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
 
+        ApiResponseDto<AiRecommendationHistoryResponse> apiResponseDto = objectMapper.readValue(response, new TypeReference<ApiResponseDto<AiRecommendationHistoryResponse>>(){});
+
+        AiRecommendationHistoryResponse content = apiResponseDto.content();
+
+        RecommendationFormResponse recommendationFormResponse = content.recommendationFormResponse();
+        List<FestivalListResponse> festivalListResponses = content.recommendedFestivals();
+
+
+        assertSoftly(softly -> {
+            softly.assertThat(festivalListResponses).hasSize(0);
+            softly.assertThat(recommendationFormResponse).isNull();
+        });
     }
 }

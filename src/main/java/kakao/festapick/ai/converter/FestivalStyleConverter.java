@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Converter
-public class FestivalStatusConverter implements AttributeConverter<List<FestivalStyle>, String> {
+public class FestivalStyleConverter implements AttributeConverter<List<FestivalStyle>, String> {
     @Override
     public String convertToDatabaseColumn(List<FestivalStyle> festivalStyles) {
         return festivalStyles.stream()

@@ -17,5 +17,4 @@ public interface RecommendationFormRepository extends JpaRepository<Recommendati
     @Query("select rf from RecommendationForm  rf where rf.user.id = :userId")
     Optional<RecommendationForm> findByUserId(Long userId);
 
-    Long user(UserEntity user);
 }

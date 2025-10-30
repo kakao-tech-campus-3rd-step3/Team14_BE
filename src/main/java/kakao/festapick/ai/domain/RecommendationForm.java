@@ -1,7 +1,7 @@
 package kakao.festapick.ai.domain;
 
 import jakarta.persistence.*;
-import kakao.festapick.ai.converter.FestivalStatusConverter;
+import kakao.festapick.ai.converter.FestivalStyleConverter;
 import kakao.festapick.ai.dto.AiRecommendationRequest;
 import kakao.festapick.ai.dto.FestivalStyle;
 import kakao.festapick.domain.BaseTimeEntity;
@@ -24,7 +24,7 @@ public class RecommendationForm extends BaseTimeEntity {
     @Column(nullable = false)
     private int areaCode;
 
-    @Convert(converter = FestivalStatusConverter.class)
+    @Convert(converter = FestivalStyleConverter.class)
     @Column(nullable = false)
     private List<FestivalStyle> styles;
 
