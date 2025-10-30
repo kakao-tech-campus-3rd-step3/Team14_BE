@@ -1,11 +1,17 @@
 package kakao.festapick.config;
 
+import java.util.Optional;
+import kakao.festapick.chat.domain.ChatParticipant;
+import kakao.festapick.chat.dto.ChatRoomSessionStatusDto;
 import kakao.festapick.chat.interceptor.WebSocketAuthChannelInterceptor;
+import kakao.festapick.chat.service.ChatParticipantLowService;
+import kakao.festapick.chat.service.ChatRoomSessionLowService;
 import kakao.festapick.global.StompInterceptorExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.TaskScheduler;
@@ -13,17 +19,19 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Value("${spring.front.domain}")
-    private String frontDomain;
-
+    private final ChatRoomSessionLowService chatRoomSessionLowService;
+    private final ChatParticipantLowService chatParticipantLowService;
     private final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor;
     private final StompInterceptorExceptionHandler stompInterceptorExceptionHandler;
+    @Value("${spring.front.domain}")
+    private String frontDomain;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -57,5 +65,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         taskScheduler.setThreadNamePrefix("web-socket-heartbeat-");
 
         return taskScheduler;
+    }
+
+    @EventListener
+    public void onDisconnectEvent(SessionDisconnectEvent event) {
+        String sessionId = event.getSessionId();
+        Optional<ChatRoomSessionStatusDto> optionalChatRoomSessionStatusDto = chatRoomSessionLowService.deleteBySessionId(
+                sessionId);
+        if (optionalChatRoomSessionStatusDto.isPresent()) {
+            ChatRoomSessionStatusDto chatRoomSessionStatusDto = optionalChatRoomSessionStatusDto.get();
+            ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(
+                    chatRoomSessionStatusDto.chatRoomId(), chatRoomSessionStatusDto.userId());
+            participant.syncMessageSeq();
+        }
+
     }
 }
