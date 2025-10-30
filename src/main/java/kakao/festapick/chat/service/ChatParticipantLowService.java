@@ -41,6 +41,10 @@ public class ChatParticipantLowService {
         return chatParticipantRepository.findByUserIdWithChatRoomAndFestival(userId, pageable);
     }
 
+    public void deleteByChatRoomIdAndUserId(Long chatRoomId, Long userId) {
+        chatParticipantRepository.deleteByChatRoomIdAndUserId(chatRoomId, userId);
+    }
+
     public void deleteByChatRoomId(Long chatRoomId) {
         chatParticipantRepository.deleteByChatRoomId(chatRoomId);
     }

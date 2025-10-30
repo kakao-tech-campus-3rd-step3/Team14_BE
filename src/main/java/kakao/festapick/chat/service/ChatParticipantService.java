@@ -31,6 +31,11 @@ public class ChatParticipantService {
                 : chatParticipantLowService.save(new ChatParticipant(user, chatRoom));
     }
 
+    // 채팅방에서 나가기 (Chat Participant에서 삭제해 더이상 알림 / 목록에서 보이지 않음)
+    public void exitChatRoom(Long userId, Long chatRoomId) {
+        chatParticipantLowService.deleteByChatRoomIdAndUserId(chatRoomId, userId);
+    }
+
     // 내가 접속했던 채팅방들의 정보 조회
     public Page<ChatRoomReadStatusDto> getMyChatRoomsReadStatus(Long userId, Pageable pageable) {
         Page<ChatParticipant> chatParticipants = chatParticipantLowService.findByUserIdWithChatRoomAndFestival(

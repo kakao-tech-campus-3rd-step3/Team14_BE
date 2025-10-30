@@ -27,6 +27,10 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     Page<ChatParticipant> findByUserIdWithChatRoomAndFestival(Long userId, Pageable pageable);
 
     @Modifying(clearAutomatically = true)
+    @Query("delete from ChatParticipant c where c.chatRoom.id = :chatRoomId and c.user.id = :userId")
+    void deleteByChatRoomIdAndUserId(Long chatRoomId, Long userId);
+
+    @Modifying(clearAutomatically = true)
     @Query("delete from ChatParticipant c where c.chatRoom.id = :chatRoomId")
     void deleteByChatRoomId(Long chatRoomId);
 
