@@ -84,4 +84,8 @@ public class FestivalLowService {
         return festivalRepository.existsFestivalById(id);
     }
 
+    public Festival getReferenceById(Long id) {
+        return festivalRepository.getReferenceById(id);
+    }
+
 }

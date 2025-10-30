@@ -1,5 +1,6 @@
 package kakao.festapick.festival.dto;
 
+import kakao.festapick.ai.domain.RecommendationHistory;
 import kakao.festapick.festival.domain.Festival;
 
 import java.time.LocalDate;
