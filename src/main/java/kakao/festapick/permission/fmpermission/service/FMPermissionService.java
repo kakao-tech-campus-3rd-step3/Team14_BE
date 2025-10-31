@@ -1,6 +1,7 @@
 package kakao.festapick.permission.fmpermission.service;
 
 import java.util.List;
+import kakao.festapick.festival.domain.FestivalState;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
@@ -161,7 +162,7 @@ public class FMPermissionService {
         }
         user.changeUserRole(UserRoleType.USER);
         removeManagerFromFestival(user.getId());
-        removeRelatedEntity(user.getId());
+        denyCustomFestivalAndFestivalPermission(user.getId());
     }
 
     private void removeRelatedEntity(Long userId){
@@ -174,6 +175,14 @@ public class FMPermissionService {
 
         // 작성했던 모든 축제 공지 삭제
         festivalNoticeService.deleteByUserId(userId);
+    }
+
+    private void denyCustomFestivalAndFestivalPermission(Long userId){
+        festivalLowService.findCustomFestivalByManagerId(userId)
+                .forEach(festival -> festival.updateState(FestivalState.DENIED));
+
+        festivalPermissionLowService.findByUserId(userId)
+                .forEach(fp -> fp.updateState(PermissionState.DENIED));
     }
 
 }
