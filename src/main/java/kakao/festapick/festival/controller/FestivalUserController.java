@@ -141,7 +141,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     //매니저가 존재하면 true, 매니저 존재하지 않으면 false를 반환
-    //@PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     @GetMapping("/{festivalId}/check-manager")
     public ResponseEntity<ApiResponseDto<Boolean>> checkDuplicateFestivalPermission(
             @PathVariable Long festivalId
