@@ -226,6 +226,11 @@ public class FestivalService {
 
     }
 
+    public boolean hasManager(Long id){
+        UserEntity user = festivalLowService.findFestivalById(id).getManager();
+        return user != null;
+    }
+
     //수정 권한을 확인하기 위한 메서드
     private Festival checkMyFestival(Long userId, Long id) {
         Festival festival = festivalLowService.findByIdWithReviews(id);
