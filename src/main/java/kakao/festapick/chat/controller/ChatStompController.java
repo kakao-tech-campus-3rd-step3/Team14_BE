@@ -19,7 +19,6 @@ public class ChatStompController {
 
     private final RedisPubSubService redisPubSubService;
     private final ChatRoomService chatRoomService;
-    private final ChatParticipantService chatParticipantService;
 
     @MessageMapping("/{chatRoomId}/messages")
     public void sendChat(

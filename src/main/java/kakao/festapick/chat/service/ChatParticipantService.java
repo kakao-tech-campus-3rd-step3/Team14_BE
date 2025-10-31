@@ -20,6 +20,7 @@ public class ChatParticipantService {
     private final ChatParticipantLowService chatParticipantLowService;
     private final ChatRoomLowService chatRoomLowService;
     private final UserLowService userLowService;
+    private final ChatRoomSessionLowService chatRoomSessionLowService;
 
     //채팅룸 입장 시 Chat Participant에 저장
     public ChatParticipant enterChatRoom(Long userId, Long roomId) {
@@ -31,19 +32,26 @@ public class ChatParticipantService {
                 : chatParticipantLowService.save(new ChatParticipant(user, chatRoom));
     }
 
+    // 채팅방에서 나가기 (Chat Participant에서 삭제해 더이상 알림 / 목록에서 보이지 않음)
+    public void exitChatRoom(Long userId, Long chatRoomId) {
+        chatParticipantLowService.deleteByChatRoomIdAndUserId(chatRoomId, userId);
+    }
+
     // 내가 접속했던 채팅방들의 정보 조회
     public Page<ChatRoomReadStatusDto> getMyChatRoomsReadStatus(Long userId, Pageable pageable) {
         Page<ChatParticipant> chatParticipants = chatParticipantLowService.findByUserIdWithChatRoomAndFestival(
                 userId, pageable);
+        // db 기반으로 messageSeq의 싱크를 확인
         return chatParticipants.map(this::getMyChatRoomReadStatus);
     }
 
     private ChatRoomReadStatusDto getMyChatRoomReadStatus(ChatParticipant chatParticipant) {
         ChatRoom chatRoom = chatParticipant.getChatRoom();
         Festival festival = chatRoom.getFestival();
-
-        // 채팅방의 버전이 채팅 참여자의 버전과 다른 경우 새 메시지 있다 판단
-        Boolean hasNewMessage = !(chatRoom.getMessageSeq().equals(chatParticipant.getMessageSeq()));
+        UserEntity user = chatParticipant.getUser();
+        // 채팅방의 버전이 채팅 참여자의 버전과 다르고 + 채팅방에 존재하는 내 세션이 없는 경우 새 메시지 있다 판단
+        Boolean hasNewMessage = !(chatRoom.getMessageSeq().equals(chatParticipant.getMessageSeq()))
+                && !chatRoomSessionLowService.existsById(chatRoom.getId(), user.getId());
 
         return new ChatRoomReadStatusDto(
                 chatRoom.getId(), chatRoom.getRoomName(), festival.getId(),

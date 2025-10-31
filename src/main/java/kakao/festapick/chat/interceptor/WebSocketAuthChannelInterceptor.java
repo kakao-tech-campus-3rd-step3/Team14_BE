@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import kakao.festapick.chat.domain.ChatParticipant;
+import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.chat.dto.ChatRoomResponseDto;
 import kakao.festapick.chat.dto.ReadEventPayload;
 import kakao.festapick.chat.service.ChatParticipantLowService;
@@ -153,13 +154,15 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         if (matcher.matches() && command == StompCommand.SUBSCRIBE) {
             Long userId = Long.valueOf(principal.getName());
             Long chatRoomId = Long.valueOf(matcher.group(1));
+            String sessionId = headerAccessor.getSessionId();
             ChatRoomResponseDto chatRoomResponseDto = chatRoomService.getChatRoomByRoomId(
                     chatRoomId);
-            // count 증가
-            chatRoomSessionLowService.increaseChatRoomSession(chatRoomId, userId);
+            // 채팅방에 들어간 내 세션 등록
+            chatRoomSessionLowService.increaseChatRoomSession(chatRoomId, userId, sessionId);
             // 채팅방 진입 시 읽음 처리
             ChatParticipant participant = chatParticipantService.enterChatRoom(userId, chatRoomResponseDto.roomId());
-            participant.syncMessageSeq();
+            ChatRoom chatRoom = participant.getChatRoom();
+            chatParticipantLowService.syncMessageSeq(userId, chatRoomId, chatRoom.getMessageSeq());
             return;
         }
 
@@ -167,11 +170,13 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         if (matcher.matches() && (command == StompCommand.UNSUBSCRIBE)) {
             Long userId = Long.valueOf(principal.getName());
             Long chatRoomId = Long.valueOf(matcher.group(1));
-            // count 감소
-            chatRoomSessionLowService.decreaseChatRoomSession(chatRoomId, userId);
+            String sessionId = headerAccessor.getSessionId();
+            // 채팅방에 등록한 내 세션 삭제
+            chatRoomSessionLowService.decreaseChatRoomSession(chatRoomId, userId, sessionId);
             // 채팅방 퇴장 시 읽음 처리
             ChatParticipant participant = chatParticipantLowService.findByChatRoomIdAndUserIdWithChatRoom(chatRoomId, userId);
-            participant.syncMessageSeq();
+            ChatRoom chatRoom = participant.getChatRoom();
+            chatParticipantLowService.syncMessageSeq(userId, chatRoomId, chatRoom.getMessageSeq());
             return;
         }
 

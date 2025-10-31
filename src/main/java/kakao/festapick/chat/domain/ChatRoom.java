@@ -32,8 +32,6 @@ public class ChatRoom extends BaseTimeEntity {
     private Festival festival;
 
     @Version
-    private Long version;
-
     @Column(nullable = false)
     private Long messageSeq;
 

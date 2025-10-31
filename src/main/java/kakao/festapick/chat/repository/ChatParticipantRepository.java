@@ -27,6 +27,10 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     Page<ChatParticipant> findByUserIdWithChatRoomAndFestival(Long userId, Pageable pageable);
 
     @Modifying(clearAutomatically = true)
+    @Query("delete from ChatParticipant c where c.chatRoom.id = :chatRoomId and c.user.id = :userId")
+    void deleteByChatRoomIdAndUserId(Long chatRoomId, Long userId);
+
+    @Modifying(clearAutomatically = true)
     @Query("delete from ChatParticipant c where c.chatRoom.id = :chatRoomId")
     void deleteByChatRoomId(Long chatRoomId);
 
@@ -34,4 +38,11 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     @Query("delete from ChatParticipant c where c.user.id = :userId")
     void deleteByUserId(Long userId);
 
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            update ChatParticipant cp set cp.messageSeq = case 
+            when cp.messageSeq < :newMessageSeq then :newMessageSeq else cp.messageSeq end 
+            where cp.user.id = :userId and cp.chatRoom.id = :chatRoomId
+            """)
+    void syncMessageSeq(Long userId, Long chatRoomId, Long newMessageSeq);
 }
