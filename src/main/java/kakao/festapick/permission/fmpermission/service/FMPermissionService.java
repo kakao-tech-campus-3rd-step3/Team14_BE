@@ -2,6 +2,7 @@ package kakao.festapick.permission.fmpermission.service;
 
 import java.util.List;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
 import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
@@ -36,6 +37,7 @@ public class FMPermissionService {
     private final FestivalPermissionLowService festivalPermissionLowService;
     private final FestivalNoticeService festivalNoticeService;
     private final FestivalLowService festivalLowService;
+    private final FestivalService festivalService;
 
 
     private final FileUploadHelper fileUploadHelper;
@@ -164,11 +166,11 @@ public class FMPermissionService {
 
     private void removeRelatedEntity(Long userId){
 
-        // 내가 등록한 축제 모두 삭제 (custom 축제)
-        festivalLowService.deleteCustomFestivalByUserId(userId);
-
         // 연관된 Festival Permission 모두 삭제
         festivalPermissionLowService.deleteByUserId(userId);
+
+        // 내가 등록한 축제 모두 삭제 (custom 축제)
+        festivalService.deleteCustomFestivalByUserId(userId);
 
         // 작성했던 모든 축제 공지 삭제
         festivalNoticeService.deleteByUserId(userId);

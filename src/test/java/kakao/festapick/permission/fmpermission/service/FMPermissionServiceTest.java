@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
@@ -63,7 +64,7 @@ class FMPermissionServiceTest {
     private FestivalNoticeService festivalNotice;
 
     @Mock
-    private FestivalLowService festivalLowService;
+    private FestivalService festivalService;
 
     @InjectMocks
     private FMPermissionService fmPermissionService;
@@ -309,9 +310,9 @@ class FMPermissionServiceTest {
 
         verify(fmPermissionLowService).findFMPermissionByIdWithUser(any());
         verify(festivalPermissionLowService).findByUserIdWithFestival(any());
-        verify(festivalLowService).deleteCustomFestivalByUserId(any());
+        verify(festivalService).deleteCustomFestivalByUserId(any());
         verify(festivalPermissionLowService).deleteByUserId(any());
         verify(festivalNotice).deleteByUserId(any());
-        verifyNoMoreInteractions(fmPermissionLowService, festivalPermissionLowService, festivalLowService, festivalNotice);
+        verifyNoMoreInteractions(fmPermissionLowService, festivalPermissionLowService, festivalService, festivalNotice);
     }
 }

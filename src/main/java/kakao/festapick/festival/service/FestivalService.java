@@ -197,9 +197,33 @@ public class FestivalService {
         List<Long> festivalIds = festivalLowService.findFestivalByManagerId(id)
                 .stream().map(Festival::getId).toList();
 
+        festivalIds.forEach(festivalId -> deleteRelatedEntity(festivalId));
+
         festivalLowService.deleteByManagerId(id);
 
         fileService.deleteByDomainIds(festivalIds, DomainType.FESTIVAL); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+    }
+
+    //FestivalManager 박탈 시,
+    @Transactional
+    public void deleteCustomFestivalByUserId(Long userId) {
+
+        List<Long> customFestivals = festivalLowService.findCustomFestivalByManagerId(userId)
+                .stream()
+                .map(festival -> festival.getId())
+                .toList();
+
+        customFestivals.forEach(
+                festivalId -> {
+                    deleteRelatedEntity(festivalId); // 연관된 엔티티 벌크 쿼리로 모두 삭제
+
+                    festivalLowService.deleteById(festivalId);
+
+                    //축제 삭제 시 관련 이미지를 모두 삭제
+                    fileService.deleteByDomainId(festivalId, DomainType.FESTIVAL);
+                }
+        );
+
     }
 
     //수정 권한을 확인하기 위한 메서드
