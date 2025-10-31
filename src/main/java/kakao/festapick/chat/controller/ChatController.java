@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 @Tag(name = "Chat API", description = "채팅 도메인 API")
 public class ChatController {
 
@@ -38,7 +39,6 @@ public class ChatController {
             summary = "축제 아이디로 채팅방 아이디 조회",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("isAuthenticated()")
     @PostMapping("/api/festivals/{festivalId}/chatRooms")
     public ResponseEntity<ApiResponseDto<ChatRoomResponseDto>> getChatRoomId(
             @PathVariable Long festivalId
@@ -52,7 +52,6 @@ public class ChatController {
             summary = "채팅방의 이전 메세지 불러오기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/chatRooms/{chatRoomId}/messages")
     public ResponseEntity<PreviousMessagesResponseDto> getPreviousMessages(
             @PathVariable Long chatRoomId,
@@ -68,7 +67,6 @@ public class ChatController {
             summary = "채팅방 목록 보기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/chatRooms")
     public ResponseEntity<Page<ChatRoomResponseDto>> getChatRooms(
             @RequestParam(defaultValue = "15", required = false) int size,
@@ -84,7 +82,6 @@ public class ChatController {
             summary = "내 채팅방 정보 보기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/api/chatRooms/me")
     public ResponseEntity<Page<ChatRoomReadStatusDto>> getMyChatRoomsReadStatus(
             @AuthenticationPrincipal Long userId,
@@ -100,7 +97,6 @@ public class ChatController {
             summary = "들어간 채팅방에서 나가기 (더이상 알림 / 내 채팅 목록에서 보이지 않음)",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/api/chatRooms/{chatRoomId}/me")
     public ResponseEntity<Page<ChatRoomReadStatusDto>> exitChatRoom(
             @AuthenticationPrincipal Long userId,
