@@ -136,6 +136,20 @@ public class FestivalUserController {
         return ResponseEntity.ok(myCustomFestivals);
     }
 
+    @Operation(
+            summary = "축제 관리자 존재 여부 확인",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    //매니저가 존재하면 true, 매니저 존재하지 않으면 false를 반환
+    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @GetMapping("/{festivalId}/check-manager")
+    public ResponseEntity<ApiResponseDto<Boolean>> checkDuplicateFestivalPermission(
+            @PathVariable Long festivalId
+    ){
+        Boolean hasManager = festivalService.hasManager(festivalId);
+        return ResponseEntity.ok(new ApiResponseDto<>(hasManager));
+    }
+
     //모든 지역의 축제 조회(승인된 축제만, for view Controller)
     @GetMapping("/all")
     public ResponseEntity<List<FestivalListResponse>> getApprovedFestivals(){
