@@ -4,6 +4,7 @@ import kakao.festapick.festival.domain.Festival;
 
 import java.time.LocalDate;
 import java.util.List;
+import kakao.festapick.festival.domain.FestivalState;
 
 public record FestivalDetailResponseDto(
         Long id,
@@ -19,31 +20,11 @@ public record FestivalDetailResponseDto(
         String overView,
         String homePage,
         List<String> imageInfos,
+        FestivalState state,
         Double averageScore,
         long wishCount,
         boolean isMyWish
 ) {
-    public FestivalDetailResponseDto(Festival festival, Double averageScore, long wishCount, boolean isMyWish) {
-        this(
-                festival.getId(),
-                festival.getManager() == null ? null : festival.getManager().getId(),
-                festival.getContentId(),
-                festival.getTitle(),
-                festival.getAreaCode(),
-                festival.getAddr1(),
-                festival.getAddr2(),
-                festival.getPosterInfo(),
-                festival.getStartDate(),
-                festival.getEndDate(),
-                festival.getOverView(),
-                festival.getHomePage(),
-                null,
-                averageScore,
-                wishCount,
-                isMyWish
-        );
-    }
-
     public FestivalDetailResponseDto(Festival festival, List<String> images, Double averageScore, long wishCount, boolean isMyWish) {
         this(
                 festival.getId(),
@@ -59,6 +40,7 @@ public record FestivalDetailResponseDto(
                 festival.getOverView(),
                 festival.getHomePage(),
                 images,
+                festival.getState(),
                 averageScore,
                 wishCount,
                 isMyWish
