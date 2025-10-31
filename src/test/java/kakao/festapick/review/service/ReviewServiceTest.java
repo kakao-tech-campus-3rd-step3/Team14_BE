@@ -193,6 +193,7 @@ public class ReviewServiceTest {
         reviewService.updateReview(review.getId(), requestDto, user.getId());
 
         verify(reviewLowService).findByUserIdAndId(any(), any());
+        verify(reviewLowService).updateReview(any(), any());
         verify(fileService).findByDomainIdAndDomainType(any(),any());
         verify(fileService).deleteAllByFileEntity(any());
         verify(temporalFileRepository).deleteByIds(any());

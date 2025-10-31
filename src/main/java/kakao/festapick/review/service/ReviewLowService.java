@@ -5,6 +5,7 @@ import kakao.festapick.global.exception.ExceptionCode;
 import kakao.festapick.global.exception.NotFoundEntityException;
 import kakao.festapick.redis.util.RedisKeyNameConst;
 import kakao.festapick.review.domain.Review;
+import kakao.festapick.review.dto.ReviewRequestDto;
 import kakao.festapick.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -70,6 +71,12 @@ public class ReviewLowService {
 
     public List<Review> findByUserId(Long userId){
         return reviewRepository.findByUserId(userId);
+    }
+
+    @CacheEvict(value = FESTIVAL_REVIEW_SCORE, allEntries = true)
+    public void updateReview(Review review, ReviewRequestDto requestDto) {
+        review.changeContent(requestDto.content());
+        review.changeScore(requestDto.score());
     }
 
 }

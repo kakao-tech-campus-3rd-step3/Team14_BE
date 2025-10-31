@@ -136,8 +136,7 @@ public class ReviewService {
     public void updateReview(Long reviewId, @Valid ReviewRequestDto requestDto, Long userId) {
         Review review = reviewLowService.findByUserIdAndId(userId, reviewId);
 
-        review.changeContent(requestDto.content());
-        review.changeScore(requestDto.score());
+        reviewLowService.updateReview(review, requestDto);
 
         // 기존 리뷰 파일
         List<FileEntity> existingFiles = fileService.findByDomainIdAndDomainType(reviewId, DomainType.REVIEW);
