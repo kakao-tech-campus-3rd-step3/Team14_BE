@@ -41,6 +41,7 @@ public class ChatParticipantService {
     public Page<ChatRoomReadStatusDto> getMyChatRoomsReadStatus(Long userId, Pageable pageable) {
         Page<ChatParticipant> chatParticipants = chatParticipantLowService.findByUserIdWithChatRoomAndFestival(
                 userId, pageable);
+        // db 기반으로 messageSeq의 싱크를 확인
         return chatParticipants.map(this::getMyChatRoomReadStatus);
     }
 
