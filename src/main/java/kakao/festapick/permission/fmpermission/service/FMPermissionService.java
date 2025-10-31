@@ -161,7 +161,6 @@ public class FMPermissionService {
             return;
         }
         user.changeUserRole(UserRoleType.USER);
-        removeManagerFromFestival(user.getId());
         denyCustomFestivalAndFestivalPermission(user.getId());
     }
 
@@ -181,8 +180,11 @@ public class FMPermissionService {
         festivalLowService.findCustomFestivalByManagerId(userId)
                 .forEach(festival -> festival.updateState(FestivalState.DENIED));
 
-        festivalPermissionLowService.findByUserId(userId)
-                .forEach(fp -> fp.updateState(PermissionState.DENIED));
+        festivalPermissionLowService.findByUserIdWithFestival(userId)
+                .forEach(fp -> {
+                    fp.getFestival().updateManager(null);
+                    fp.updateState(PermissionState.DENIED);
+                });
     }
 
 }
