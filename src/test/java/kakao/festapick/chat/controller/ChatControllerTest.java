@@ -205,7 +205,7 @@ public class ChatControllerTest {
         ChatRoom chatRoom = new ChatRoom("test room", festival);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
 
-        chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
+        chatParticipantRepository.save(new ChatParticipant(userEntity, savedChatRoom));
 
 
 
