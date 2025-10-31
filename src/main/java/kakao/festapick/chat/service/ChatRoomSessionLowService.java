@@ -58,6 +58,6 @@ public class ChatRoomSessionLowService {
     }
 
     private String getSessionKey(String sessionId) {
-        return "session:" + sessionId;
+        return "chatRoomSession:" + sessionId;
     }
 }
