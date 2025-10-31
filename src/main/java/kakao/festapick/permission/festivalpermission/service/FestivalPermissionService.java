@@ -160,6 +160,7 @@ public class FestivalPermissionService {
     public void updateFestivalPermissionState(Long id, PermissionState permissionState){
         FestivalPermission festivalPermission = festivalPermissionLowService.findByIdWithFestival(id);
         Festival festival = festivalPermission.getFestival();
+        festivalPermission.updateState(permissionState);
 
         if (permissionState.equals(PermissionState.ACCEPTED))
         {
@@ -174,7 +175,6 @@ public class FestivalPermissionService {
                 festivalNoticeService.deleteByFestivalId(festival.getId()); // 작성했던 모든 축제 공지 삭제
             }
         }
-        festivalPermission.updateState(permissionState);
     }
 
     private List<String> getDocumentsUrlById(Long id){

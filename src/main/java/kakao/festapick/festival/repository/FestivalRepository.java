@@ -24,6 +24,9 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Query("select f from Festival f where f.manager.id = :managerId and f.festivalType = :festivalType")
     Page<Festival> findCustomFestivalByManagerId(Long managerId, FestivalType festivalType, Pageable pageable);
 
+    @Query("select f from Festival f where f.manager.id = :managerId and f.festivalType = :festivalType")
+    List<Festival> findCustomFestivalByManagerId(Long managerId, FestivalType festivalType);
+
     boolean existsFestivalById(Long id);
 
     @Query("select f from Festival f where f.contentId in :contentIds")
@@ -32,6 +35,10 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Modifying(clearAutomatically = true)
     @Query("delete from Festival f where f.manager.id = :userId")
     void deleteByManagerId(Long userId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from Festival f where f.manager.id =:userId and f.festivalType =:festivalType")
+    void deleteCustomFestivalByUserId(Long userId, FestivalType festivalType);
 
     @Query("select f from Festival f where f.state = :state and f.title like concat('%', :title, '%')")
     Page<Festival> findFestivalByTitle(String title, FestivalState state, Pageable pageable);

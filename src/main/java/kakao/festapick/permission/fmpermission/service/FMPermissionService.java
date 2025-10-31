@@ -1,6 +1,9 @@
 package kakao.festapick.permission.fmpermission.service;
 
 import java.util.List;
+import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festival.service.FestivalService;
 import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
 import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
@@ -34,6 +37,8 @@ public class FMPermissionService {
     private final UserLowService userLowService;
     private final FestivalPermissionLowService festivalPermissionLowService;
     private final FestivalNoticeService festivalNoticeService;
+    private final FestivalLowService festivalLowService;
+    private final FestivalService festivalService;
 
 
     private final FileUploadHelper fileUploadHelper;
@@ -120,10 +125,8 @@ public class FMPermissionService {
         if(fmPermission.getPermissionState().equals(PermissionState.ACCEPTED)){
             fmPermission.getUser().changeUserRole(UserRoleType.USER);
 
-            // 관리하고 있던 축제의 매니저를 null로 설정
-            removeManagerFromFestival(userId);
-            // 작성했던 모든 축제 공지 삭제
-            festivalNoticeService.deleteByUserId(userId);
+            removeManagerFromFestival(userId); // 관리하고 있던 축제의 매니저를 null로 설정
+            removeRelatedEntity(userId); // festival permission과 festival notice를 삭제
         }
         fmPermissionLowService.removeFMPermissionByUserId(userId);
         fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION); //첨부 했던 모든 문서들 삭제
@@ -158,10 +161,28 @@ public class FMPermissionService {
             return;
         }
         user.changeUserRole(UserRoleType.USER);
-        // 관리하고 있던 축제의 매니저를 null로 설정
         removeManagerFromFestival(user.getId());
+        denyCustomFestivalAndFestivalPermission(user.getId());
+    }
+
+    private void removeRelatedEntity(Long userId){
+
+        // 연관된 Festival Permission 모두 삭제
+        festivalPermissionLowService.deleteByUserId(userId);
+
+        // 내가 등록한 축제 모두 삭제 (custom 축제)
+        festivalService.deleteCustomFestivalByUserId(userId);
+
         // 작성했던 모든 축제 공지 삭제
-        festivalNoticeService.deleteByUserId(user.getId());
+        festivalNoticeService.deleteByUserId(userId);
+    }
+
+    private void denyCustomFestivalAndFestivalPermission(Long userId){
+        festivalLowService.findCustomFestivalByManagerId(userId)
+                .forEach(festival -> festival.updateState(FestivalState.DENIED));
+
+        festivalPermissionLowService.findByUserId(userId)
+                .forEach(fp -> fp.updateState(PermissionState.DENIED));
     }
 
 }

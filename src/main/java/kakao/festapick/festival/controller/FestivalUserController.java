@@ -81,7 +81,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     @GetMapping("/my")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Page<FestivalListResponse>> getMyFestivals(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
@@ -126,7 +126,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     @GetMapping("/my/custom")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     public ResponseEntity<Page<FestivalCustomListResponse>> getMyCustomFestivals(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,

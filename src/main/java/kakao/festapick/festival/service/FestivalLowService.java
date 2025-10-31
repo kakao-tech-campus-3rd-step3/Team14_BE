@@ -60,6 +60,10 @@ public class FestivalLowService {
         return festivalRepository.findCustomFestivalByManagerId(managerId, FestivalType.FESTAPICK, pageable);
     }
 
+    public List<Festival> findCustomFestivalByManagerId(Long managerId){
+        return festivalRepository.findCustomFestivalByManagerId(managerId, FestivalType.FESTAPICK);
+    }
+
     public List<Festival> findFestivalsByContentIds(List<String> contentIds){
         return festivalRepository.findFestivalsByContentIds(contentIds);
     }
@@ -91,6 +95,10 @@ public class FestivalLowService {
 
     public Festival getReferenceById(Long id) {
         return festivalRepository.getReferenceById(id);
+    }
+
+    public void deleteCustomFestivalByUserId(Long userId) {
+        festivalRepository.deleteCustomFestivalByUserId(userId, FestivalType.FESTAPICK);
     }
 
 }

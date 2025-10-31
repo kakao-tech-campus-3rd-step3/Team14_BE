@@ -35,7 +35,7 @@ public interface FestivalPermissionRepository extends JpaRepository<FestivalPerm
 
     void deleteById(Long id);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from FestivalPermission fp where fp.user.id =:userId")
     void deleteByUserId(Long userId);
 
