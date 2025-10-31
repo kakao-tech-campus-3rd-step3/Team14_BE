@@ -93,8 +93,8 @@ public class FestivalLowService {
         return festivalRepository.getReferenceById(id);
     }
 
-    public void deleteCustomFestivalByUserIdAndFestivalType(Long userId) {
-        festivalRepository.deleteCustomFestivalByUserIdAndFestivalType(userId, FestivalType.FESTAPICK);
+    public void deleteCustomFestivalByUserId(Long userId) {
+        festivalRepository.deleteCustomFestivalByUserId(userId, FestivalType.FESTAPICK);
     }
 
 }

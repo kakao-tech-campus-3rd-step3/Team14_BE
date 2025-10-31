@@ -165,7 +165,7 @@ public class FMPermissionService {
     private void removeRelatedEntity(Long userId){
 
         // 내가 등록한 축제 모두 삭제 (custom 축제)
-        festivalLowService.deleteCustomFestivalByUserIdAndFestivalType(userId);
+        festivalLowService.deleteCustomFestivalByUserId(userId);
 
         // 연관된 Festival Permission 모두 삭제
         festivalPermissionLowService.deleteByUserId(userId);
