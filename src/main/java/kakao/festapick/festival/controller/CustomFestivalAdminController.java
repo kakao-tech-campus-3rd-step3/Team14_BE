@@ -11,6 +11,7 @@ import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.service.FestivalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
@@ -46,10 +47,11 @@ public class CustomFestivalAdminController {
     public String getCustomFestivals(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) FestivalState state,
-            @PageableDefault(page = 0, size = 10, sort = "updatedDate", direction = Direction.DESC)
-            Pageable pageable,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Model model
     ){
+        Pageable pageable = PageRequest.of(page, size);
         Page<FestivalListResponseForAdmin> response = festivalService.findAllWithPage(new FestivalSearchCondForAdmin(title, state, FestivalType.FESTAPICK), pageable);
 
         model.addAttribute("pageData", response);

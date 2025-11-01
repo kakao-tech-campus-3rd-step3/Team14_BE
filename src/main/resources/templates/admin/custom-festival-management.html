@@ -144,13 +144,13 @@
         <!-- Prev -->
         <a class="page-btn"
            th:if="${current > 0}"
-           th:href="@{/admin/festivals(page=${current - 1}, title=${title}, state=${state})}"
+           th:href="@{/admin/festivals/custom(page=${current - 1}, title=${title}, state=${state})}"
            aria-label="이전">&lsaquo;</a>
         <span class="page-btn disabled" th:if="${current == 0}" aria-hidden="true">&lsaquo;</span>
 
         <!-- Windowed Pages -->
         <a th:each="p : ${#numbers.sequence(start, end)}"
-           th:href="@{/admin/festivals(page=${p}, title=${title}, state=${state})}"
+           th:href="@{/admin/festivals/custom(page=${p}, title=${title}, state=${state})}"
            th:text="${p + 1}"
            th:classappend="${p == current} ? ' page-btn active' : ' page-btn'">
         </a>
@@ -158,7 +158,7 @@
         <!-- Next -->
         <a class="page-btn"
            th:if="${current + 1 < total}"
-           th:href="@{/admin/festivals(page=${current + 1}, title=${title}, state=${state})}"
+           th:href="@{/admin/festivals/custom(page=${current + 1}, title=${title}, state=${state})}"
            aria-label="다음">&rsaquo;</a>
         <span class="page-btn disabled" th:if="${current + 1 >= total}" aria-hidden="true">&rsaquo;</span>
 
