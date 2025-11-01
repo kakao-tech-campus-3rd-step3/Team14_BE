@@ -98,13 +98,13 @@ public class ChatController {
             security = @SecurityRequirement(name = "JWT")
     )
     @DeleteMapping("/api/chatRooms/{chatRoomId}/me")
-    public ResponseEntity<Page<ChatRoomReadStatusDto>> exitChatRoom(
+    public ResponseEntity<Void> exitChatRoom(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long chatRoomId
 
     ) {
         chatParticipantService.exitChatRoom(userId, chatRoomId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

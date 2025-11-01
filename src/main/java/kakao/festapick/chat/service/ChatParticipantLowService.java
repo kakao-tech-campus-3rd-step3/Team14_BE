@@ -55,7 +55,6 @@ public class ChatParticipantLowService {
         chatParticipantRepository.deleteByUserId(userId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public void syncMessageSeq(Long userId, Long chatRoomId, Long newMessageSeq) {
         chatParticipantRepository.syncMessageSeq(userId, chatRoomId, newMessageSeq);
     }
