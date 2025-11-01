@@ -1,10 +1,12 @@
 package kakao.festapick.permission.festivalpermission.controller;
 
+import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionAdminListDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionDetailDto;
 import kakao.festapick.permission.festivalpermission.service.FestivalPermissionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +17,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/festival-permissions")
 @RequiredArgsConstructor
@@ -50,9 +54,16 @@ public class FestivalPermissionAdminController {
     @PostMapping("/{permissionId}/state")
     public String updateFMPermissionState(
             @PathVariable Long permissionId,
-            @RequestParam PermissionState permissionState
+            @RequestParam PermissionState permissionState,
+            RedirectAttributes redirectAttributes
     ){
-        festivalPermissionService.updateFestivalPermissionState(permissionId, permissionState);
+        try{
+            festivalPermissionService.updateFestivalPermissionState(permissionId, permissionState);
+        }
+        catch (BadRequestException e){
+
+            redirectAttributes.addFlashAttribute("errors", e.getExceptionCode().getErrorMessage());
+        }
         return "redirect:/admin/festival-permissions/" + permissionId;
     }
 

@@ -42,14 +42,14 @@
       padding:10px 12px;
       background:#fff;
       color:#111827;
-      font-weight:400; /* bold 제거 */
+      font-weight:400;
       outline:none;
     }
 
-    /* select와 버튼 사이에 gap을 둘 수 있도록 */
+    /* select와 버튼 사이 간격 */
     .state-form{
       display:flex;
-      gap:8px; /* 버튼과 select 사이의 간격 */
+      gap:8px;
       align-items:center;
       margin:0;
     }
@@ -57,6 +57,18 @@
 </head>
 <tourApiBody>
   <div class="container">
+
+    <!-- ✅ alert 스크립트 -->
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      if ([[${errors != null}]]) {
+        alert([[${errors}]]);
+      } else if ([[${success != null}]]) {
+        alert([[${success}]]);
+      }
+      /*]]>*/
+    </script>
+
     <!-- 제목 -->
     <h1 th:text="${permission.title}">신청 축제 제목</h1>
 
@@ -72,7 +84,7 @@
       <div class="info">
         <span class="label">첨부파일:</span>
         <div th:each="doc, iterStat : ${permission.docs}" style="margin-top: 4px;">
-          <a th:href="${doc}" target="_blank" style="text-decoration: none; font-size: 18px;">
+          <a th:href="${doc}" target="_blank" style="text-decoration:none; font-size:18px;">
             📄 첨부파일 <span th:text="${iterStat.index + 1}"></span>
           </a>
         </div>

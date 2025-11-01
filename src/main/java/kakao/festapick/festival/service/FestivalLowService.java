@@ -76,8 +76,8 @@ public class FestivalLowService {
         return festivalRepository.findFestivalByTitle(title, state, pageable);
     }
 
-    public Page<Festival> findByStateAndTitleLike(FestivalSearchCondForAdmin cond, Pageable pageable){
-        return qFestivalRepository.findByStateAndTitleLike(cond, pageable);
+    public Page<Festival> findByStateAndTitleLikeAndType(FestivalSearchCondForAdmin cond, Pageable pageable){
+        return qFestivalRepository.findByStateAndTitleLikeAndType(cond, pageable);
     }
 
     public List<Festival> findAllById(Set<Long> ids){
