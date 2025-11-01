@@ -45,15 +45,15 @@ public class QFestivalRepository {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
     }
 
-    BooleanExpression stateEq(FestivalState state) {
+    private BooleanExpression stateEq(FestivalState state) {
         return state != null ? festival.state.eq(state) : null;
     }
 
-    BooleanExpression titleLike(String title) {
+    private BooleanExpression titleLike(String title) {
         return title != null ? festival.title.like("%" + title + "%") : null;
     }
 
-    BooleanExpression typeEq(FestivalType type) {
+    private BooleanExpression typeEq(FestivalType type) {
         return type != null ? festival.festivalType.eq(type) : null;
     }
 
