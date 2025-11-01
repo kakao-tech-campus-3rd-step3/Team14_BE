@@ -1,21 +1,29 @@
 package kakao.festapick.permission.festivalpermission.controller;
 
+import java.util.Map;
+import kakao.festapick.global.exception.AuthenticationException;
+import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionAdminListDto;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionDetailDto;
 import kakao.festapick.permission.festivalpermission.service.FestivalPermissionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/festival-permissions")
 @RequiredArgsConstructor
@@ -52,7 +60,12 @@ public class FestivalPermissionAdminController {
             @PathVariable Long permissionId,
             @RequestParam PermissionState permissionState
     ){
-        festivalPermissionService.updateFestivalPermissionState(permissionId, permissionState);
+        try{
+            festivalPermissionService.updateFestivalPermissionState(permissionId, permissionState);
+        }
+        catch (BadRequestException e){
+            log.info("[관리자 페이지 - Festival Manager] {}", e.getExceptionCode().getErrorMessage());
+        }
         return "redirect:/admin/festival-permissions/" + permissionId;
     }
 
