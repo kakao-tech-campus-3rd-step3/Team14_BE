@@ -137,7 +137,9 @@ public class FestivalService {
 
         if(!oldPosterUrl.equals(newPosterUrl)){
             temporalFileRepository.deleteById(requestDto.posterInfo().id());
+            s3Service.deleteS3File(oldPosterUrl); // s3에서 삭제 - 포스터
         }
+
         festival.updateFestival(requestDto);
 
         if(requestDto.imageInfos() != null){
@@ -149,7 +151,7 @@ public class FestivalService {
                 .map(FileEntity::getUrl)
                 .toList();
 
-        s3Service.deleteS3File(oldPosterUrl); // s3에서 삭제 - 포스터
+
 
         Double averageScore = festivalCacheService.calculateReviewScore(festival);
         long wishCount = festivalCacheService.getWishCount(festival);

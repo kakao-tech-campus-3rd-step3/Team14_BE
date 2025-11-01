@@ -313,7 +313,6 @@ class FestivalServiceTest {
         verify(festivalLowService).findByIdWithReviews(any());
         verify(fileUploadHelper).updateFiles(any(), any(), any(), any());
         verify(fileService).findByDomainIdAndDomainType(any(), any());
-        verify(s3Service).deleteS3File(any());
 
         verifyNoMoreInteractions(festivalLowService, fileUploadHelper, fileService, s3Service);
     }
