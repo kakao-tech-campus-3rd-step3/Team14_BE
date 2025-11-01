@@ -8,7 +8,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +16,7 @@ public class ChatRoomSessionLowService {
     private final RedisTemplate<String,Object> redisTemplate;
 
     // userId, chatRoomId인 chatroom session을 추가, 없으면 해시 생성 후 저장
-    public void increaseChatRoomSession(Long roomId, Long userId, String sessionId) {
+    public void addChatRoomSession(Long roomId, Long userId, String sessionId) {
         redisTemplate.opsForValue().set(getSessionKey(sessionId), roomId + ":" + userId);
         redisTemplate.opsForHash().put(getSubscribeKey(roomId, userId), sessionId, 1);
         redisTemplate.expire(getSubscribeKey(roomId, userId), Duration.ofHours(1));
@@ -28,7 +27,7 @@ public class ChatRoomSessionLowService {
     }
 
     // userId, chatRoomId인 해시의 chatroom session 제거
-    public void decreaseChatRoomSession(Long roomId, Long userId, String sessionId) {
+    public void removeChatRoomSession(Long roomId, Long userId, String sessionId) {
         redisTemplate.opsForHash().delete(getSubscribeKey(roomId, userId), sessionId);
         redisTemplate.delete(getSessionKey(sessionId));
     }
