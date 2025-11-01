@@ -120,7 +120,7 @@ public class FestivalService {
     //모든 축제 검색 기능(관리자)
     public Page<FestivalListResponseForAdmin> findAllWithPage(FestivalSearchCondForAdmin cond,
             Pageable pageable) {
-        return festivalLowService.findByStateAndTitleLike(cond, pageable)
+        return festivalLowService.findByStateAndTitleLikeAndType(cond, pageable)
                 .map(FestivalListResponseForAdmin::new);
     }
 

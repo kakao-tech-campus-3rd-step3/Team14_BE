@@ -270,12 +270,12 @@ class FestivalServiceTest {
     void findAllWithPage() {
 
         //given
-        FestivalSearchCondForAdmin cond = new FestivalSearchCondForAdmin("title", null);
+        FestivalSearchCondForAdmin cond = new FestivalSearchCondForAdmin("title", null, null);
         Pageable pageable = PageRequest.of(0,2);
         List<Festival> festivals = getFestivals();
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(festivalLowService.findByStateAndTitleLike(any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findByStateAndTitleLikeAndType(any(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponseForAdmin> result = festivalService.findAllWithPage(cond, pageable);
@@ -286,7 +286,7 @@ class FestivalServiceTest {
                 () -> assertThat(result.getContent().size()).isEqualTo(festivals.size()),
                 () -> assertThat(result.getContent().getFirst()).isInstanceOf(FestivalListResponseForAdmin.class)
         );
-        verify(festivalLowService).findByStateAndTitleLike(any(), any());
+        verify(festivalLowService).findByStateAndTitleLikeAndType(any(), any());
         verifyNoMoreInteractions(festivalLowService);
 
     }

@@ -9,26 +9,28 @@ import kakao.festapick.festival.dto.FestivalListResponseForAdmin;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalStateDto;
 import kakao.festapick.festival.service.FestivalService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/admin/festivals")
-public class FestivalAdminController {
+@RequiredArgsConstructor
+@RequestMapping("/admin/festivals/custom")
+public class CustomFestivalAdminController {
 
     private final FestivalService festivalService;
-
-    public FestivalAdminController(FestivalService festivalService) {
-        this.festivalService = festivalService;
-    }
 
     @GetMapping("/{festivalId}")
     public String getFestivalInfo(@PathVariable Long festivalId, Model model){
@@ -36,25 +38,25 @@ public class FestivalAdminController {
 
         model.addAttribute("festival", festivalInfo);
 
-        return "admin/festival-detail";
+        return "admin/custom-festival-detail";
     }
 
-    //축제 조회
+    //등록 축제(Custom 축제) 조회
     @GetMapping
-    public String getFestivals(
+    public String getCustomFestivals(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) FestivalState state,
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
+            @PageableDefault(page = 0, size = 10, sort = "updatedDate", direction = Direction.DESC)
             Pageable pageable,
             Model model
     ){
-        Page<FestivalListResponseForAdmin> response = festivalService.findAllWithPage(new FestivalSearchCondForAdmin(title, state, null), pageable);
+        Page<FestivalListResponseForAdmin> response = festivalService.findAllWithPage(new FestivalSearchCondForAdmin(title, state, FestivalType.FESTAPICK), pageable);
 
         model.addAttribute("pageData", response);
         model.addAttribute("title", title);
         model.addAttribute("state", state);
 
-        return "admin/festival-management";
+        return "admin/custom-festival-management";
     }
 
     //축제 상태 변경
@@ -67,16 +69,16 @@ public class FestivalAdminController {
     ){
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors());
-            return "redirect:/admin/festivals";
+            return "redirect:/admin/festivals/custom";
         }
 
         festivalService.updateState(festivalId, state);
-        return "redirect:/admin/festivals";
+        return "redirect:/admin/festivals/custom";
     }
 
     @PostMapping("/{festivalId}")
     public String deleteFestival(@PathVariable Long festivalId){
         festivalService.deleteFestivalForAdmin(festivalId);
-        return "redirect:/admin/festivals";
+        return "redirect:/admin/festivals/custom";
     }
 }

@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.domain.FestivalType;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,18 +28,19 @@ public class QFestivalRepository {
         this.queryFactory = new JPAQueryFactory(em);
     }
 
-    public Page<Festival> findByStateAndTitleLike(FestivalSearchCondForAdmin cond, Pageable pageable) {
+    public Page<Festival> findByStateAndTitleLikeAndType(FestivalSearchCondForAdmin cond, Pageable pageable) {
 
         List<Festival> content = queryFactory
                 .selectFrom(festival)
-                .where(stateEq(cond.state()), titleLike(cond.title()))
+                .where(stateEq(cond.state()), titleLike(cond.title()), typeEq(cond.festivalType()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         JPAQuery<Long> countQuery = queryFactory
                 .select(festival.count())
-                .from(festival);
+                .from(festival)
+                .where(stateEq(cond.state()), titleLike(cond.title()), typeEq(cond.festivalType()));
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
     }
@@ -49,6 +51,10 @@ public class QFestivalRepository {
 
     BooleanExpression titleLike(String title) {
         return title != null ? festival.title.like("%" + title + "%") : null;
+    }
+
+    BooleanExpression typeEq(FestivalType type) {
+        return type != null ? festival.festivalType.eq(type) : null;
     }
 
     public Page<Festival> findFestivalByAreaCodeAndDate(Integer areaCode, LocalDate now, Pageable pageable){

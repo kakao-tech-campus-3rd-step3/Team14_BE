@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>축제 상세 정보</title>
+    <style>
+        :root { --blue:#2563eb; --blue-dark:#1e40af; --gray:#e5e7eb; --text:#111827; }
+        *{box-sizing:border-box}
+        tourApiBody{margin:0;background:#fff;font-family:system-ui,-apple-system,sans-serif;color:#333;padding:24px}
+        h1{margin-bottom:18px;font-size:1.8rem;color:var(--text)}
+        .container{max-width:960px;margin:0 auto;}
+        .card{background:#fff;border:1px solid var(--gray);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.08);padding:24px;}
+        .image{width:100%;max-height:400px;object-fit:cover;border-radius:8px;border:1px solid var(--gray);margin-bottom:20px}
+        .info{margin-bottom:12px}
+        .label{font-weight:600;color:var(--blue-dark);margin-right:6px}
+        .muted{color:#6b7280}
+        a.btn{display:inline-block;margin-top:20px;text-decoration:none;background:var(--blue);color:#fff;font-weight:600;padding:10px 18px;border-radius:8px;transition:background 0.2s;}
+        a.btn:hover{background:var(--blue-dark)}
+        .image-grid {display: grid;grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;}
+        .image-cell img {width: 100%;height: auto;border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: cover;
+        }
+    </style>
+</head>
+<tourApiBody>
+<div class="container">
+    <h1 th:text="${festival.title}">축제명</h1>
+    <div class="card">
+        <img class="image" th:if="${festival.posterInfo != null}" th:src="${festival.posterInfo}" alt="축제 이미지"/>
+
+        <div class="info"><span class="label">ID:</span><span th:text="${festival.id}">1</span></div>
+        <div class="info"><span class="label">Content ID:</span><span th:text="${festival.contentId}">C12345</span></div>
+        <div class="info"><span class="label">지역 코드:</span><span th:text="${festival.areaCode}">26</span></div>
+        <div class="info"><span class="label">주소:</span><span th:text="${festival.addr1}">부산 수영구</span> <span th:text="${festival.addr2}" class="muted">광안리해수욕장</span></div>
+        <div class="info"><span class="label">기간:</span><span th:text="|${festival.startDate} ~ ${festival.endDate}|">2025-10-01 ~ 2025-10-03</span></div>
+        <div class="info">
+            <span class="label">홈페이지:</span>
+            <a th:if="${festival.homePage != 'no_homepage'}"
+               th:href="${festival.homePage}"
+               th:text="${festival.homePage}"
+               target="_blank"
+               class="muted"></a>
+            <span th:if="${festival.homePage == 'no_homepage'}"
+                  class="muted"
+                  style="opacity:0.5; cursor:not-allowed;">홈페이지 없음</span>
+        </div>
+
+        <div class="info" style="margin-top:20px">
+            <span class="label">개요:</span>
+            <p th:text="${festival.overView}" class="muted">이 축제는 부산의 대표적인 행사로 ...</p>
+        </div>
+
+        <div class="info">
+            <span class="label">축제 이미지:</span>
+            <div class="images">
+                <th:block th:if="${festival.imageInfos != null and !festival.imageInfos.isEmpty()}">
+                    <div class="image-grid">
+                        <div th:each="img : ${festival.imageInfos}" class="image-cell">
+                            <img th:src="${img}" alt="Festival Image">
+                        </div>
+                    </div>
+                </th:block>
+                <th:block th:if="${festival.imageInfos == null or festival.imageInfos.isEmpty()}">
+                    <span class="muted">등록된 이미지가 없습니다</span>
+                </th:block>
+            </div>
+        </div>
+
+        <a class="btn" th:href="@{/admin/festivals/custom}">목록으로 돌아가기</a>
+    </div>
+</div>
+</tourApiBody>
+</html>
