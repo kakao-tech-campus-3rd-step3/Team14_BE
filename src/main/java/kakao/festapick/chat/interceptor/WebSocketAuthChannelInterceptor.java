@@ -58,7 +58,11 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                 .getAccessor(message, StompHeaderAccessor.class);
 
         StompCommand command = headerAccessor.getCommand();
+
+        // 하트 비트의 경우
         if (command == null) {
+            // 해당 세션의 유효기간 갱신
+            chatRoomSessionLowService.refreshTtl(headerAccessor.getSessionId());
             return message;
         }
 
