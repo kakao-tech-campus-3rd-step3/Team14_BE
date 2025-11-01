@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.domain.FestivalType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,9 +17,17 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
     Optional<Festival> findFestivalById(Long id);
 
-    Page<Festival> findFestivalByManagerId(Long managerId, Pageable pageable);
+    Page<Festival> findFestivalByManagerIdAndState(Long managerId, FestivalState state, Pageable pageable);
 
     List<Festival> findFestivalByManagerId(Long managerId);
+
+    @Query("select f from Festival f where f.manager.id = :managerId and f.festivalType = :festivalType")
+    Page<Festival> findCustomFestivalByManagerId(Long managerId, FestivalType festivalType, Pageable pageable);
+
+    @Query("select f from Festival f where f.manager.id = :managerId and f.festivalType = :festivalType")
+    List<Festival> findCustomFestivalByManagerId(Long managerId, FestivalType festivalType);
+
+    boolean existsFestivalById(Long id);
 
     @Query("select f from Festival f where f.contentId in :contentIds")
     List<Festival> findFestivalsByContentIds(List<String> contentIds);
@@ -26,6 +35,10 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
     @Modifying(clearAutomatically = true)
     @Query("delete from Festival f where f.manager.id = :userId")
     void deleteByManagerId(Long userId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from Festival f where f.manager.id =:userId and f.festivalType =:festivalType")
+    void deleteCustomFestivalByUserId(Long userId, FestivalType festivalType);
 
     @Query("select f from Festival f where f.state = :state and f.title like concat('%', :title, '%')")
     Page<Festival> findFestivalByTitle(String title, FestivalState state, Pageable pageable);

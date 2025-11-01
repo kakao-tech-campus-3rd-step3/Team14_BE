@@ -17,6 +17,7 @@ import java.util.List;
 import kakao.festapick.ai.service.RecommendationHistoryLowService;
 import kakao.festapick.chat.service.ChatRoomService;
 import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.dto.FestivalCustomListResponse;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalDetailResponseDto;
 import kakao.festapick.festival.dto.FestivalListResponse;
@@ -25,9 +26,11 @@ import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.dto.FestivalUpdateRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.repository.TemporalFileRepository;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.fileupload.service.S3Service;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -86,6 +89,12 @@ class FestivalServiceTest {
     @Mock
     private FestivalCacheService festivalCacheService;
 
+    @Mock
+    private FestivalNoticeService festivalNoticeService;
+
+    @Mock
+    private FileUploadHelper fileUploadHelper;
+
     @InjectMocks
     private FestivalService festivalService;
 
@@ -117,8 +126,8 @@ class FestivalServiceTest {
         verify(userLowService).getReferenceById(any());
         verify(festivalLowService).save(any());
         verify(temporalFileRepository).deleteById(any());
-        verify(temporalFileRepository).deleteByIds(any());
-        verifyNoMoreInteractions(userLowService, festivalLowService, s3Service, temporalFileRepository);
+        verify(fileUploadHelper).saveFiles(any(), any(), any(), any());
+        verifyNoMoreInteractions(userLowService, festivalLowService, temporalFileRepository, fileUploadHelper);
     }
 
     @Test
@@ -244,16 +253,16 @@ class FestivalServiceTest {
         Pageable pageable = PageRequest.of(0,2);
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
-        given(festivalLowService.findFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findCustomFestivalByManagerId(any(), any())).willReturn(pagedFestivals);
 
         //when
-        Page<FestivalListResponse> result = festivalService.findMyFestivals(user.getId(), pageable);
+        Page<FestivalCustomListResponse> result = festivalService.findMyCustomFestivals(user.getId(), pageable);
 
         //total
         assertThat(result.getContent().size()).isEqualTo(2);
         assertThat(result.getTotalElements()).isEqualTo(10);
 
-        verify(festivalLowService).findFestivalByManagerId(any(), any());
+        verify(festivalLowService).findCustomFestivalByManagerId(any(), any());
         verifyNoMoreInteractions(userLowService, festivalLowService, wishLowService);
     }
 
@@ -302,10 +311,11 @@ class FestivalServiceTest {
                 () -> assertThat(updated.addr1()).isEqualTo(updateInfo.addr1())
         );
         verify(festivalLowService).findByIdWithReviews(any());
-        verify(temporalFileRepository).deleteByIds(anyList());
-        verify(s3Service).deleteFiles(any());
+        verify(fileUploadHelper).updateFiles(any(), any(), any(), any());
+        verify(fileService).findByDomainIdAndDomainType(any(), any());
+        verify(s3Service).deleteS3File(any());
 
-        verifyNoMoreInteractions(festivalLowService, temporalFileRepository,s3Service, wishLowService);
+        verifyNoMoreInteractions(festivalLowService, fileUploadHelper, fileService, s3Service);
     }
 
     @Test
@@ -352,6 +362,7 @@ class FestivalServiceTest {
         verify(reviewService).deleteReviewByFestivalId(festival.getId());
         verify(wishLowService).deleteByFestivalId(festival.getId());
         verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festival.getId());
+        verify(festivalNoticeService).deleteByFestivalId(any());
         verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService, festivalPermissionService);
     }
 
@@ -398,7 +409,8 @@ class FestivalServiceTest {
         verify(reviewService).deleteReviewByFestivalId(festivalId);
         verify(chatRoomService).deleteChatRoomByfestivalIdIfExist(festivalId);
         verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festivalId);
-        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService, festivalPermissionService);
+        verify(festivalNoticeService).deleteByFestivalId(any());
+        verifyNoMoreInteractions(festivalLowService, wishLowService, reviewService, chatRoomService, recommendationHistoryLowService, festivalPermissionService, festivalNoticeService);
     }
 
     private FestivalCustomRequestDto createCustomRequestDto() {

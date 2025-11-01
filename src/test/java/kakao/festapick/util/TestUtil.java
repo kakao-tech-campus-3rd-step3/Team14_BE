@@ -9,6 +9,8 @@ import kakao.festapick.ai.domain.RecommendationHistory;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.dto.FestivalCustomRequestDto;
+import kakao.festapick.festival.dto.FestivalRequestDto;
 import kakao.festapick.festival.tourapi.TourDetailResponse;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.review.domain.Review;
@@ -45,19 +47,24 @@ public class TestUtil {
     }
 
     public Festival createTestFestival(UserEntity userEntity) {
-        return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, userEntity, null);
+        FestivalCustomRequestDto festivalCustomRequestDto = new FestivalCustomRequestDto("부산대축제", 1,"주소1", null, new FileUploadRequest(9999L, "postImageUrl"), createFestivalImages(),
+                toLocalDate("20250810"), toLocalDate("20250820"),"https://hompage.com", "thisisoverviewthisisoverviewthisisoverviewhisisoverviewthisisoverviewthisisoverview");
+        return new Festival(festivalCustomRequestDto, userEntity);
     }
 
-    public Festival createTourApiTestFestival() {
-        return new Festival("부산대축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, null, null);
+    public Festival createTourApiTestFestival() throws Exception {
+        FestivalRequestDto festivalRequestDto = new FestivalRequestDto(null, "부산대축제", 1,"주소1", null, "https://postImageUrl", toLocalDate("20250810"), toLocalDate("20250820"));
+        return new Festival(festivalRequestDto, createTourDetailResponse());
     }
 
-    public Festival createTourApiTestFestival2() {
-        return new Festival("카테캠축제", 1,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, null, null);
-    }
+    public Festival createTourApiTestFestival2() throws Exception {
+        FestivalRequestDto festivalRequestDto = new FestivalRequestDto("contentId2", "카테캠축제", 1,"주소1", null, "https://postImageUrl2", toLocalDate("20250810"), toLocalDate("20250820"));
+        return new Festival(festivalRequestDto, createTourDetailResponse() );
+        }
 
-    public Festival createTestFestivalByAreaCode(int areaCode) {
-        return new Festival("축제", areaCode,"주소1", null, "postImageUrl",toLocalDate("20250810"), toLocalDate("20250820"),"overView", "hompage", FestivalState.APPROVED, null, null);
+    public Festival createTestFestivalByAreaCode(int areaCode) throws Exception {
+        FestivalRequestDto festivalRequestDto = new FestivalRequestDto(null, "부산대축제", areaCode,"주소1", null, "https://postImageUrl", toLocalDate("20250810"), toLocalDate("20250820"));
+        return new Festival(festivalRequestDto, createTourDetailResponse());
     }
 
     public ChatRoom createTestChatRoom(Festival festival) {

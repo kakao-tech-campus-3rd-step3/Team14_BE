@@ -38,8 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,10 +47,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -147,8 +142,8 @@ class UserControllerTest {
                 .andExpect(status().isNoContent());
 
         Optional<UserEntity> findUser = userRepository.findById(userEntity.getId());
-        List<ChatMessage> messages1 = qChatMessageRepository.findByChatRoomId(savedChatRoom1.getId(), null, null, 1).content();
-        List<ChatMessage> messages2 = qChatMessageRepository.findByChatRoomId(savedChatRoom2.getId(), null, null, 1).content();
+        List<ChatMessage> messages1 = qChatMessageRepository.findByChatRoomIdWithUser(savedChatRoom1.getId(), null, null, 1).content();
+        List<ChatMessage> messages2 = qChatMessageRepository.findByChatRoomIdWithUser(savedChatRoom2.getId(), null, null, 1).content();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(findUser.isPresent()).isEqualTo(false);

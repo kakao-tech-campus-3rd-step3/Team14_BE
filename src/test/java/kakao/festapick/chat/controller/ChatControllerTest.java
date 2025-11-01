@@ -1,15 +1,25 @@
 package kakao.festapick.chat.controller;
 
+import static com.jayway.jsonpath.JsonPath.read;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.persistence.EntityManager;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kakao.festapick.chat.domain.ChatMessage;
+import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
+import kakao.festapick.chat.dto.PreviousMessagesResponseDto;
 import kakao.festapick.chat.repository.ChatMessageRepository;
 import kakao.festapick.chat.repository.ChatParticipantRepository;
 import kakao.festapick.chat.repository.ChatRoomRepository;
@@ -49,6 +59,10 @@ public class ChatControllerTest {
     private ChatRoomRepository chatRoomRepository;
     @Autowired
     private ChatParticipantRepository chatParticipantRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     @DisplayName("채팅방 생성 성공")
@@ -103,6 +117,102 @@ public class ChatControllerTest {
                         .with(securityContext(SecurityContextHolder.getContext()))
                 )
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("cursorId로 채팅방의 이전 대화내역 불러오기 성공")
+    void getPreviousMessagesWithCursorIdSuccess() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        ChatMessage firstChatMessage = new ChatMessage("test message1", "image url", savedChatRoom,
+                userEntity);
+        ChatMessage secondChatMessage = new ChatMessage("test message2", "image url", savedChatRoom,
+                userEntity);
+        ChatMessage thirdChatMessage = new ChatMessage("test message3", "image url", savedChatRoom,
+                userEntity);
+
+        chatMessageRepository.save(firstChatMessage);
+        chatMessageRepository.save(secondChatMessage);
+        chatMessageRepository.save(thirdChatMessage);
+
+        entityManager.flush();
+
+        entityManager.refresh(firstChatMessage);
+        entityManager.refresh(secondChatMessage);
+        entityManager.refresh(thirdChatMessage);
+
+        String response = mockMvc.perform(get(String.format("/api/chatRooms/%s/messages", savedChatRoom.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                        .param("cursor", String.valueOf(thirdChatMessage.getId()))
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+
+        PreviousMessagesResponseDto apiResponse = objectMapper.readValue(response, new TypeReference<PreviousMessagesResponseDto>() {
+        });
+
+
+        assertSoftly(softly -> {
+            softly.assertThat(apiResponse.content().size()).isEqualTo(2);
+            softly.assertThat(apiResponse.content().get(0).content()).isEqualTo(secondChatMessage.getContent());
+            softly.assertThat(apiResponse.content().get(1).content()).isEqualTo(firstChatMessage.getContent());
+        });
+
+    }
+
+    @Test
+    @DisplayName("내 채팅방 조회 시 읽지않은 메시지가 있는 채팅방은 표시 성공")
+    void getMyChatRoomReadStatus() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        ChatParticipant chatParticipant = chatParticipantRepository.save(
+                new ChatParticipant(userEntity, savedChatRoom)
+        );
+
+        savedChatRoom.updateMessageSeq();
+        savedChatRoom.updateMessageSeq();
+
+        String response = mockMvc.perform(get("/api/chatRooms/me")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        Boolean exist = read(response, "$.content[0].existNewMessage");
+
+        assertSoftly(softly -> {
+            softly.assertThat(exist.equals(true));
+        });
+
+    }
+
+    @Test
+    @DisplayName("들어간 채팅방에서 나가기 성공")
+    void exitMyChatRoomSuccess() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        chatParticipantRepository.save(new ChatParticipant(userEntity, savedChatRoom));
+
+
+
+        mockMvc.perform(delete(String.format("/api/chatRooms/%s/me", savedChatRoom.getId()))
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
+                .andExpect(status().isNoContent());
     }
 
     private UserEntity saveUserEntity() {

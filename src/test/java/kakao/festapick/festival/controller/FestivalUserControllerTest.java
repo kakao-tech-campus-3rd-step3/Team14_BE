@@ -215,7 +215,7 @@ class FestivalUserControllerTest {
         festivalRepository.save(festival2);
 
         //when
-        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/my")
+        MvcResult mvcResult = mockMvc.perform(get("/api/festivals/my/custom")
                         .with(securityContext(SecurityContextHolder.getContext()))
                 )
                 .andExpect(status().is(HttpStatus.OK.value()))

@@ -28,13 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,7 +51,7 @@ public class ChatMessageServiceTest {
     void getPreviousMessagesSuccess() throws NoSuchFieldException, IllegalAccessException {
         UserEntity user = testUtil.createTestUserWithId();
         Festival festival = testFestival();
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
         List<ChatMessage> messageList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
@@ -70,17 +63,17 @@ public class ChatMessageServiceTest {
         List<ChatMessage> reversedMessageList = new ArrayList<>(messageList.reversed());
         ChatMessageSliceDto slice = new ChatMessageSliceDto(reversedMessageList, true);
 
-        given(chatMessageLowService.findByChatRoomId(any(), any(), any(), anyInt()))
+        given(chatMessageLowService.findByChatRoomIdWithUser(any(), any(), any(), anyInt()))
                 .willReturn(slice);
 
-        PreviousMessagesResponseDto response = chatMessageService.getPreviousMessages(1L, 1, null, null);
+        PreviousMessagesResponseDto response = chatMessageService.getPreviousMessages(1L, 1, null);
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(response.content())
-                        .isEqualTo(messageList.stream().map(ChatPayload::new).toList())
+                        .isEqualTo(messageList.stream().map(ChatPayload::new).toList().reversed())
         );
 
-        verify(chatMessageLowService).findByChatRoomId(any(), any(),any(), anyInt());
+        verify(chatMessageLowService).findByChatRoomIdWithUser(any(), any(),any(), anyInt());
         verifyNoMoreInteractions(chatRoomLowService);
         verifyNoMoreInteractions(userLowService);
         verifyNoMoreInteractions(chatMessageLowService);

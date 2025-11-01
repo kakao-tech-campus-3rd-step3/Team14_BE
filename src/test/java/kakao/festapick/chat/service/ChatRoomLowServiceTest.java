@@ -40,7 +40,7 @@ public class ChatRoomLowServiceTest {
     void getExistChatRoomSuccess2() throws NoSuchFieldException, IllegalAccessException {
         Festival festival = testFestival();
 
-        ChatRoom chatRoom = new ChatRoom(1L, "test room", festival);
+        ChatRoom chatRoom = new ChatRoom("test room", festival);
 
         given(chatRoomRepository.findByRoomId(any()))
                 .willReturn(Optional.of(chatRoom));
@@ -48,7 +48,6 @@ public class ChatRoomLowServiceTest {
         ChatRoom response = chatRoomLowService.findByRoomId(chatRoom.getId());
 
         assertAll(
-                () -> AssertionsForClassTypes.assertThat(response.getId()).isNotNull(),
                 () -> AssertionsForClassTypes.assertThat(response.getRoomName())
                         .isEqualTo("test room"),
                 () -> AssertionsForClassTypes.assertThat(response.getFestival())

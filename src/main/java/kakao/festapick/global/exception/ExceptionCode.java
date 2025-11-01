@@ -23,6 +23,10 @@ public enum ExceptionCode {
     CHATROOM_NOT_FOUND("존재하지 않는 채팅방입니다."),
     FM_PERMISSION_NOT_FOUND("존재하지 않는 승급 신청입니다."),
     FESTIVAL_PERMISSION_NOT_FOUND("존재하지 않는 관리 신청입니다."),
+    FESTIVAL_NOTICE_NOT_FOUND("존재하지 않는 공지 사항입니다."),
+    CHAT_MESSAGE_NOT_FOUND("존재하지 않는 채팅 메시지입니다."),
+    CHAT_PARTICIPANT_NOT_FOUND("존재하지 않는 채팅 참여자입니다."),
+    RECOMMENDATION_FORM_NOT_FOUND("존재하는 설문이 없습니다."),
 
     //CONFLICT
     WISH_DUPLICATE("이미 좋아요한 축제입니다."),
@@ -32,6 +36,7 @@ public enum ExceptionCode {
   
     //FORBIDDEN
     FESTIVAL_ACCESS_FORBIDDEN("내가 등록한 축제가 아닙니다."),
+    FESTIVAL_NOTICE_ACCESS_FORBIDDEN("내가 관리하는 축제가 아닙니다."),
 
     //BAD_REQUEST
     FESTIVAL_BAD_DATE("축제 시작일은 종료일보다 빨라야합니다."),
@@ -46,6 +51,7 @@ public enum ExceptionCode {
     //WEB_SOCKET_EXCEPTION
     MISSING_DESTINATION("destination이 없습니다."),
     MISSING_COMMAND("command가 없습니다."),
+    SEND_MESSAGE_CONFLICT("메시지 전송에 충돌이 발생했습니다, 다시 시도해주세요."),
     INVALID_DESTINATION("유효하지 않은 destination입니다.");
 
     private final String errorMessage;

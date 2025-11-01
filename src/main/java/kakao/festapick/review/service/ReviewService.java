@@ -9,6 +9,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.dto.FestivalListResponse;
+import kakao.festapick.festival.service.FestivalCacheService;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
@@ -43,6 +45,7 @@ public class ReviewService {
     private final FileService fileService;
     private final TemporalFileRepository temporalFileRepository;
     private final S3Service s3Service;
+    private final FestivalCacheService festivalCacheService;
 
 
     // 리뷰 생성 기능
@@ -108,6 +111,17 @@ public class ReviewService {
 
 
         return reviews.map(review -> new ReviewResponseDto(review, imageUrls.get(review.getId()), videoUrl.get(review.getId())));
+    }
+
+    // 내가 작성한 리뷰에 해당하는 축제 조회
+    public Page<FestivalListResponse> getMyReviewedFestivals(Long userId, Pageable pageable) {
+        Page<Review> reviews = reviewLowService.findByUserIdWithAll(userId, pageable);
+        Page<Festival> festivalList = reviews.map(Review::getFestival);
+        return festivalList.map(festival -> {
+            Double averageScore = festivalCacheService.calculateReviewScore(festival);
+            long wishCount = festivalCacheService.getWishCount(festival);
+            return new FestivalListResponse(festival, averageScore, wishCount);
+        });
     }
 
 

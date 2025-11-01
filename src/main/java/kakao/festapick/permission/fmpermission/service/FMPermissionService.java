@@ -1,14 +1,21 @@
 package kakao.festapick.permission.fmpermission.service;
 
 import java.util.List;
+import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festival.service.FestivalService;
+import kakao.festapick.festivalnotice.Repository.FestivalNoticeRepository;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
+import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
+import kakao.festapick.permission.festivalpermission.service.FestivalPermissionLowService;
 import kakao.festapick.permission.fmpermission.domain.FMPermission;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionAdminListResponseDto;
 import kakao.festapick.permission.fmpermission.dto.FMPermissionResponseDto;
@@ -28,8 +35,13 @@ public class FMPermissionService {
 
     private final FMPermissionLowService fmPermissionLowService;
     private final UserLowService userLowService;
+    private final FestivalPermissionLowService festivalPermissionLowService;
+    private final FestivalNoticeService festivalNoticeService;
+    private final FestivalLowService festivalLowService;
+    private final FestivalService festivalService;
 
-    private final PermissionFileUploader permissionFileUploader;
+
+    private final FileUploadHelper fileUploadHelper;
     private final FileService fileService;
 
     //신청
@@ -55,7 +67,7 @@ public class FMPermissionService {
         Long fmPermissionId = fmPermissionLowService.saveFMPermission(fmPermission).getId();
 
         //관련 서류 저장
-        permissionFileUploader.saveFiles(documents, fmPermissionId, DomainType.FM_PERMISSION);
+        fileUploadHelper.saveFiles(documents, fmPermissionId, FileType.DOCUMENT, DomainType.FM_PERMISSION);
         return fmPermissionId;
     }
 
@@ -69,7 +81,7 @@ public class FMPermissionService {
             throw new BadRequestException(ExceptionCode.FM_PERMISSION_BAD_REQUEST);
         }
 
-        permissionFileUploader.updateFiles(permissionId, DomainType.FM_PERMISSION, documents);
+        fileUploadHelper.updateFiles(permissionId, DomainType.FM_PERMISSION, FileType.DOCUMENT, documents);
 
         fmPermission.updateState(PermissionState.PENDING);
         List<String> docsUrl = fileService.findByDomainIdAndDomainType(permissionId, DomainType.FM_PERMISSION)
@@ -78,6 +90,12 @@ public class FMPermissionService {
                 .toList();
 
         return new FMPermissionResponseDto(fmPermission, docsUrl);
+    }
+
+    //중복 조회
+    @Transactional(readOnly = true)
+    public Boolean checkFMPermission(Long userId){
+        return fmPermissionLowService.existsByUserId(userId);
     }
 
     //조회
@@ -106,9 +124,17 @@ public class FMPermissionService {
         FMPermission fmPermission = fmPermissionLowService.findFMPermissionByUserId(userId);
         if(fmPermission.getPermissionState().equals(PermissionState.ACCEPTED)){
             fmPermission.getUser().changeUserRole(UserRoleType.USER);
+
+            removeManagerFromFestival(userId); // 관리하고 있던 축제의 매니저를 null로 설정
+            removeRelatedEntity(userId); // festival permission과 festival notice를 삭제
         }
         fmPermissionLowService.removeFMPermissionByUserId(userId);
         fileService.deleteByDomainId(fmPermission.getId(), DomainType.FM_PERMISSION); //첨부 했던 모든 문서들 삭제
+    }
+
+    private void removeManagerFromFestival(Long userId){
+        festivalPermissionLowService.findByUserIdWithFestival(userId)
+                .forEach(fm -> fm.getFestival().updateManager(null));
     }
 
     //user탈퇴 시, 관련 정보를 모두 삭제
@@ -135,6 +161,30 @@ public class FMPermissionService {
             return;
         }
         user.changeUserRole(UserRoleType.USER);
+        denyCustomFestivalAndFestivalPermission(user.getId());
+    }
+
+    private void removeRelatedEntity(Long userId){
+
+        // 연관된 Festival Permission 모두 삭제
+        festivalPermissionLowService.deleteByUserId(userId);
+
+        // 내가 등록한 축제 모두 삭제 (custom 축제)
+        festivalService.deleteCustomFestivalByUserId(userId);
+
+        // 작성했던 모든 축제 공지 삭제
+        festivalNoticeService.deleteByUserId(userId);
+    }
+
+    private void denyCustomFestivalAndFestivalPermission(Long userId){
+        festivalLowService.findCustomFestivalByManagerId(userId)
+                .forEach(festival -> festival.updateState(FestivalState.DENIED));
+
+        festivalPermissionLowService.findByUserIdWithFestival(userId)
+                .forEach(fp -> {
+                    fp.getFestival().updateManager(null);
+                    fp.updateState(PermissionState.DENIED);
+                });
     }
 
 }

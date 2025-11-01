@@ -159,6 +159,18 @@ public class ReviewControllerTest {
     }
 
     @Test
+    @DisplayName("내가 리뷰한 축제 조회 성공")
+    void getReviewedFestivalSuccess() throws Exception {
+        UserEntity userEntity = saveUserEntity();
+        TestSecurityContextHolderInjection.inject(userEntity.getId(), userEntity.getRoleType());
+
+        mockMvc.perform(get("/api/festivals/reviewedBy/me")
+                        .with(securityContext(SecurityContextHolder.getContext()))
+                )
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("축제 리뷰 조회 성공")
     void getReviewsSuccess2() throws Exception {
 

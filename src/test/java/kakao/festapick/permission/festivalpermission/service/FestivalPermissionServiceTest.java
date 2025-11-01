@@ -14,19 +14,19 @@ import java.util.ArrayList;
 import java.util.List;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
 import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.festivalpermission.domain.FestivalPermission;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionDetailDto;
-import kakao.festapick.permission.fmpermission.service.FMPermissionLowService;
 import kakao.festapick.user.domain.UserEntity;
 import kakao.festapick.user.service.UserLowService;
 import kakao.festapick.util.TestUtil;
@@ -53,7 +53,10 @@ class FestivalPermissionServiceTest {
     private FileService fileService;
 
     @Mock
-    private PermissionFileUploader permissionFileUploader;
+    private FileUploadHelper fileUploadHelper;
+
+    @Mock
+    private FestivalNoticeService festivalNoticeService;
 
     @InjectMocks
     private FestivalPermissionService festivalPermissionService;
@@ -88,7 +91,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("FestivalPermission 생성 실패 - 동일 축제에 대해서 중복으로 신청 불가")
-    void createFestivalPermissionFailDuplicate() {
+    void createFestivalPermissionFailDuplicate() throws Exception {
 
         //given
         Festival festival = testUtil.createTourApiTestFestival();
@@ -158,13 +161,13 @@ class FestivalPermissionServiceTest {
                 () -> assertThat(detailDto.docs().size()).isEqualTo(fileEntities.size()),
                 () -> assertThat(festivalPermission.getPermissionState()).isEqualTo(PermissionState.PENDING)
         );
-        verify(permissionFileUploader).updateFiles(any(), any(), any());
+        verify(fileUploadHelper).updateFiles(any(), any(), any(), any());
         verifyNoMoreInteractions(festivalPermissionLowService);
     }
 
     @Test
     @DisplayName("축제 관리자로 승인 허용 - 축제의 외래키 설정")
-    void updateFestivalPermissionState(){
+    void updateFestivalPermissionState() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");
@@ -188,7 +191,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("축제 관리자로 승인 - 이미 축제 관리자가 존재하는 경우에는 예외 발생")
-    void updateFestivalPermissionStateDuplicateFail(){
+    void updateFestivalPermissionStateDuplicateFail() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");
@@ -215,7 +218,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("축제 관리자로 거절 - 축제 매니저는 유지 되어야함")
-    void updateFestivalPermissionStateDeny(){
+    void updateFestivalPermissionStateDeny() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");
@@ -242,7 +245,7 @@ class FestivalPermissionServiceTest {
 
     @Test
     @DisplayName("특정 축제의 매니저인 경우에서 Festival Manager Permission을 Deny로 변경")
-    void updateFestivalPermissionStateDenyManager(){
+    void updateFestivalPermissionStateDenyManager() throws Exception {
 
         //given
         UserEntity user = testUtil.createTestManager("KAKAO-191736");
@@ -285,7 +288,8 @@ class FestivalPermissionServiceTest {
         assertThat(festival.getManager()).isNull();
         verify(festivalPermissionLowService).removeById(any());
         verify(fileService).deleteByDomainId(any(), any());
-        verifyNoMoreInteractions(festivalPermissionLowService, fileService);
+        verify(festivalNoticeService).deleteByFestivalId(any());
+        verifyNoMoreInteractions(festivalPermissionLowService, fileService, festivalNoticeService);
     }
 
     private FestivalPermission createFestivalPermission(UserEntity user, Festival festival, PermissionState permissionState) throws Exception {

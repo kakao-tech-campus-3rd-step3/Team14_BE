@@ -2,17 +2,18 @@ package kakao.festapick.permission.festivalpermission.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.service.FestivalLowService;
+import kakao.festapick.festivalnotice.service.FestivalNoticeService;
 import kakao.festapick.fileupload.domain.DomainType;
 import kakao.festapick.fileupload.domain.FileEntity;
+import kakao.festapick.fileupload.domain.FileType;
 import kakao.festapick.fileupload.dto.FileUploadRequest;
 import kakao.festapick.fileupload.service.FileService;
+import kakao.festapick.fileupload.service.FileUploadHelper;
 import kakao.festapick.global.exception.BadRequestException;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
-import kakao.festapick.permission.PermissionFileUploader;
 import kakao.festapick.permission.PermissionState;
 import kakao.festapick.permission.festivalpermission.domain.FestivalPermission;
 import kakao.festapick.permission.festivalpermission.dto.FestivalPermissionAdminListDto;
@@ -39,7 +40,8 @@ public class FestivalPermissionService {
     private final UserLowService userLowService;
 
     private final FileService fileService;
-    private final PermissionFileUploader permissionFileUploader;
+    private final FileUploadHelper fileUploadHelper;
+    private final FestivalNoticeService festivalNoticeService;
 
     public Long createFestivalPermission(Long userId, Long festivalId, List<FileUploadRequest> documents){
         UserEntity user = userLowService.getReferenceById(userId);
@@ -56,8 +58,13 @@ public class FestivalPermissionService {
         FestivalPermission festivalPermission = new FestivalPermission(user, festival);
         Long savedId = festivalPermissionLowService.save(festivalPermission).getId();
 
-        permissionFileUploader.saveFiles(documents, savedId, DomainType.FESTIVAL_PERMISSION);
+        fileUploadHelper.saveFiles(documents, savedId, FileType.IMAGE, DomainType.FESTIVAL_PERMISSION);
         return savedId;
+    }
+
+    @Transactional(readOnly = true)
+    public Boolean checkFestivalPermission(Long userId, Long festivalId){
+        return festivalPermissionLowService.existsByUserIdAndFestivalId(userId, festivalId);
     }
 
     @Transactional(readOnly = true)
@@ -80,7 +87,7 @@ public class FestivalPermissionService {
             throw new BadRequestException(ExceptionCode.PERMISSION_ACCEPTED_BAD_REQUEST);
         }
 
-        permissionFileUploader.updateFiles(id, DomainType.FESTIVAL_PERMISSION, documents);
+        fileUploadHelper.updateFiles(id, DomainType.FESTIVAL_PERMISSION, FileType.IMAGE, documents);
 
         festivalPermission.updateState(PermissionState.PENDING);
         List<String> docsUrl = fileService.findByDomainIdAndDomainType(id, DomainType.FESTIVAL_PERMISSION)
@@ -98,6 +105,9 @@ public class FestivalPermissionService {
         if(festivalPermission.getPermissionState().equals(PermissionState.ACCEPTED)){
             Festival festival = festivalPermission.getFestival();
             festival.updateManager(null);
+
+            // 작성했던 모든 축제 공지 삭제
+            festivalNoticeService.deleteByFestivalId(festival.getId());
         }
 
         festivalPermissionLowService.removeById(id);
@@ -150,6 +160,7 @@ public class FestivalPermissionService {
     public void updateFestivalPermissionState(Long id, PermissionState permissionState){
         FestivalPermission festivalPermission = festivalPermissionLowService.findByIdWithFestival(id);
         Festival festival = festivalPermission.getFestival();
+        festivalPermission.updateState(permissionState);
 
         if (permissionState.equals(PermissionState.ACCEPTED))
         {
@@ -161,9 +172,9 @@ public class FestivalPermissionService {
         else{ //PENDING 또는 DENIED인 경우
             if (festival.getManager() != null && festival.getManager().equals(festivalPermission.getUser())) {
                 festival.updateManager(null); //관리자로 해제
+                festivalNoticeService.deleteByFestivalId(festival.getId()); // 작성했던 모든 축제 공지 삭제
             }
         }
-        festivalPermission.updateState(permissionState);
     }
 
     private List<String> getDocumentsUrlById(Long id){

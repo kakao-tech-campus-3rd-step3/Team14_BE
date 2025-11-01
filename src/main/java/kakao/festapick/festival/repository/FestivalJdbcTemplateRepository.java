@@ -19,10 +19,10 @@ public class FestivalJdbcTemplateRepository {
 
     public void upsertFestivalInfo(List<Festival> festivalList) {
         String upsertQuery =
-                "insert into Festival(contentId, title, areaCode, addr1, addr2, posterInfo, startDate, endDate, overView, homePage, state) "
-                        + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                "insert into Festival(contentId, title, areaCode, addr1, addr2, posterInfo, startDate, endDate, overView, homePage, state, festivalType) "
+                        + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                         + "on duplicate key update "
-                        + "title = ?, areaCode = ?, addr1 = ?, addr2 = ?, posterInfo = ?, startDate = ?, endDate = ?, overView = ?, homePage = ?, state = ?";
+                        + "title = ?, areaCode = ?, addr1 = ?, addr2 = ?, posterInfo = ?, startDate = ?, endDate = ?, overView = ?, homePage = ?, state = ?, festivalType = ?";
 
         jdbcTemplate.batchUpdate(upsertQuery, new BatchPreparedStatementSetter() {
             @Override
@@ -40,17 +40,19 @@ public class FestivalJdbcTemplateRepository {
                 ps.setString(9, festival.getOverView());
                 ps.setString(10, festival.getHomePage());
                 ps.setString(11, festival.getState().toString());
+                ps.setString(12, festival.getFestivalType().toString());
 
-                ps.setString(12, festival.getTitle());
-                ps.setInt(13, festival.getAreaCode());
-                ps.setString(14, festival.getAddr1());
-                ps.setString(15, festival.getAddr2());
-                ps.setString(16, festival.getPosterInfo());
-                ps.setObject(17, festival.getStartDate());
-                ps.setObject(18, festival.getEndDate());
-                ps.setString(19, festival.getOverView());
-                ps.setString(20, festival.getHomePage());
-                ps.setString(21, festival.getState().toString());
+                ps.setString(13, festival.getTitle());
+                ps.setInt(14, festival.getAreaCode());
+                ps.setString(15, festival.getAddr1());
+                ps.setString(16, festival.getAddr2());
+                ps.setString(17, festival.getPosterInfo());
+                ps.setObject(18, festival.getStartDate());
+                ps.setObject(19, festival.getEndDate());
+                ps.setString(20, festival.getOverView());
+                ps.setString(21, festival.getHomePage());
+                ps.setString(22, festival.getState().toString());
+                ps.setString(23, festival.getFestivalType().toString());
             }
 
             @Override

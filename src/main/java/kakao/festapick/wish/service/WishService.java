@@ -2,6 +2,8 @@ package kakao.festapick.wish.service;
 
 
 import kakao.festapick.festival.domain.Festival;
+import kakao.festapick.festival.dto.FestivalListResponse;
+import kakao.festapick.festival.service.FestivalCacheService;
 import kakao.festapick.festival.service.FestivalLowService;
 import kakao.festapick.global.exception.DuplicateEntityException;
 import kakao.festapick.global.exception.ExceptionCode;
@@ -25,6 +27,8 @@ public class WishService {
     private final WishLowService wishLowService;
     private final UserLowService userLowService;
     private final FestivalLowService festivalLowService;
+
+    private final FestivalCacheService festivalCacheService;
 
     // 좋아요 등록
     @Transactional
@@ -51,6 +55,17 @@ public class WishService {
                     festival.getAreaCode());
         });
 
+    }
+
+    // 유저의 좋아요 반환
+    public Page<FestivalListResponse> getWishedFestivals(Long userId, Pageable pageable) {
+        Page<Wish> wishes = wishLowService.findByUserIdWithFestivalPage(userId, pageable);
+        Page<Festival> festivalList = wishes.map(Wish::getFestival);
+        return festivalList.map(festival -> {
+            Double averageScore = festivalCacheService.calculateReviewScore(festival);
+            long wishCount = festivalCacheService.getWishCount(festival);
+            return new FestivalListResponse(festival, averageScore, wishCount);
+        });
     }
 
     // wishId 기반 좋아요 삭제

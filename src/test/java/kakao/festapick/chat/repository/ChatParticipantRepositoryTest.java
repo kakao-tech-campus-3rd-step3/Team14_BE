@@ -2,6 +2,7 @@ package kakao.festapick.chat.repository;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import java.util.Optional;
 import kakao.festapick.chat.domain.ChatParticipant;
 import kakao.festapick.chat.domain.ChatRoom;
 import kakao.festapick.festival.domain.Festival;
@@ -67,7 +68,9 @@ public class ChatParticipantRepositoryTest {
                 () -> AssertionsForClassTypes.assertThat(actual.getId()).isNotNull(),
                 () -> AssertionsForClassTypes.assertThat(actual.getUser()).isEqualTo(userEntity),
                 () -> AssertionsForClassTypes.assertThat(actual.getChatRoom())
-                        .isEqualTo(chatRoom)
+                        .isEqualTo(chatRoom),
+                () -> AssertionsForClassTypes.assertThat(actual.getMessageSeq())
+                        .isEqualTo(chatRoom.getMessageSeq())
         );
     }
 
@@ -85,6 +88,75 @@ public class ChatParticipantRepositoryTest {
 
         assertAll(
                 () -> AssertionsForClassTypes.assertThat(actual).isTrue()
+        );
+    }
+
+    @Test
+    @DisplayName("유저 아이디와 채팅방 아이디로 채팅 참여자 찾기 테스트")
+    void findChatParticipant() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = saveChatRoom(festival);
+
+        ChatParticipant chatParticipant = chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
+
+        Optional<ChatParticipant> find = chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(chatRoom.getId(), userEntity.getId());
+
+        AssertionsForClassTypes.assertThat(find).isPresent();
+
+        ChatParticipant actual = find.get();
+
+        assertAll(
+                () -> AssertionsForClassTypes.assertThat(actual).isEqualTo(chatParticipant)
+        );
+    }
+
+    @Test
+    @DisplayName("채팅방과 messageSeq 동기화 성공 테스트")
+    void syncMessageSeqSuccess() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = saveChatRoom(festival);
+
+        ChatParticipant chatParticipant = chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
+
+        chatParticipantRepository.syncMessageSeq(userEntity.getId(), chatRoom.getId(), 31L);
+
+        Optional<ChatParticipant> find = chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(chatRoom.getId(),
+                userEntity.getId());
+        AssertionsForClassTypes.assertThat(find).isPresent();
+
+        ChatParticipant actual = find.get();
+
+        assertAll(
+                () -> AssertionsForClassTypes.assertThat(actual.getMessageSeq()).isEqualTo(31L)
+        );
+    }
+
+    @Test
+    @DisplayName("채팅방과 messageSeq 동기화 실패 (더 작은 값으론 동기화 되지 않음)")
+    void syncMessageSeqFail() throws Exception {
+
+        UserEntity userEntity = saveUserEntity();
+        Festival festival = saveFestival();
+        ChatRoom chatRoom = saveChatRoom(festival);
+
+        ChatParticipant chatParticipant = chatParticipantRepository.save(new ChatParticipant(userEntity, chatRoom));
+
+        chatParticipantRepository.syncMessageSeq(userEntity.getId(), chatRoom.getId(), 31L);
+
+        chatParticipantRepository.syncMessageSeq(userEntity.getId(), chatRoom.getId(), 1L);
+
+        Optional<ChatParticipant> find = chatParticipantRepository.findByChatRoomIdAndUserIdWithChatRoom(chatRoom.getId(),
+                userEntity.getId());
+        AssertionsForClassTypes.assertThat(find).isPresent();
+
+        ChatParticipant actual = find.get();
+
+        assertAll(
+                () -> AssertionsForClassTypes.assertThat(actual.getMessageSeq()).isEqualTo(31L)
         );
     }
 }

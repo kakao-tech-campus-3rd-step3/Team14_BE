@@ -8,6 +8,7 @@ import java.util.Set;
 
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.domain.FestivalState;
+import kakao.festapick.festival.domain.FestivalType;
 import kakao.festapick.festival.dto.FestivalSearchCondForAdmin;
 import kakao.festapick.festival.repository.FestivalRepository;
 import kakao.festapick.festival.repository.QFestivalRepository;
@@ -48,11 +49,19 @@ public class FestivalLowService {
     }
 
     public Page<Festival> findFestivalByManagerId(Long managerId, Pageable pageable){
-        return festivalRepository.findFestivalByManagerId(managerId, pageable);
+        return festivalRepository.findFestivalByManagerIdAndState(managerId, FestivalState.APPROVED, pageable);
     }
 
     public List<Festival> findFestivalByManagerId(Long managerId){
         return festivalRepository.findFestivalByManagerId(managerId);
+    }
+
+    public Page<Festival> findCustomFestivalByManagerId(Long managerId, Pageable pageable){
+        return festivalRepository.findCustomFestivalByManagerId(managerId, FestivalType.FESTAPICK, pageable);
+    }
+
+    public List<Festival> findCustomFestivalByManagerId(Long managerId){
+        return festivalRepository.findCustomFestivalByManagerId(managerId, FestivalType.FESTAPICK);
     }
 
     public List<Festival> findFestivalsByContentIds(List<String> contentIds){
@@ -78,6 +87,18 @@ public class FestivalLowService {
     public Festival findByIdWithReviews(Long id) {
         return festivalRepository.findByIdWithReviews(id)
                 .orElseThrow(()-> new NotFoundEntityException(ExceptionCode.FESTIVAL_NOT_FOUND));
+    }
+
+    public Boolean existsFestivalById(Long id){
+        return festivalRepository.existsFestivalById(id);
+    }
+
+    public Festival getReferenceById(Long id) {
+        return festivalRepository.getReferenceById(id);
+    }
+
+    public void deleteCustomFestivalByUserId(Long userId) {
+        festivalRepository.deleteCustomFestivalByUserId(userId, FestivalType.FESTAPICK);
     }
 
 }

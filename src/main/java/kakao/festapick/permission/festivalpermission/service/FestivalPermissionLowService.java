@@ -55,6 +55,11 @@ public class FestivalPermissionLowService {
         return festivalPermissionRepository.findByUserId(userId);
     }
 
+    public List<FestivalPermission> findByUserIdWithFestival(Long userId){
+        return festivalPermissionRepository.findByUserIdWithFestival(userId);
+    }
+
+
     public void deleteByUserId(Long userId){
         festivalPermissionRepository.deleteByUserId(userId);
     }
