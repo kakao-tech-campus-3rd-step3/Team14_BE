@@ -36,9 +36,6 @@
             background: #1e40af;
             transform: translateY(-2px);
         }
-        .btn-group {
-            margin-top: 10px;
-        }
         .card {
             width: min(480px, 92vw);
             background: #fff;
@@ -63,16 +60,10 @@
 <main class="card">
     <h1>관리자 페이지</h1>
 
-    <div class="btn-group">
-        <a class="btn" th:href="@{/admin/users}">회원 관리</a>
-        <a class="btn" th:href="@{/admin/festivals}">축제 관리</a>
-    </div>
-
-    <div class="btn-group">
-        <a class="btn" th:href="@{/admin/fm-permissions}">FM 신청 관리</a>
-        <a class="btn" th:href="@{/admin/festival-permissions}">축제 관리 신청</a>
-        <a class="btn" th:href="@{/admin/festivals/custom}">등록 축제 관리</a>
-    </div>
+    <a class="btn" th:href="@{/admin/users}">회원 관리</a>
+    <a class="btn" th:href="@{/admin/festivals}">축제 관리</a>
+    <a class="btn" th:href="@{/admin/fm-permissions}">FM 신청 관리</a>
+    <a class="btn" th:href="@{/admin/festival-permissions}">축제 관리 신청</a>
 
 </main>
 </tourApiBody>

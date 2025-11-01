@@ -44,15 +44,17 @@ public class FestivalAdminController {
     public String getFestivals(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) FestivalState state,
+            @RequestParam(required = false) FestivalType type,
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC)
             Pageable pageable,
             Model model
     ){
-        Page<FestivalListResponseForAdmin> response = festivalService.findAllWithPage(new FestivalSearchCondForAdmin(title, state, null), pageable);
+        Page<FestivalListResponseForAdmin> response = festivalService.findAllWithPage(new FestivalSearchCondForAdmin(title, state, type), pageable);
 
         model.addAttribute("pageData", response);
         model.addAttribute("title", title);
         model.addAttribute("state", state);
+        model.addAttribute("type", type);
 
         return "admin/festival-management";
     }
