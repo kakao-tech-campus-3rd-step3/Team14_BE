@@ -81,7 +81,7 @@ class AiRecommendationControllerTest {
 
         AiRecommendationRequest request = new AiRecommendationRequest(
                 34,
-                List.of(FestivalStyle.FOOD, FestivalStyle.LOCAL, FestivalStyle.TRENDY),
+                List.of(FestivalStyle.FUNEXPERIENCE, FestivalStyle.LOCAL, FestivalStyle.TRADITIONAL),
                 true,
                 false,
                 true,
