@@ -63,6 +63,7 @@ public class QFestivalRepository {
                 .select(festival)
                 .from(festival)
                 .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), dateGoe(now))
+                .orderBy(festival.endDate.desc())
                 .offset(pageable.getOffset()) // 페이지 시작 번호
                 .limit(pageable.getPageSize()) // 페이지 사이즈
                 .fetch();
