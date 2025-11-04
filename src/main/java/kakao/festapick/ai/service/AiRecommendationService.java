@@ -35,7 +35,7 @@ public class AiRecommendationService {
     public List<FestivalListResponse> getRecommendation(AiRecommendationRequest aiRecommendationRequest, Long userId) {
 
         ResponseEntity<List<FestivalListResponse>> response = fastApiClient.post()
-                .uri("/festivals/recommend")
+                .uri("/ai/recommend/model")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(aiRecommendationRequest)
                 .retrieve()
