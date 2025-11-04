@@ -102,12 +102,12 @@ public class FestivalService {
                 .map(FestivalCustomListResponse::new);
     }
 
-    //지역코드와 날짜(오늘)를 통해 승인된 축제를 조회
-    public Page<FestivalListResponse> findApprovedAreaAndDate(int areaCode, Pageable pageable) {
-
+    //지역코드와 날짜를 통해 승인된 축제를 조회
+    public Page<FestivalListResponse> findApprovedAreaAndDate(int areaCode, boolean now, Pageable pageable) {
         //전국이면 null(조건 없음)
         Integer areaCodeSearch = areaCode == 0 ? null : areaCode;
-        Page<Festival> festivalList = festivalLowService.findFestivalByAreaCodeAndDate(areaCodeSearch, LocalDate.now(), pageable);
+        LocalDate localDate = now ? LocalDate.now() : null;
+        Page<Festival> festivalList = festivalLowService.findFestivalByAreaCodeAndDate(areaCodeSearch, localDate, pageable);
 
         return festivalList.map(this::getFestivalListResponse);
     }
