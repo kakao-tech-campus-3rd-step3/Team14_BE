@@ -57,12 +57,12 @@ public class QFestivalRepository {
         return type != null ? festival.festivalType.eq(type) : null;
     }
 
-    public Page<Festival> findFestivalByAreaCodeAndDate(Integer areaCode, LocalDate now, Pageable pageable){
+    public Page<Festival> findFestivalByAreaCodeAndDate(Integer areaCode, boolean current, Pageable pageable){
 
         List<Festival> content = queryFactory
                 .select(festival)
                 .from(festival)
-                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), dateGoe(now))
+                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), filterByFestivalDate(current))
                 .orderBy(festival.endDate.desc(), festival.id.desc())
                 .offset(pageable.getOffset()) // 페이지 시작 번호
                 .limit(pageable.getPageSize()) // 페이지 사이즈
@@ -71,7 +71,7 @@ public class QFestivalRepository {
         JPAQuery<Long> countQuery = queryFactory
                 .select(festival.count())
                 .from(festival)
-                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), dateGoe(now));
+                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), filterByFestivalDate(current));
 
         return PageableExecutionUtils.getPage(content, pageable, () -> countQuery.fetchOne());
     }
@@ -80,8 +80,8 @@ public class QFestivalRepository {
         return areaCode == null ? null : festival.areaCode.eq(areaCode); // 조건을 반환
     }
 
-    private BooleanExpression dateGoe(LocalDate now){
-        return now == null ? null : festival.endDate.goe(now); // 조건을 반환
+    private BooleanExpression filterByFestivalDate(boolean current){
+        LocalDate now = LocalDate.now();
+        return current ? festival.endDate.goe(now) : festival.endDate.lt(now); // 조건을 반환
     }
-
 }

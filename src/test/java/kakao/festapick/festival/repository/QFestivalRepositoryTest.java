@@ -56,8 +56,7 @@ class QFestivalRepositoryTest {
 
         //when
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Festival> festivals = qFestivalRepository.findFestivalByAreaCodeAndDate(areaCode,
-                testUtil.toLocalDate("20250816"), pageable);
+        Page<Festival> festivals = qFestivalRepository.findFestivalByAreaCodeAndDate(areaCode, false, pageable);
 
         //then
         assertSoftly(
@@ -82,8 +81,7 @@ class QFestivalRepositoryTest {
 
         //when
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Festival> festivals = qFestivalRepository.findFestivalByAreaCodeAndDate(areaCode,
-                testUtil.toLocalDate("20250816"), pageable);
+        Page<Festival> festivals = qFestivalRepository.findFestivalByAreaCodeAndDate(areaCode, false, pageable);
 
         //then
         assertSoftly(

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
@@ -222,7 +223,7 @@ class FestivalServiceTest {
 
         boolean now = true;
 
-        given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), any(), any())).willReturn(pagedFestivals);
+        given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), anyBoolean(), any())).willReturn(pagedFestivals);
 
         //when
         Page<FestivalListResponse> festivalList = festivalService.findApprovedAreaAndDate(areaCode, now, pageable);
@@ -234,7 +235,7 @@ class FestivalServiceTest {
                 () -> assertThat(festivalList.getContent().getFirst()).isInstanceOf(FestivalListResponse.class)
         );
 
-        verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), any(), any());
+        verify(festivalLowService).findFestivalByAreaCodeAndDate(anyInt(), anyBoolean(), any());
         verifyNoMoreInteractions(festivalLowService, wishLowService);
     }
 
