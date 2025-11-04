@@ -62,7 +62,7 @@ public class QFestivalRepository {
         List<Festival> content = queryFactory
                 .select(festival)
                 .from(festival)
-                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), festival.endDate.goe(now))
+                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), dateGoe(now))
                 .offset(pageable.getOffset()) // 페이지 시작 번호
                 .limit(pageable.getPageSize()) // 페이지 사이즈
                 .fetch();
@@ -70,7 +70,7 @@ public class QFestivalRepository {
         JPAQuery<Long> countQuery = queryFactory
                 .select(festival.count())
                 .from(festival)
-                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), festival.endDate.goe(now));
+                .where(areaCodeEq(areaCode), festival.state.eq(FestivalState.APPROVED), dateGoe(now));
 
         return PageableExecutionUtils.getPage(content, pageable, () -> countQuery.fetchOne());
     }
@@ -78,4 +78,9 @@ public class QFestivalRepository {
     private BooleanExpression areaCodeEq(Integer areaCode){
         return areaCode == null ? null : festival.areaCode.eq(areaCode); // 조건을 반환
     }
+
+    private BooleanExpression dateGoe(LocalDate now){
+        return now == null ? null : festival.endDate.goe(now); // 조건을 반환
+    }
+
 }

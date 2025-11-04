@@ -220,10 +220,12 @@ class FestivalServiceTest {
         List<Festival> festivals = getFestivals();
         Page<Festival> pagedFestivals = new PageImpl<>(festivals, pageable, 10);
 
+        boolean now = true;
+
         given(festivalLowService.findFestivalByAreaCodeAndDate(anyInt(), any(), any())).willReturn(pagedFestivals);
 
         //when
-        Page<FestivalListResponse> festivalList = festivalService.findApprovedAreaAndDate(areaCode, pageable);
+        Page<FestivalListResponse> festivalList = festivalService.findApprovedAreaAndDate(areaCode, now, pageable);
 
         //then
         assertAll(

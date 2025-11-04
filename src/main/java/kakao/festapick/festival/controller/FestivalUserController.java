@@ -51,9 +51,10 @@ public class FestivalUserController {
     public ResponseEntity<Page<FestivalListResponse>> getCurrentFestivalByArea(
             @PathVariable int areaCode,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "true") boolean now
     ){
-        Page<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode, PageRequest.of(page, size));
+        Page<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode, now, PageRequest.of(page, size));
         return ResponseEntity.ok(festivalResponseDtos);
     }
 
@@ -143,7 +144,7 @@ public class FestivalUserController {
     //매니저가 존재하면 true, 매니저 존재하지 않으면 false를 반환
     @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
     @GetMapping("/{festivalId}/check-manager")
-    public ResponseEntity<ApiResponseDto<Boolean>> checkDuplicateFestivalPermission(
+    public ResponseEntity<ApiResponseDto<Boolean>> checkDuplicateFestivalManager(
             @PathVariable Long festivalId
     ){
         Boolean hasManager = festivalService.hasManager(festivalId);
