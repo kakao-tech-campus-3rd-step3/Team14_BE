@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/festival-permissions")
-@PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+@PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
 @Tag(name = "Festival Permission API", description = "축제 관리 신청을 위한 API")
 public class FestivalPermissionController {
 
