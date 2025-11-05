@@ -37,7 +37,7 @@ public class FestivalUserController {
             summary = "축제 등록 기능",
             security = @SecurityRequirement(name = "JWT"))
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Void> addFestival(
             @AuthenticationPrincipal Long userId,
             @RequestBody @Valid FestivalCustomRequestDto requestDto
@@ -82,7 +82,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     @GetMapping("/my")
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Page<FestivalListResponse>> getMyFestivals(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
@@ -97,7 +97,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     @PatchMapping("/{festivalId}")
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDto<FestivalDetailResponseDto>> updateFestivalInfo(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId,
@@ -113,7 +113,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     @DeleteMapping("/{festivalId}")
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Void> removeFestival(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long festivalId
@@ -127,7 +127,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     @GetMapping("/my/custom")
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     public ResponseEntity<Page<FestivalCustomListResponse>> getMyCustomFestivals(
             @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
@@ -142,7 +142,7 @@ public class FestivalUserController {
             security = @SecurityRequirement(name = "JWT")
     )
     //매니저가 존재하면 true, 매니저 존재하지 않으면 false를 반환
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     @GetMapping("/{festivalId}/check-manager")
     public ResponseEntity<ApiResponseDto<Boolean>> checkDuplicateFestivalManager(
             @PathVariable Long festivalId

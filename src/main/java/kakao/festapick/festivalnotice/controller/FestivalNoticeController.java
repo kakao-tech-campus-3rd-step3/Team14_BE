@@ -38,7 +38,7 @@ public class FestivalNoticeController {
             summary = "축제 공지 작성하기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     @PostMapping("/{festivalId}/notices")
     public ResponseEntity<Void> addNotice(
             @AuthenticationPrincipal Long userId,
@@ -67,7 +67,7 @@ public class FestivalNoticeController {
             summary = "공지 사항 수정 하기",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     @PutMapping("/notices/{id}")
     public ResponseEntity<ApiResponseDto<FestivalNoticeResponseDto>> updateFestivalNotice(
             @AuthenticationPrincipal Long userId,
@@ -83,7 +83,7 @@ public class FestivalNoticeController {
             summary = "공지 사항 삭제",
             security = @SecurityRequirement(name = "JWT")
     )
-    @PreAuthorize("hasRole('ROLE_FESTIVAL_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_FESTIVAL_MANAGER', 'ROLE_ADMIN')")
     @DeleteMapping("/notices/{id}")
     public ResponseEntity<Void> removeFestivalNotice(
             @AuthenticationPrincipal Long userId,
