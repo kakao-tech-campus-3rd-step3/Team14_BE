@@ -52,9 +52,9 @@ public class FestivalUserController {
             @PathVariable int areaCode,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "true") boolean now
+            @RequestParam(defaultValue = "true") boolean current
     ){
-        Page<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode, now, PageRequest.of(page, size));
+        Page<FestivalListResponse> festivalResponseDtos = festivalService.findApprovedAreaAndDate(areaCode, current, PageRequest.of(page, size));
         return ResponseEntity.ok(festivalResponseDtos);
     }
 

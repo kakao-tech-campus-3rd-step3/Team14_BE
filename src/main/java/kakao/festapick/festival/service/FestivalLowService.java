@@ -39,8 +39,8 @@ public class FestivalLowService {
         return festivalRepository.findAllByState(festivalState);
     }
 
-    public Page<Festival> findFestivalByAreaCodeAndDate(Integer areaCode, LocalDate today, Pageable pageable){
-        return qFestivalRepository.findFestivalByAreaCodeAndDate(areaCode, today, pageable);
+    public Page<Festival> findFestivalByAreaCodeAndDate(Integer areaCode, boolean current, Pageable pageable){
+        return qFestivalRepository.findFestivalByAreaCodeAndDate(areaCode, current, pageable);
     }
 
     public Festival findFestivalById(Long id) {
