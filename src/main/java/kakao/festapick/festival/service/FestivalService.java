@@ -191,18 +191,22 @@ public class FestivalService {
         festivalLowService.deleteById(festival.getId());
 
         fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
+        s3Service.deleteS3File(festival.getPosterInfo());
     }
 
     @Transactional
     public void deleteFestivalByManagerId(Long id) {
-        List<Long> festivalIds = festivalLowService.findFestivalByManagerId(id)
-                .stream().map(Festival::getId).toList();
+        List<Festival> festivals = festivalLowService.findFestivalByManagerId(id);
+        List<Long> festivalIds = festivals.stream().map(Festival::getId).toList();
+        List<String> posterInfos = festivals.stream().map(Festival::getPosterInfo).toList();
 
         festivalIds.forEach(festivalId -> deleteRelatedEntity(festivalId));
 
         festivalLowService.deleteByManagerId(id);
 
         fileService.deleteByDomainIds(festivalIds, DomainType.FESTIVAL); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
+        s3Service.deleteFiles(posterInfos);
+
     }
 
     //FestivalManager 박탈 시,
