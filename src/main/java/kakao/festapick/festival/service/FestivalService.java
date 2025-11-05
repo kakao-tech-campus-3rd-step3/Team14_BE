@@ -179,6 +179,7 @@ public class FestivalService {
 
         //축제 삭제 시 관련 이미지를 모두 삭제
         fileService.deleteByDomainId(festival.getId(), DomainType.FESTIVAL);
+        s3Service.deleteS3File(festival.getPosterInfo());
     }
 
     @Transactional

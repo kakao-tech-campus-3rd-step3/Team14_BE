@@ -365,7 +365,8 @@ class FestivalServiceTest {
         verify(wishLowService).deleteByFestivalId(festival.getId());
         verify(festivalPermissionService).deleteFestivalPermissionByFestivalId(festival.getId());
         verify(festivalNoticeService).deleteByFestivalId(any());
-        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService, festivalPermissionService);
+        verify(s3Service).deleteS3File(any());
+        verifyNoMoreInteractions(festivalLowService,fileService,reviewService,wishLowService, recommendationHistoryLowService, festivalPermissionService,s3Service);
     }
 
     @Test
