@@ -73,13 +73,14 @@ public class ChatRoomService {
     // 연관 엔티티 (채팅방 내 채팅 메시지, 채팅방 참여자) 정리
     private void deleteRelatedEntity(Long chatRoomId) {
         chatParticipantLowService.deleteByChatRoomId(chatRoomId);
-        chatMessageLowService.deleteByChatRoomId(chatRoomId);
 
         List<String> chatMessageUrls = chatMessageLowService.findAllByChatRoomId(chatRoomId)
                 .stream()
                 .map(ChatMessage::getImageUrl)
                 .filter(Objects::nonNull)
                 .toList();
+
+        chatMessageLowService.deleteByChatRoomId(chatRoomId);
 
         s3Service.deleteFiles(chatMessageUrls); // s3 파일 삭제를 동반하기 때문에 마지막에 호출
     }
