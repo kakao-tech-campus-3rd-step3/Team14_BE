@@ -1,6 +1,6 @@
 package kakao.festapick.festival.dto;
 
-import kakao.festapick.ai.domain.RecommendationHistory;
+import kakao.festapick.ai.dto.AiRecommendationResponse;
 import kakao.festapick.festival.domain.Festival;
 
 import java.time.LocalDate;
@@ -28,6 +28,21 @@ public record FestivalListResponse(
                 festival.getPosterInfo(),
                 festival.getStartDate(),
                 festival.getEndDate(),
+                averageScore,
+                wishCount
+        );
+    }
+
+    public FestivalListResponse(AiRecommendationResponse aiRecommendationResponse, Double averageScore, long wishCount){
+        this(
+                aiRecommendationResponse.id(),
+                aiRecommendationResponse.managerId(),
+                aiRecommendationResponse.title(),
+                aiRecommendationResponse.addr1(),
+                aiRecommendationResponse.addr2(),
+                aiRecommendationResponse.posterInfo(),
+                aiRecommendationResponse.startDate(),
+                aiRecommendationResponse.endDate(),
                 averageScore,
                 wishCount
         );
