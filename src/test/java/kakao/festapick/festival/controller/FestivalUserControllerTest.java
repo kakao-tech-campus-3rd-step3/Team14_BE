@@ -241,7 +241,7 @@ class FestivalUserControllerTest {
         Festival festival = createCustomFestival("축제1", 1, testUtil.toLocalDate("20250803"), testUtil.toLocalDate("20250805"), user);
         Festival saved = festivalRepository.save(festival);
 
-        FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3", "카테캠 포스터", null);
+        FestivalUpdateRequestDto updateInfo = createUpdateInfo("카테캠 축제 시즌 3", "https://kakao-poster.com", null);
         String updateRequest = objectMapper.writeValueAsString(updateInfo);
 
         //when-then
@@ -258,7 +258,7 @@ class FestivalUserControllerTest {
         assertAll(
                 () -> assertThat(content.id()).isEqualTo(saved.getId()),
                 () -> assertThat(content.title()).isEqualTo("카테캠 축제 시즌 3"),
-                () -> assertThat(content.posterInfo()).isEqualTo("카테캠 포스터")
+                () -> assertThat(content.posterInfo()).isEqualTo("https://kakao-poster.com")
         );
     }
 
@@ -278,7 +278,7 @@ class FestivalUserControllerTest {
         images.add(new FileUploadRequest(99L, "https://festapick.firstimage.com"));
         images.add(new FileUploadRequest(9999L,"https://festapick.newimage.com"));
 
-        FestivalUpdateRequestDto festivalUpdateRequestDto = createUpdateInfo("카테캠 축제", "카테캠 포스터", images);
+        FestivalUpdateRequestDto festivalUpdateRequestDto = createUpdateInfo("카테캠 축제", "https://kakao-poster.com", images);
         String updateRequest = objectMapper.writeValueAsString(festivalUpdateRequestDto);
 
         //when-then
@@ -443,7 +443,7 @@ class FestivalUserControllerTest {
         String overview = "The overview is a section for writing a description of the festival, and it must contain at least 50 characters.";
         return new FestivalCustomRequestDto(
                 title, areaCode, "addr1", "addr2",
-                new FileUploadRequest(1L,"imageUrl"), testUtil.createFestivalImages(), startDate, endDate, "homePage", overview
+                new FileUploadRequest(1L,"https://festapick-image.com"), testUtil.createFestivalImages(), startDate, endDate, "homePage", overview
         );
     }
 
