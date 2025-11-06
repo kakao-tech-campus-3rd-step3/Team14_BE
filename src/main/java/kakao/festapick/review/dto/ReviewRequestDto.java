@@ -14,6 +14,7 @@ public record ReviewRequestDto(
         @Min(value = 1, message = "점수는 최소 1점에서 최대 5점 까지 가능합니다")
         @Max(value = 5, message = "점수는 최소 1점에서 최대 5점 까지 가능합니다")
         Integer score,
+        @Size(max = 10, message = "이미지는 최대 10장 까지 업로드 가능합니다.")
         List<FileUploadRequest> imageInfos,
         FileUploadRequest videoInfo // 일단 video url은 한개만 제한
 ) {
