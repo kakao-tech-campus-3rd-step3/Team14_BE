@@ -84,7 +84,7 @@ FestaPick은 **축제 참여자**와 **축제 관리자(주최측)** 모두가 �
 
 #### 🛂 등록된 축제에 대한 관리자 신청  
 <p>
-  <img src="https://github.com/user-attachments/assets/f4d85b13-0e71-4d09-bfce-fbd2a0a5bcd5" alt="기존 축제 관리자 신청" width="200" />
+  <img src="https://github.com/user-attachments/assets/2e20b0f3-0989-4b2e-b5a2-444f1a8fd892" alt="나의 축제 등록" width="200" />
 </p>
 
 - 관광공사(TourAPI)에 등록된 축제에 대해 관리자 권한을 신청할 수 있습니다.  
@@ -92,7 +92,7 @@ FestaPick은 **축제 참여자**와 **축제 관리자(주최측)** 모두가 �
 
 #### 📝 나의 축제 등록하기  
 <p>
-  <img src="https://github.com/user-attachments/assets/2e20b0f3-0989-4b2e-b5a2-444f1a8fd892" alt="나의 축제 등록" width="200" />
+  <img src="https://github.com/user-attachments/assets/f4d85b13-0e71-4d09-bfce-fbd2a0a5bcd5" alt="기존 축제 관리자 신청" width="200" />
 </p>
 
 - 축제 관리자는 새로운 축제를 등록할 수 있습니다.  
