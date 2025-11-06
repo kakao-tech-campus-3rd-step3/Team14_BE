@@ -35,18 +35,19 @@ public class Festival extends BaseTimeEntity {
     @Column(unique = true)
     private String contentId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String title;
 
     private int areaCode;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String addr1;
 
+    @Column(length = 255)
     private String addr2;
 
     @Column(nullable = false)
-    private String posterInfo;
+    private String posterInfo; // presigned url
 
     @Column(nullable = false)
     private LocalDate startDate;
