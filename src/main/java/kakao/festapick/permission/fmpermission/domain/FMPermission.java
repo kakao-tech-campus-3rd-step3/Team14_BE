@@ -26,7 +26,7 @@ public class FMPermission extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String department;
 
     @Enumerated(EnumType.STRING)

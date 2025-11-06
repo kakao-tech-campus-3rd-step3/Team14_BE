@@ -8,6 +8,7 @@ import kakao.festapick.fileupload.dto.FileUploadRequest;
 
 public record FMPermissionRequestDto(
         @NotBlank(message = "소속 기관 입력은 필수입니다.")
+        @Size(min = 2, max = 50, message = "소속 기관 명은 최소 2자, 최대 50자 입력 가능합니다.")
         String department,
 
         @Size(min = 1,message = "최소 1개 이상의 서류를 업로드해야합니다.")
