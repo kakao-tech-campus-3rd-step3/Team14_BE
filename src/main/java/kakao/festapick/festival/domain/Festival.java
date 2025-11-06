@@ -1,6 +1,7 @@
 package kakao.festapick.festival.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import kakao.festapick.domain.BaseTimeEntity;
 import kakao.festapick.festival.dto.FestivalCustomRequestDto;
 import kakao.festapick.festival.dto.FestivalRequestDto;
@@ -35,18 +36,19 @@ public class Festival extends BaseTimeEntity {
     @Column(unique = true)
     private String contentId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String title;
 
     private int areaCode;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String addr1;
 
+    @Column(length = 255)
     private String addr2;
 
     @Column(nullable = false)
-    private String posterInfo;
+    private String posterInfo; // presigned url
 
     @Column(nullable = false)
     private LocalDate startDate;
