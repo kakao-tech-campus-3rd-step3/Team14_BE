@@ -27,7 +27,7 @@ public class FMPermissionAdminController {
     @GetMapping
     public String getAllFMPermissions(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "10") int size,
             Model model
     ){
         Page<FMPermissionAdminListResponseDto> response =  fmPermissionService.getAllFMPermission(PageRequest.of(page, size));
