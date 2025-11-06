@@ -1,5 +1,6 @@
 package kakao.festapick.festivalnotice.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,8 +21,10 @@ public class FestivalNotice extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 100)
     private String title;
 
+    @Column(nullable = false, length = 2000)
     private String content;
 
     @ManyToOne
