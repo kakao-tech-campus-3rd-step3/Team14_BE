@@ -5,6 +5,7 @@ import kakao.festapick.ai.domain.RecommendationForm;
 import kakao.festapick.ai.domain.RecommendationHistory;
 import kakao.festapick.ai.dto.AiRecommendationHistoryResponse;
 import kakao.festapick.ai.dto.AiRecommendationRequest;
+import kakao.festapick.ai.dto.AiRecommendationResponse;
 import kakao.festapick.ai.dto.RecommendationFormResponse;
 import kakao.festapick.festival.domain.Festival;
 import kakao.festapick.festival.dto.FestivalListResponse;
@@ -34,21 +35,30 @@ public class AiRecommendationService {
 
     public List<FestivalListResponse> getRecommendation(AiRecommendationRequest aiRecommendationRequest, Long userId) {
 
-        ResponseEntity<List<FestivalListResponse>> response = fastApiClient.post()
+        ResponseEntity<List<AiRecommendationResponse>> response = fastApiClient.post()
                 .uri("/ai/recommend/model")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(aiRecommendationRequest)
                 .retrieve()
-                .toEntity(new ParameterizedTypeReference<List<FestivalListResponse>>(){});
+                .toEntity(new ParameterizedTypeReference<List<AiRecommendationResponse>>(){});
+
+
+        List<AiRecommendationResponse> aiRecommendationResponses1 = response.getBody();
+
+        for (AiRecommendationResponse aiRecommendationResponse : aiRecommendationResponses1) {
+            System.out.println(aiRecommendationResponse.toString());
+        }
 
         // 최신 추천 기록만 남기고 저장
         recommendationHistoryLowService.deleteByUserId(userId);
 
         UserEntity findUser = userLowService.getReferenceById(userId);
 
-        List<RecommendationHistory> recommendationHistories = response.getBody()
-                .stream().map(festivalListResponse ->
-                        new RecommendationHistory(festivalLowService.getReferenceById(festivalListResponse.id()), findUser))
+        List<AiRecommendationResponse> aiRecommendationResponses = response.getBody();
+
+        List<RecommendationHistory> recommendationHistories = aiRecommendationResponses
+                .stream().map(festivalInfo ->
+                        new RecommendationHistory(festivalLowService.getReferenceById(festivalInfo.id()), findUser))
                 .toList();
 
         recommendationHistoryLowService.saveAll(recommendationHistories);
@@ -57,7 +67,17 @@ public class AiRecommendationService {
         recommendationFormLowService.deleteByUserId(userId);
         recommendationFormLowService.save(new RecommendationForm(aiRecommendationRequest, findUser));
 
-        return response.getBody();
+        List<FestivalListResponse> festivalListResponses = aiRecommendationResponses
+                .stream()
+                .map(festivalInfo -> {
+                            Festival festival = festivalLowService.getReferenceById(festivalInfo.id());
+                            long wishCount = festivalCacheService.getWishCount(festival);
+                            Double reviewScore = festivalCacheService.calculateReviewScore(festival);
+                            return new FestivalListResponse(festivalInfo, reviewScore, wishCount);
+                        }
+                ).toList();
+
+        return festivalListResponses;
     }
 
 
