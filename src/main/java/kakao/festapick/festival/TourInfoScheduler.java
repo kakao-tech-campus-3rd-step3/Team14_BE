@@ -58,7 +58,6 @@ public class TourInfoScheduler {
 
     private final ObjectMapper objectMapper;
 
-    @GetMapping("/update") //// 테스트용 - 개발 완료시 삭제할 것
     @Transactional
     @Scheduled(cron = "0 10 3 * * *")
     public void fetchFestivals(){
