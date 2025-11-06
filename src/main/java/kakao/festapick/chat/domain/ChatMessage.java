@@ -25,7 +25,6 @@ public class ChatMessage extends BaseTimeEntity {
     private Long id;
 
     @Column(name = "content", nullable = false, length = 255)
-    @Size(max = 255)
     private String content;
 
     private String imageUrl;
