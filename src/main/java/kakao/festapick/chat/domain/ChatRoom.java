@@ -24,7 +24,7 @@ public class ChatRoom extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "roomName", nullable = false, length = 255)
+    @Column(name = "roomName", nullable = false, length = 300)
     private String roomName;
 
     @OneToOne(fetch = FetchType.LAZY)
