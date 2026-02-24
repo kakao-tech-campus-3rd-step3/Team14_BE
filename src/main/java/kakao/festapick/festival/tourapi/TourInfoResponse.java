@@ -17,7 +17,7 @@ public class TourInfoResponse {
 
     private List<FestivalRequestDto> festivalResponseDtoList = new ArrayList<>();
 
-    private static HashMap<String, Integer> areaMap = new HashMap<>();
+    private static final HashMap<String, Integer> areaMap = new HashMap<>();
 
     static {
 
@@ -99,9 +99,9 @@ public class TourInfoResponse {
     }
 
     private int getAreaCode(String areaCode, String addr1){
-        if(areaCode != null && !areaCode.isEmpty()) return Integer.parseInt(areaCode);
-        if(addr1 != null && !addr1.isEmpty()){
-            String area = addr1.split(" ")[0];
+        if(areaCode != null && !areaCode.isBlank()) return Integer.parseInt(areaCode);
+        if(addr1 != null && !addr1.isBlank()){
+            String area = addr1.trim().split(" ")[0];
             return areaMap.getOrDefault(area, 0);
         }
         return 0;
