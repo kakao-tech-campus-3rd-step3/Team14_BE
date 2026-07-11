@@ -28,8 +28,8 @@ public class RestClientConfig {
         uriBuilderFactory.setEncodingMode(EncodingMode.NONE);
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofSeconds(120));
-        requestFactory.setReadTimeout(Duration.ofSeconds(120));
+        requestFactory.setConnectTimeout(Duration.ofSeconds(130));
+        requestFactory.setReadTimeout(Duration.ofSeconds(130));
 
         return builder.requestFactory(requestFactory).uriBuilderFactory(uriBuilderFactory)
                 .defaultStatusHandler(HttpStatusCode::is4xxClientError,
