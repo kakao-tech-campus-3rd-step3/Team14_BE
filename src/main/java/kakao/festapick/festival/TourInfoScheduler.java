@@ -59,7 +59,7 @@ public class TourInfoScheduler {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    @Scheduled(cron = "0 10 3 * * *")
+    @Scheduled(cron = "0 25 10 * * *")
     public void fetchFestivals(){
         int maxRows = getMaxColumns();
         if (maxRows > 0) {
